@@ -68,6 +68,11 @@ public class KnowledgeRepository {
         return jdbc.sql("""
             SELECT v.*,j.status AS job_status,j.attempt_count,d.latest_version_id,d.published_version_id,%s AS effective_edit,
              EXISTS(SELECT 1 FROM user_role ur JOIN app_role role ON role.id=ur.role_id WHERE ur.user_id=:user AND role.code='KB_EDITOR') AS explicit_editor,
+             EXISTS(SELECT 1 FROM knowledge_space_member reviewer
+               JOIN app_user reviewer_user ON reviewer_user.id=reviewer.user_id AND reviewer_user.active
+               JOIN user_role reviewer_role ON reviewer_role.user_id=reviewer.user_id
+               JOIN app_role reviewer_code ON reviewer_code.id=reviewer_role.role_id AND reviewer_code.code='KB_EDITOR'
+               WHERE reviewer.space_id=d.space_id AND reviewer.can_read AND reviewer.can_edit AND reviewer.user_id<>v.created_by) AS has_eligible_reviewer,
              (SELECT count(*) FROM knowledge_chunk c WHERE c.document_version_id=v.id) AS chunk_count
             FROM document_version v JOIN knowledge_document d ON d.id=v.document_id JOIN knowledge_space s ON s.id=d.space_id
             JOIN knowledge_space_member m ON m.space_id=s.id AND m.user_id=:user LEFT JOIN ai_job j ON j.id=v.job_id
@@ -76,7 +81,7 @@ public class KnowledgeRepository {
             """.formatted(EDIT,ACTIVE,EDIT)).param("id",doc).param("user",a.id()).query((r,n)->{
                 boolean edit=r.getBoolean("effective_edit"),ready=r.getString("ingest_state").equals("READY")&&r.getInt("chunk_count")>0,current=r.getObject("id",UUID.class).equals(r.getObject("latest_version_id",UUID.class));
                 String state=r.getString("review_state");UUID author=r.getObject("created_by",UUID.class);Timestamp reviewed=r.getTimestamp("reviewed_at");
-                return new Version(r.getObject("id",UUID.class),r.getInt("version_no"),r.getString("file_name"),r.getString("mime_type"),r.getString("sha256"),r.getString("ingest_state"),r.getString("publication_state"),r.getString("error_code"),r.getTimestamp("created_at").toInstant(),edit?r.getObject("job_id",UUID.class):null,edit?r.getString("job_status"):null,edit?r.getInt("attempt_count"):0,r.getInt("chunk_count"),state,author,r.getObject("reviewer_id",UUID.class),r.getString("review_reason"),reviewed==null?null:reviewed.toInstant(),edit&&ready&&current&&state.equals("DRAFT"),edit&&r.getBoolean("explicit_editor")&&ready&&current&&state.equals("PENDING")&&!a.id().equals(author),edit&&ready&&state.equals("APPROVED")&&!r.getObject("id",UUID.class).equals(r.getObject("published_version_id",UUID.class)));
+                return new Version(r.getObject("id",UUID.class),r.getInt("version_no"),r.getString("file_name"),r.getString("mime_type"),r.getString("sha256"),r.getString("ingest_state"),r.getString("publication_state"),r.getString("error_code"),r.getTimestamp("created_at").toInstant(),edit?r.getObject("job_id",UUID.class):null,edit?r.getString("job_status"):null,edit?r.getInt("attempt_count"):0,r.getInt("chunk_count"),state,author,r.getObject("reviewer_id",UUID.class),r.getString("review_reason"),reviewed==null?null:reviewed.toInstant(),edit&&ready&&current&&state.equals("DRAFT"),edit&&r.getBoolean("explicit_editor")&&ready&&current&&state.equals("PENDING")&&!a.id().equals(author),edit&&ready&&state.equals("APPROVED")&&!r.getObject("id",UUID.class).equals(r.getObject("published_version_id",UUID.class)),edit&&r.getBoolean("has_eligible_reviewer"));
             }).list();
     }
     public Job job(Actor a,UUID id){return jdbc.sql("""

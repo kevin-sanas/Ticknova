@@ -13,6 +13,7 @@ export const router = createRouter({
     { path: '/tickets/new', component: () => import('./views/NewTicketView.vue'), meta: { title: '新建工单' } },
     { path: '/tickets/:id', component: () => import('./views/TicketDetailView.vue'), meta: { title: '工单详情' } },
     { path: '/knowledge', component: () => import('./views/KnowledgeView.vue'), meta: { title: '知识管理' } },
+    { path: '/knowledge/reviews', component: () => import('./views/KnowledgeReviewView.vue'), meta: { title: '审核待办' } },
     { path: '/assistant', component: () => import('./views/AssistantView.vue'), meta: { title: '知识助手' } },
     { path: '/admin/users', component: () => import('./views/UsersView.vue'), meta: { title: '用户与角色' } },
     { path: '/admin/queues', component: () => import('./views/CatalogView.vue'), props: { kind: 'queues' }, meta: { title: '队列管理' } },

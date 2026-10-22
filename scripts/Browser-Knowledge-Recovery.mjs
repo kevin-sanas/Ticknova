@@ -2,7 +2,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { randomBytes } from 'node:crypto'
-import { createEditorFixture, permitReview, actorRequest } from './Browser-Review.mjs'
+import { createEditorFixture, actorRequest } from './Browser-Review.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const { chromium } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/playwright/index.mjs')))
@@ -16,7 +16,7 @@ const env = Object.fromEntries((await readFile(resolve(root, '.env'), 'utf8')).s
 const evidence = resolve(root, 'docs/evidence'); await mkdir(evidence, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 const contexts = [], errors = [], checks = [], screenshots = [], secrets = []
-let phase = 'login', fixture = {}
+let phase = 'login', fixture = {}, reviewerPage
 async function login(username, password) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1050 }, locale: 'zh-CN', timezoneId: 'Asia/Shanghai' }); contexts.push(context)
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.name))
@@ -54,9 +54,10 @@ try {
   const admin = await login('admin', adminPassword)
   const created = await createEditorFixture(admin, base, secret => secrets.push(secret))
   const reviewer = await login(created.username, created.password)
+  reviewerPage = reviewer.page
   phase = 'private fixture'
   const space = await actorRequest(admin, base, 'POST', '/knowledge/spaces', { name: `草稿审核回归 ${Date.now()}` })
-  fixture.spaceId = space.id; await permitReview(admin, reviewer, base, space.id)
+  fixture.spaceId = space.id
   await admin.page.getByRole('button', { name: '刷新空间', exact: true }).click(); await admin.page.locator('#knowledge-space').selectOption(space.id)
   await expect(admin.page.locator('#knowledge-space')).toHaveValue(space.id)
   await expect(admin.page.locator('#knowledge-upload')).toBeVisible()
@@ -96,9 +97,22 @@ try {
 
   phase = 'review rejection'
   await admin.page.getByRole('button', { name: '提交审核', exact: true }).click()
-  await reviewer.page.getByRole('button', { name: '刷新空间', exact: true }).click()
-  await reviewer.page.getByRole('button', { name: '待我审核', exact: true }).click()
-  const openTask = reviewer.page.getByRole('button', { name: '打开草稿与审核回归手册' })
+  await expect(admin.page.getByText('当前空间尚无其他可审核成员。', { exact: false })).toBeVisible()
+  await admin.page.getByRole('button', { name: '配置审核人', exact: true }).click()
+  await expect(admin.page.locator('#knowledge-member-user')).toBeEnabled()
+  await admin.page.locator('#knowledge-member-user').selectOption(created.user.id)
+  await admin.page.getByLabel('允许阅读', { exact: true }).check()
+  await admin.page.getByLabel('允许编辑', { exact: true }).check()
+  await admin.page.locator('#knowledge-member-reason').fill('独立审核验收授权')
+  const grantResponse = admin.page.waitForResponse(r => r.url().endsWith(`/spaces/${space.id}/members/${created.user.id}`) && r.request().method() === 'PUT')
+  await admin.page.getByRole('button', { name: '保存成员权限', exact: true }).click()
+  expect((await grantResponse).status()).toBe(204)
+  await expect(admin.page.getByText('当前空间尚无其他可审核成员。', { exact: false })).toHaveCount(0)
+  checked('missing independent reviewer is explained and repaired through member management')
+  await expect(reviewer.page.locator('a[href="/knowledge/reviews"]').first()).toBeVisible()
+  await reviewer.page.locator('a[href="/knowledge/reviews"]').first().click()
+  await reviewer.page.waitForURL('**/knowledge/reviews')
+  const openTask = reviewer.page.getByRole('button', { name: '审核草稿与审核回归手册的版本 1' })
   await expect(openTask).toBeVisible()
   await snapshot(reviewer.page, 'review-queue')
   await openTask.focus(); expect(await openTask.evaluate(button => button === document.activeElement)).toBe(true)
@@ -117,18 +131,27 @@ try {
   await admin.page.getByRole('button', { name: '上传新版本并解析', exact: true }).click()
   await expect(admin.page.locator('.knowledge-versions > li').first().getByText('解析就绪', { exact: true })).toBeVisible()
   await admin.page.locator('.knowledge-versions > li').first().getByRole('button', { name: '提交审核' }).click()
+  await reviewer.page.locator('a[href="/knowledge/reviews"]').first().click()
+  await reviewer.page.waitForURL('**/knowledge/reviews')
   await reviewer.page.getByRole('button', { name: '刷新待办' }).click()
-  await reviewer.page.getByRole('button', { name: '打开草稿与审核回归手册' }).click()
+  await reviewer.page.getByRole('button', { name: '审核草稿与审核回归手册的版本 2' }).click()
   await expect(reviewer.page.locator('.knowledge-reader')).toContainText('虚构路由配置')
   await reviewer.page.locator('.knowledge-versions > li').first().getByRole('button', { name: '审核通过' }).click()
   await admin.page.getByRole('button', { name: '刷新状态', exact: true }).click()
   await expect(admin.page.locator('.knowledge-versions > li').first().getByRole('button', { name: '发布此版本' })).toBeVisible()
-  checked('second eligible editor approves a revised version and author may publish')
+  await admin.page.locator('.knowledge-versions > li').first().getByRole('button', { name: '发布此版本' }).click()
+  await expect(admin.page.locator('.knowledge-versions > li').first().getByText('当前发布', { exact: true })).toBeVisible()
+  await reviewer.page.locator('a[href="/knowledge/reviews"]').first().click()
+  await reviewer.page.waitForURL('**/knowledge/reviews')
+  await expect(reviewer.page.getByRole('button', { name: '审核草稿与审核回归手册的版本 2' })).toHaveCount(0)
+  checked('second eligible editor approves a revised version, author publishes it, and review task disappears')
   expect(errors).toEqual([])
   await writeFile(resolve(evidence, `${prefix}.json`), JSON.stringify({ date: new Date().toISOString(), status: 'PASS', checks, screenshots, fixture, pageErrors: errors.length, limitations: ['Synthetic data is confined to the dedicated ticknova_browser test database; cleanup is separate.', 'Chromium only; screenshots require visual inspection.'] }, null, 2) + '\n')
 } catch (failure) {
   let message = `Knowledge recovery browser failure at ${phase}: ${failure.message}`
   for (const secret of secrets) message = message.replaceAll(secret, '[REDACTED]')
   console.error(message); process.exitCode = 1
+  if (reviewerPage) console.error(`Reviewer page: ${reviewerPage.url()} | ${((await reviewerPage.locator('#main-content').allInnerTexts()).join(' ') || '').slice(0, 500)}`)
+  if (errors.length) console.error(`Page errors: ${errors.join(' | ').slice(0, 500)}`)
   try { const path = resolve(evidence, `${prefix}-failure.png`); await contexts[0]?.pages()[0]?.screenshot({ path, fullPage: true, animations: 'disabled' }); screenshots.push(`${prefix}-failure.png`) } catch {}
 } finally { for (const context of contexts) await context.close(); await browser.close() }

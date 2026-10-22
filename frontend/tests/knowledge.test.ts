@@ -24,7 +24,7 @@ async function render(roles = ['KB_EDITOR'], renderErrors?: unknown[], reference
   bindApiSession({ getToken: () => session.token, onUnauthorized: () => session.clear() })
   const router = reference ? createRouter({ history: createMemoryHistory(), routes: [{ path: '/knowledge', component: module.default }] }) : null
   if (router) { await router.push({ path: '/knowledge', query: reference }); await router.isReady() }
-  wrapper = mount(module.default, { attachTo: document.body, global: { plugins: router ? [pinia, ElementPlus, router] : [pinia, ElementPlus], config: renderErrors ? { errorHandler: error => renderErrors.push(error) } : {} } }); await flushPromises()
+  wrapper = mount(module.default, { attachTo: document.body, global: { plugins: router ? [pinia, ElementPlus, router] : [pinia, ElementPlus], stubs: router ? {} : { RouterLink: true }, config: renderErrors ? { errorHandler: error => renderErrors.push(error) } : {} } }); await flushPromises()
   return { view: wrapper, session, router }
 }
 function stub(extra?: (url: string, init: RequestInit) => Response | Promise<Response> | undefined) {
@@ -67,7 +67,7 @@ describe('knowledge management', () => {
     expect(requests.some(url => url.includes('/review-tasks?'))).toBe(false)
     await click(view, '待我审核')
     expect(view.text()).toContain('待审核手册')
-    await click(view, '打开待审核手册')
+    await click(view, '打开审核')
     expect(view.text()).toContain('审核通过')
     await click(view, '审核通过')
     expect(requests.some(url => url.endsWith('/versions/v2/reviews'))).toBe(true)
@@ -79,6 +79,15 @@ describe('knowledge management', () => {
     expect(view.text()).not.toContain('待我审核')
     expect(requests.some(url => url.includes('/review-tasks?'))).toBe(false)
   })
+  it('explains a pending version with no eligible reviewer and opens member setup for its manager', async () => {
+    stub(url => url.endsWith('/documents/d1') ? json({ ...detail, versions: [{ ...version, reviewState: 'PENDING', authorId: 'u1', canReview: false, canPublish: false, hasEligibleReviewer: false }] }) : undefined)
+    const { view } = await render(['ADMIN'])
+    await open(view)
+    expect(view.text()).toContain('当前空间尚无其他可审核成员')
+    expect(view.text()).toContain('你不能审核自己的版本')
+    await click(view, '配置审核人')
+    expect(view.find('#knowledge-member-form').exists()).toBe(true)
+  })
   it('opens the exact pending version from a reviewer deep link, even with an older published version', async () => {
     stub(url => {
       if (url.includes('/review-tasks?')) return json({ items: [{ documentId: 'd1', spaceId: 's1', title: '待审核手册', versionId: 'v2', versionNo: 2, fileName: 'guide.md', authorId: 'u2', versionCreatedAt: summary.createdAt }], total: 1, page: 0, size: 20 })
@@ -86,7 +95,7 @@ describe('knowledge management', () => {
       if (url.endsWith('/v2/chunks')) return json([{ id: 'c2', chunkIndex: 0, pageNo: null, headingPath: null, content: '待审核正文' }])
     })
     const { view, router } = await render(['KB_EDITOR'], undefined, {})
-    await click(view, '待我审核'); await click(view, '打开待审核手册')
+    await click(view, '待我审核'); await click(view, '打开审核')
     expect(router!.currentRoute.value.query).toEqual({ documentId: 'd1', versionId: 'v2' })
     expect(view.text()).toContain('待审核正文')
   })
@@ -104,7 +113,7 @@ describe('knowledge management', () => {
     })
     const { view } = await render()
     await click(view, '待我审核'); expect(view.text()).toContain('待撤权手册')
-    await click(view, '打开待撤权手册')
+    await click(view, '打开审核')
     expect(view.text()).not.toContain('待撤权手册')
     expect(view.get('.knowledge-review-queue [aria-expanded]').attributes('aria-expanded')).toBe('false')
   })

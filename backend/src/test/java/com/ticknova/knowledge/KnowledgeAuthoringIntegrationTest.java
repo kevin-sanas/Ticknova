@@ -44,11 +44,15 @@ class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
         assertThat(call("GET",base+"/draft",editorToken,null).body().path("content").toString()).contains("alpha beta gamma");
     }
     @Test void reviewTasksAreOnlyVisibleToAnotherCurrentSpaceEditor() throws Exception {
-        String space=createSpace();grant(space,other,true,true);
+        String space=createSpace();
         Reply upload=upload("/knowledge/spaces/"+space+"/documents",editorToken,"review.txt","text/plain","review body");
         String doc=upload.body().path("documentId").asText(),version=upload.body().path("versionId").asText();ready(version,"review body");
         String tasks="/knowledge/review-tasks?page=0&size=20";
-        assertThat(call("POST","/knowledge/documents/"+doc+"/versions/"+version+"/review-requests",editorToken,null).status()).isEqualTo(200);
+        Reply requested=call("POST","/knowledge/documents/"+doc+"/versions/"+version+"/review-requests",editorToken,null);
+        assertThat(requested.status()).isEqualTo(200);
+        assertThat(requested.body().path("versions").get(0).path("hasEligibleReviewer").asBoolean()).isFalse();
+        grant(space,other,true,true);
+        assertThat(call("GET","/knowledge/documents/"+doc,editorToken,null).body().path("versions").get(0).path("hasEligibleReviewer").asBoolean()).isTrue();
         assertThat(call("GET",tasks,editorToken,null).body().path("total").asLong()).isZero();
         assertThat(call("GET",tasks,adminToken,null).status()).isEqualTo(403);
         assertThat(call("GET",tasks,readerToken,null).status()).isEqualTo(403);
@@ -57,6 +61,7 @@ class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
         assertThat(assigned.body().path("total").asLong()).isEqualTo(1);
         assertThat(assigned.body().path("items").get(0).path("documentId").asText()).isEqualTo(doc);
         grant(space,other,true,false);
+        assertThat(call("GET","/knowledge/documents/"+doc,editorToken,null).body().path("versions").get(0).path("hasEligibleReviewer").asBoolean()).isFalse();
         assertThat(call("GET",tasks,otherToken,null).body().path("total").asLong()).isZero();
         grant(space,other,true,true);
         jdbc.sql("DELETE FROM user_role WHERE user_id=:id AND role_id=(SELECT id FROM app_role WHERE code='KB_EDITOR')").param("id",other).update();

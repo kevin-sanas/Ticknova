@@ -31,11 +31,9 @@ jobs:
           version: 0.13.1
           python-version: 3.12.12
           working-directory: docling-service
+          cache-local-path: ${{ github.workspace }}/.cache/uv-ci
       - name: Parser contract and source checks
         working-directory: docling-service
-        env:
-          UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv-ci
-          UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/.cache/python
         run: |
           uv sync --frozen
           uv run --frozen pytest -q

@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-defineProps<{ items: { path: string; label: string; icon: string }[]; collapsed?: boolean }>()
+const props = defineProps<{ items: { path: string; label: string; icon: string }[]; collapsed?: boolean }>()
 defineEmits<{ navigate: [] }>()
 const route = useRoute()
+function active(path: string) {
+  const matches = props.items.filter(item => route.path === item.path || route.path.startsWith(`${item.path}/`))
+  return matches.sort((a, b) => b.path.length - a.path.length)[0]?.path === path
+}
 const narrowViewport = ref(false)
 let viewport: MediaQueryList | undefined
 function viewportChanged(event: MediaQueryListEvent) { narrowViewport.value = event.matches }
@@ -28,7 +32,7 @@ const paths: Record<string, string> = {
 <template>
   <nav aria-label="主导航">
     <el-tooltip v-for="item in items" :key="item.path" :content="item.label" placement="right" popper-class="navigation-tooltip" :show-after="150" :disabled="!collapsed || narrowViewport" :trigger="['hover', 'focus']">
-      <router-link :to="item.path" :class="{ active: route.path.startsWith(item.path) }" :aria-label="collapsed ? item.label : undefined" @click="$emit('navigate')">
+      <router-link :to="item.path" :class="{ active: active(item.path) }" :aria-current="active(item.path) ? 'page' : undefined" :aria-label="collapsed ? item.label : undefined" @click="$emit('navigate')">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path :d="paths[item.icon] || paths.grid" /></svg>
         <span :class="{ 'sr-only': collapsed }">{{ item.label }}</span>
       </router-link>

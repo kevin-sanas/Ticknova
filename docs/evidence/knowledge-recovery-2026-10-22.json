@@ -1,12 +1,13 @@
 {
-  "date": "2026-10-22T10:49:13.274Z",
+  "date": "2026-10-22T13:05:41.941Z",
   "status": "PASS",
   "checks": [
     "real parser completes an unpublished Markdown file",
     "existing saved blank draft remains unchanged until source preview and explicit confirmation",
     "confirmed import saves through the draft version lock",
+    "missing independent reviewer is explained and repaired through member management",
     "another current KB_EDITOR opens the exact pending version by keyboard, rejects with reason, and author sees it",
-    "second eligible editor approves a revised version and author may publish"
+    "second eligible editor approves a revised version, author publishes it, and review task disappears"
   ],
   "screenshots": [
     "knowledge-recovery-2026-10-22-import-preview-1920.png",
@@ -21,12 +22,12 @@
     "knowledge-recovery-2026-10-22-review-queue-390.png"
   ],
   "fixture": {
-    "spaceId": "3571e4f7-550b-4ea2-9d9d-2c5bbaaec16b",
-    "documentId": "923e6063-55ca-46c0-bece-a7c2b2c375fd"
+    "spaceId": "719d31c5-215c-48fd-a3b0-b3e0debf28c2",
+    "documentId": "f882d7e5-7b08-4b85-8cde-147ac6ef551e"
   },
   "pageErrors": 0,
   "limitations": [
-    "Synthetic data was confined to the dedicated ticknova_browser tmpfs test database; test containers were removed after verification.",
-    "Chromium only; all ten screenshots were manually inspected at five viewport widths."
+    "Synthetic data is confined to the dedicated ticknova_browser test database; cleanup is separate.",
+    "Chromium only; screenshots require visual inspection."
   ]
 }

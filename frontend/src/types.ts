@@ -9,7 +9,7 @@ export interface KnowledgeDocument {
   publishedVersionId: string | null; latestIngestState: IngestState | null; versionCount: number; createdAt: string; canEdit: boolean
 }
 export interface KnowledgeVersion {
-  reviewState: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED'; authorId: string; reviewerId: string | null; reviewReason: string | null; reviewedAt: string | null; canRequestReview: boolean; canReview: boolean; canPublish: boolean;
+  reviewState: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED'; authorId: string; reviewerId: string | null; reviewReason: string | null; reviewedAt: string | null; canRequestReview: boolean; canReview: boolean; canPublish: boolean; hasEligibleReviewer: boolean;
   id: string; versionNo: number; fileName: string; mimeType: string; sha256: string; ingestState: IngestState;
   publicationState: string; errorCode: string | null; createdAt: string; jobId: string | null;
   jobStatus: 'QUEUED' | 'RUNNING' | 'RETRYING' | 'COMPLETED' | 'FAILED' | null; attemptCount: number; chunkCount: number

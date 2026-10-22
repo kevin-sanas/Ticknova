@@ -17,6 +17,7 @@ const nav = computed(() => [
   { path: '/portal', label: '员工服务门户', icon: 'search' },
   ...(hasTicketModule(session.user) ? [{ path: '/tickets', label: '工单工作台', icon: 'inbox' }] : []),
   { path: '/knowledge', label: '知识协同', icon: 'book' },
+  ...(session.user?.roles.includes('KB_EDITOR') ? [{ path: '/knowledge/reviews', label: '审核待办', icon: 'history' }] : []),
   { path: '/assistant', label: '知识助手', icon: 'ai' },
   ...(admin.value ? [{ path: '/admin/analytics', label: '运营分析', icon: 'chart' }, { path: '/admin/users', label: '用户与角色', icon: 'users' }, { path: '/admin/queues', label: '队列管理', icon: 'grid' }, { path: '/admin/services', label: '服务目录', icon: 'grid' }, { path: '/admin/audit', label: '审计记录', icon: 'history' }] : []),
 ])

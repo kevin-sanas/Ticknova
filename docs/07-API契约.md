@@ -58,7 +58,7 @@ REPLY的answer、SUMMARY的summary最多10,000字符，与公开回复共用后�
 | `GET /knowledge/spaces/{id}/documents` | 可读空间，分页 `page/size/q`（标题），排除归档 |
 | `POST /knowledge/spaces/{id}/documents` | 可编辑，multipart `title,file`；202 `{documentId,versionId,jobId}` |
 | `POST /knowledge/documents/{id}/versions` | 可编辑，multipart `file`；202；同文档同 SHA-256 返回原版本和当前任务 |
-| `GET /knowledge/documents/{id}` | 可读，基本元数据及 `versions`，不含原文；详情使用只读 REPEATABLE READ 快照 |
+| `GET /knowledge/documents/{id}` | 可读，基本元数据及 `versions`，不含原文；详情使用只读 REPEATABLE READ 快照。版本中的 `hasEligibleReviewer` 仅在当前用户可编辑时返回有效值：同空间存在另一位启用、具显式 KB_EDITOR 角色且同时可读可编辑的成员 |
 | `GET /knowledge/documents/{id}/versions/{versionId}/chunks` | 可编辑者可预览；只读者只能读取当前已发布 READY 版本；数组 `{id,chunkIndex,pageNo,headingPath,content}`，纯文本 |
 | `POST .../versions/{versionId}/publish` / `POST .../disable` | 可编辑，200 返回详情；READY 且有片段才能发布；撤回立即清空发布指针 |
 | `POST .../versions/{versionId}/retry` | 可编辑；失败创建新任务保留旧失败证据，进行中重放当前任务；202 |
@@ -188,7 +188,7 @@ REPLY的answer、SUMMARY的summary最多10,000字符，与公开回复共用后�
 | POST `/knowledge/documents/{id}/draft/versions` | 同上；Idempotency-Key；`{version}` | 202 `{documentId,versionId,jobId}`；私有Markdown→真实Docling |
 | GET `/knowledge/documents/{id}/versions/{versionId}/content` | 当前空间权限/版本可见性；普通读者仅当前已审核发布 | RichDoc或null；文件源使用chunks |
 | POST `/knowledge/documents/{id}/versions/{versionId}/review-requests` | 当前可编辑、最新且READY版本 | Detail；进入PENDING |
-| GET `/knowledge/review-tasks?page=&size=` | 当前有效显式KB_EDITOR；当前空间同时可读、可编辑，且不是版本作者 | 分页`{items,total,page,size}`，仅当前最新READY/PENDING且有片段的未归档版本；任务含documentId、spaceId、title、versionId、versionNo、fileName、authorId、versionCreatedAt；无权返回403，不将作者自己的版本列为待办 |
+| GET `/knowledge/review-tasks?page=&size=` | 当前有效显式KB_EDITOR；当前空间同时可读、可编辑，且不是版本作者 | 分页`{items,total,page,size}`，仅当前最新READY/PENDING且有片段的未归档版本；任务含documentId、spaceId、title、versionId、versionNo、fileName、authorId、versionCreatedAt；无权返回403，不将作者自己的版本列为待办。前端入口为“审核待办”(`/knowledge/reviews`)，从任务打开精确版本核对正文 |
 | POST `/knowledge/documents/{id}/versions/{versionId}/reviews` | 另一位当前有效KB_EDITOR且空间canEdit；`{decision,reason?}` | Detail；APPROVED/REJECTED，拒绝理由必填且最多500字符 |
 | POST `/knowledge/documents/{id}/versions/{versionId}/publish` | 空间内容写权、READY且APPROVED | Detail；原子切换发布指针/标题/分类，新稿期间保留旧发布 |
 | POST `/ai/jobs/{id}/cancel` | 原创建者、当前请求范围仍有效 | 204；重复中止幂等，已完成409，他人404，撤销服务器租约 |

@@ -22,6 +22,18 @@ it('shows Ticknova throughout the shell without exposing administrator navigatio
  await view.get('button[aria-label="打开导航"]').trigger('click');await flushPromises();expect(document.querySelector('.navigation-drawer .brand')?.textContent).toBe('tTicknova')
  const collapse=view.findAll('button').find(x=>x.attributes('aria-label')==='收起导航');expect(collapse).toBeDefined();await collapse!.trigger('click');expect(view.classes()).toBeDefined();expect(view.find('.workspace').classes()).toContain('nav-collapsed')
 })
+it('gives knowledge editors a distinct review entry and highlights only the current knowledge route',async()=>{
+ const pinia=createPinia(),session=useSessionStore(pinia);session.accept({accessToken:'fixture',expiresIn:1800,user:{id:'u',username:'editor',displayName:'编辑',roles:['KB_EDITOR'],mustChangePassword:false}})
+ const router=createRouter({history:createMemoryHistory(),routes:[{path:'/:pathMatch(.*)*',component:{template:'<div />'}}]});await router.push('/knowledge/reviews')
+ view=mount(App,{attachTo:document.body,global:{plugins:[pinia,router,ElementPlus]}});await flushPromises()
+ expect(view.get('.sidebar a[href="/knowledge/reviews"]').text()).toContain('审核待办')
+ expect(view.get('.sidebar a[href="/knowledge/reviews"]').attributes('aria-current')).toBe('page')
+ expect(view.get('.sidebar a[href="/knowledge"]').attributes('aria-current')).toBeUndefined()
+ await router.push('/knowledge/articles/d1/edit');await flushPromises()
+ expect(view.get('.sidebar a[href="/knowledge"]').attributes('aria-current')).toBe('page')
+ session.accept({accessToken:'admin',expiresIn:1800,user:{id:'a',username:'admin',displayName:'管理员',roles:['ADMIN'],mustChangePassword:false}});await flushPromises()
+ expect(view.find('.sidebar a[href="/knowledge/reviews"]').exists()).toBe(false)
+})
 it.each([['login',LoginView],['change-password',ChangePasswordView]] as const)('uses Ticknova on the %s form',async(path,component)=>{
  const pinia=createPinia();const router=createRouter({history:createMemoryHistory(),routes:[{path:'/:pathMatch(.*)*',component:{template:'<div />'}}]});await router.push(`/${path}`)
  view=mount(component,{attachTo:document.body,global:{plugins:[pinia,router,ElementPlus]}});await flushPromises()

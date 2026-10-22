@@ -11,7 +11,7 @@ public final class KnowledgeDtos {
     public record Upload(UUID documentId,UUID versionId,UUID jobId) {}
     public record Summary(UUID id,UUID spaceId,String title,String publicationState,UUID latestVersionId,UUID publishedVersionId,String latestIngestState,int versionCount,Instant createdAt,boolean canEdit,UUID categoryId) {}
     public record Detail(UUID id,UUID spaceId,String title,String publicationState,UUID latestVersionId,UUID publishedVersionId,String latestIngestState,int versionCount,Instant createdAt,boolean canEdit,List<Version> versions,UUID categoryId) {}
-    public record Version(UUID id,int versionNo,String fileName,String mimeType,String sha256,String ingestState,String publicationState,String errorCode,Instant createdAt,UUID jobId,String jobStatus,int attemptCount,int chunkCount,String reviewState,UUID authorId,UUID reviewerId,String reviewReason,Instant reviewedAt,boolean canRequestReview,boolean canReview,boolean canPublish) {}
+    public record Version(UUID id,int versionNo,String fileName,String mimeType,String sha256,String ingestState,String publicationState,String errorCode,Instant createdAt,UUID jobId,String jobStatus,int attemptCount,int chunkCount,String reviewState,UUID authorId,UUID reviewerId,String reviewReason,Instant reviewedAt,boolean canRequestReview,boolean canReview,boolean canPublish,boolean hasEligibleReviewer) {}
     public record Category(UUID id,UUID spaceId,UUID parentId,String name,int version) {}
     public record Draft(UUID id,UUID spaceId,String title,UUID categoryId,tools.jackson.databind.JsonNode content,int version,Instant updatedAt,UUID updatedBy) {}
     public record DraftSource(UUID versionId,int versionNo,boolean importable,String reason,tools.jackson.databind.JsonNode content) {}

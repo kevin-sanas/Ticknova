@@ -1,0 +1,44 @@
+name: verify
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-node@v4.4.0
+        with:
+          node-version: 24.22.0
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Generate local test configuration
+        shell: pwsh
+        run: ./scripts/New-LocalEnv.ps1
+      - name: Backend PostgreSQL integration tests
+        run: |
+          docker volume create ticknova-maven-cache
+          docker compose --env-file .env -f deploy/compose.test.yaml run --rm api-test
+      - name: Frontend dependencies
+        working-directory: frontend
+        run: npm ci --ignore-scripts
+      - name: Frontend checks
+        working-directory: frontend
+        run: npm run typecheck && npm run lint && npm test && npm run build
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: 0.13.1
+          python-version: 3.12.12
+          working-directory: docling-service
+      - name: Parser contract and source checks
+        working-directory: docling-service
+        env:
+          UV_CACHE_DIR: ${{ github.workspace }}/.cache/uv-ci
+          UV_PYTHON_INSTALL_DIR: ${{ github.workspace }}/.cache/python
+        run: |
+          uv sync --frozen
+          uv run --frozen pytest -q
+          uv run --frozen python -m compileall -q app.py worker.py limits.py
+      - name: Compose image builds
+        run: docker compose --env-file .env -f deploy/compose.yaml build

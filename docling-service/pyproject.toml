@@ -1,0 +1,20 @@
+[project]
+name = "ticknova-docling"
+version = "0.1.0"
+requires-python = "==3.12.*"
+dependencies = [
+  "docling-slim[convert-core,format-docx,format-markdown,format-pdf-pypdfium2]==2.140.0",
+  "fastapi==0.151.0",
+  "uvicorn==0.54.0",
+  "python-multipart==0.0.32",
+  "pypdf==6.21.1",
+  "defusedxml==0.7.1",
+]
+
+[dependency-groups]
+dev = ["httpx==0.28.1", "pytest==9.1.1", "reportlab==5.0.1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "--basetemp=../.cache/docling-pytest"

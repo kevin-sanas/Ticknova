@@ -1,0 +1,9 @@
+
+ RUN  v5.0.5 E:/javaProjects/Ticknova/frontend
+
+
+ Test Files  7 passed (7)
+      Tests  76 passed (76)
+   Start at  12:58:14
+   Duration  8.53s (import 46%, environment 43%, tests 8%, transform 2%)
+

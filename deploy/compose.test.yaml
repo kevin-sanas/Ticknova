@@ -1,0 +1,66 @@
+name: ticknova-test
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.1-pg17@sha256:3e8b3adfd27b5707128f60956f62a793c3c9326ea8cfaf0eab7adccb5d700b21
+    environment:
+      POSTGRES_DB: ticknova_test
+      POSTGRES_USER: ticknova_test
+      POSTGRES_PASSWORD: ${TEST_DB_PASSWORD:?Generate the project .env first}
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ticknova_test -d ticknova_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  api-test:
+    image: maven:3.9.11-eclipse-temurin-21@sha256:6fdc855a6ed81d288ca7ca37ac6ff5e9308b612485c0801d70b25a858c83d237
+    working_dir: /workspace/backend
+    volumes:
+      - ..:/workspace
+      - maven_cache:/root/.m2
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/ticknova_test
+      DB_USER: ticknova_test
+      DB_PASSWORD: ${TEST_DB_PASSWORD:?Generate the project .env first}
+      SESSION_TOKEN_PEPPER: ${SESSION_TOKEN_PEPPER:?Generate the project .env first}
+      DEMO_SEED_ENABLED: "false"
+      TICKNOVA_INTEGRATION: "true"
+      KNOWLEDGE_WORKER_ENABLED: "false"
+      AI_PROVIDER: mock
+      AI_WORKER_ENABLED: "false"
+      TICKNOVA_DOCLING_INTEGRATION: "true"
+      DOCLING_BASE_URL: http://docling:8000
+      DOCLING_INTERNAL_TOKEN: ${DOCLING_INTERNAL_TOKEN:?Generate the local parser token}
+      TZ: UTC
+    command: [env, -u, MAVEN_CONFIG, sh, ./mvnw, -B, -ntp, verify]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      docling:
+        condition: service_healthy
+    networks: [default, parser]
+  docling:
+    image: ticknova-docling:0.1.0
+    build:
+      context: ..
+      dockerfile: deploy/docling.Dockerfile
+      args:
+        PYTHON_IMAGE: ${DOCLING_PYTHON_IMAGE:-python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c}
+    environment:
+      DOCLING_INTERNAL_TOKEN: ${DOCLING_INTERNAL_TOKEN:?Generate the local parser token}
+    networks: [parser]
+    read_only: true
+    tmpfs: ["/tmp:size=256m,mode=1777"]
+    mem_limit: 1g
+    cpus: 1
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+volumes:
+  maven_cache:
+    name: ticknova-maven-cache
+    external: true
+networks:
+  parser:
+    internal: true

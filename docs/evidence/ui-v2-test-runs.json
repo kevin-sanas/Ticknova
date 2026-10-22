@@ -1,0 +1,735 @@
+{
+  "recordedAt": "2026-10-21T15:21:48.557Z",
+  "note": "Sanitized summary lines from actual runs, including RED and failed acceptance attempts; final gates described separately.",
+  "logs": [
+    {
+      "file": "acceptance-cycle-api-health.log",
+      "sha256": "2e336fc2d893c4a3a132a9eb7294f499511c1a125b0a6f06c1c13d7e99746863",
+      "summary": []
+    },
+    {
+      "file": "acceptance-cycle-api-restart.log",
+      "sha256": "636592662f78d513b92266e09dc43510106fba58469ac29858c094910c0fb267",
+      "summary": []
+    },
+    {
+      "file": "ai-approval-green.log",
+      "sha256": "4dbdf093e0fbddbbc5e0bdcb2da0e18aa0198a5e8b3d57d2ec7942156bc0d75b",
+      "summary": [
+        "[INFO] Tests run: 38, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 26.18 s -- in com.ticknova.ai.AiIntegrationTest",
+        "[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.625 s -- in com.ticknova.evaluation.RagEvaluationTest",
+        "[INFO] Tests run: 39, Failures: 0, Errors: 0, Skipped: 0",
+        "[INFO] BUILD SUCCESS"
+      ]
+    },
+    {
+      "file": "ai-approval-red.log",
+      "sha256": "915fed2b07261876dd06e379ee5f1d31625ff30da531f23215c2d0f145aec830",
+      "summary": [
+        "[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 23.46 s <<< FAILURE! -- in com.ticknova.ai.AiIntegrationTest",
+        "[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0",
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "file": "backend-first-green.log",
+      "sha256": "5579213ac72691eeda606e5d555a7a8ca6d915d0fae697da312afb8b43d37a52",
+      "summary": [
+        "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 28.79 s -- in com.ticknova.knowledge.KnowledgeAuthoringIntegrationTest",
+        "[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 21.17 s -- in com.ticknova.knowledge.KnowledgeDoclingIntegrationTest",
+        "[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.936 s -- in com.ticknova.knowledge.KnowledgeIntegrationTest",
+        "[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.015 s -- in com.ticknova.knowledge.RichDocumentTest",
+        "[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.667 s -- in com.ticknova.workspace.WorkspaceIntegrationTest",
+        "[INFO] Tests run: 38, Failures: 0, Errors: 0, Skipped: 0",
+        "[INFO] BUILD SUCCESS"
+      ]
+    },
+    {
+      "file": "backend-full.log",
+      "sha256": "3427171216b5ad57e4eb5125a77d8d0bbf0f15c3968b259743a0b713179779cd",
+      "summary": [
+        "[INFO] Tests run: 38, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 25.16 s -- in com.ticknova.ai.AiIntegrationTest",
+        "[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.576 s -- in com.ticknova.ai.AiResultValidatorTest",
+        "[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.304 s -- in com.ticknova.ai.model.AiModelTest",
+        "[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.008 s -- in com.ticknova.ai.model.ModelConfigurationTest",
+        "[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.757 s -- in com.ticknova.ai.model.SpringAiModelTest",
+        "[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.004 s -- in com.ticknova.evaluation.RagEvaluationTest",
+        "[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.ticknova.identity.AdminBoundaryTest",
+        "[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.413 s -- in com.ticknova.identity.AuthServiceTest",
+        "[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.147 s -- in com.ticknova.identity.BearerSessionFilterTest",
+        "[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.824 s -- in com.ticknova.identity.IdentityIntegrationTest",
+        "[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.005 s -- in com.ticknova.identity.LoginRateLimiterTest",
+        "[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.ticknova.identity.SessionTokensTest",
+        "[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.077 s -- in com.ticknova.knowledge.DoclingClientTest",
+        "[INFO] Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.895 s -- in com.ticknova.knowledge.KnowledgeAuthoringIntegrationTest",
+        "[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.004 s -- in com.ticknova.knowledge.KnowledgeChunkerTest",
+        "[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 39.86 s -- in com.ticknova.knowledge.KnowledgeCrashRecoveryTest",
+        "[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 22.75 s -- in com.ticknova.knowledge.KnowledgeDoclingIntegrationTest",
+        "[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.615 s -- in com.ticknova.knowledge.KnowledgeIngestTest",
+        "[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.723 s -- in com.ticknova.knowledge.KnowledgeIntegrationTest",
+        "[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.065 s -- in com.ticknova.knowledge.RichDocumentTest",
+        "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.556 s -- in com.ticknova.ticket.TicketIntegrationTest",
+        "[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.ticknova.ticket.TicketPolicyTest",
+        "[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.708 s -- in com.ticknova.workspace.WorkspaceIntegrationTest",
+        "[INFO] Tests run: 201, Failures: 0, Errors: 0, Skipped: 0",
+        "[INFO] BUILD SUCCESS"
+      ]
+    },
+    {
+      "file": "backend-second-green.log",
+      "sha256": "724bf9f654e72bd009aa490ab3c0a936286037b392f77a4f5b21ce2cda6b5dbd",
+      "summary": [
+        "[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 26.81 s -- in com.ticknova.knowledge.KnowledgeAuthoringIntegrationTest",
+        "[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 20.51 s -- in com.ticknova.knowledge.KnowledgeDoclingIntegrationTest",
+        "[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.749 s -- in com.ticknova.knowledge.KnowledgeIntegrationTest",
+        "[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.037 s -- in com.ticknova.knowledge.RichDocumentTest",
+        "[INFO] Tests run: 11, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.869 s -- in com.ticknova.workspace.WorkspaceIntegrationTest",
+        "[INFO] Tests run: 45, Failures: 0, Errors: 0, Skipped: 0",
+        "[INFO] BUILD SUCCESS"
+      ]
+    },
+    {
+      "file": "backend-third-green.log",
+      "sha256": "3affb77396e9036722d2b6ae0df07dcd1b70d0e7e1a2e14f49c80a699057d9d2",
+      "summary": [
+        "[INFO] Tests run: 19, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 26.65 s -- in com.ticknova.knowledge.KnowledgeAuthoringIntegrationTest",
+        "[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.906 s -- in com.ticknova.knowledge.KnowledgeIntegrationTest",
+        "[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.047 s -- in com.ticknova.knowledge.RichDocumentTest",
+        "[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.439 s -- in com.ticknova.workspace.WorkspaceIntegrationTest",
+        "[INFO] Tests run: 49, Failures: 0, Errors: 0, Skipped: 0",
+        "[INFO] BUILD SUCCESS"
+      ]
+    },
+    {
+      "file": "baseline.log",
+      "sha256": "ceb669a753603da707c5ea7d2014dcfc9d4778c104856cac18b3660a3faff35a",
+      "summary": [
+        "FAIL warm canvas",
+        "FAIL green brand token",
+        "FAIL employee portal navigation"
+      ]
+    },
+    {
+      "file": "browser-cycle-health.log",
+      "sha256": "0f4e5858ed769ca4f1033507781d427a4b5d1cfe24ee8cc2c5d9d11fc3183ba5",
+      "summary": []
+    },
+    {
+      "file": "browser-cycle-restart.log",
+      "sha256": "636592662f78d513b92266e09dc43510106fba58469ac29858c094910c0fb267",
+      "summary": []
+    },
+    {
+      "file": "browser-design-accepted.log",
+      "sha256": "afb5db4b507c8422e80e72c8640f40df4d0fbfecc7dd6ca59871041dd5752462",
+      "summary": [
+        "PASS seven UI sign-ins; synthetic editors complete first password change; existing demo credentials preserved",
+        "PASS Ticknova login, workspace navigation, footer and document title across all seven sessions",
+        "PASS portal: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS requester defaults to search-first portal without administrative navigation",
+        "PASS actual UI category create, rename, selection, empty state and confirmed empty-category deletion",
+        "PASS article-preview: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS article-editor: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS toolbar selected state, heading outline, matching rich preview and approximately 800ms real autosave",
+        "PASS two live editors produce server CAS 409; local draft survives cancel; confirmed explicit reload uses server revision",
+        "PASS self-review denied 403; independent KB_EDITOR rejection requires reason; distinct new version approved and published",
+        "PASS knowledge-reader: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS old published source stays readable while a later version awaits review",
+        "PASS browser upload reaches actual parse/chunk pipeline, independent review, publication and authorized reader",
+        "PASS loading state and disabled duplicate-submit control while an actual network request is held then released",
+        "PASS real portal search/category correct-space navigation; empty/offline/error/retry and collapsed-nav keyboard tooltip",
+        "PASS new-ticket: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS ticket-inbox: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS requester creates, agent claims actual unassigned ticket, internal notes stay private and AI adoption never auto-sends",
+        "PASS ticket-detail: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS compact drawers trap/restore focus; resolve/reopen/resolve/close and inbox filter return",
+        "PASS assistant-cited: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS real citation exact document/version/chunk; explicit unsupported-question refusal; persisted server cancellation",
+        "PASS service-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS admin-services: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS queue-member-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS admin-queues: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS synthetic service/queue UI creation; modal trap, dirty cancel retention, focus restoration and real member removal popconfirm",
+        "PASS analytics: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS admin-audit: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS audit-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS admin-users: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS actual UTC analytics plus empty range; audit detail and user directory responsive on all target widths",
+        "PASS fresh real ACL denial immediately clears document, reader, chunks and categories",
+        "PASS user-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS only synthetic reviewer disabled; existing browser session and original bearer session invalidated"
+      ]
+    },
+    {
+      "file": "browser-design-complete.log",
+      "sha256": "859625ffd6e5c9b58c79f4ab05b4cfd3768459ba6299bb1125f23ab0b8415998",
+      "summary": [
+        "PASS seven UI sign-ins; synthetic editors complete first password change; existing demo credentials preserved",
+        "PASS Ticknova login, workspace navigation, footer and document title across all seven sessions",
+        "PASS portal: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS requester defaults to search-first portal without administrative navigation",
+        "PASS actual UI category create, rename, selection, empty state and confirmed empty-category deletion",
+        "PASS article-preview: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS article-editor: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS toolbar selected state, heading outline, matching rich preview and approximately 800ms real autosave",
+        "PASS two live editors produce server CAS 409; local draft survives cancel; confirmed explicit reload uses server revision",
+        "PASS self-review denied 403; independent KB_EDITOR rejection requires reason; distinct new version approved and published",
+        "PASS knowledge-reader: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS old published source stays readable while a later version awaits review",
+        "PASS browser upload reaches actual parse/chunk pipeline, independent review, publication and authorized reader",
+        "PASS loading state and disabled duplicate-submit control while an actual network request is held then released",
+        "PASS real portal search/category correct-space navigation; empty/offline/error/retry and collapsed-nav keyboard tooltip",
+        "PASS new-ticket: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS ticket-inbox: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS requester creates, agent claims actual unassigned ticket, internal notes stay private and AI adoption never auto-sends",
+        "PASS ticket-detail: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS compact drawers trap/restore focus; resolve/reopen/resolve/close and inbox filter return",
+        "PASS assistant-cited: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS real citation exact document/version/chunk; explicit unsupported-question refusal; persisted server cancellation",
+        "PASS service-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS admin-services: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS queue-member-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS admin-queues: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS synthetic service/queue UI creation; modal trap, dirty cancel retention, focus restoration and real member removal popconfirm",
+        "PASS analytics: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS admin-audit: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS audit-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS admin-users: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS actual UTC analytics plus empty range; audit detail and user directory responsive on all target widths",
+        "PASS fresh real ACL denial immediately clears document, reader, chunks and categories",
+        "PASS user-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "FAIL only synthetic fixture disabled and existing server session rejected: Error: browser assertion or operation failed (business text and call logs omitted)"
+      ]
+    },
+    {
+      "file": "browser-design-final.log",
+      "sha256": "f5674bc33502a0c525c7661ccbf2ff0bedf5594c5afbd2edbb515d9c7e0fe2ed",
+      "summary": [
+        "PASS seven UI sign-ins; synthetic editors complete first password change; existing demo credentials preserved",
+        "PASS Ticknova login, workspace navigation, footer and document title across all seven sessions",
+        "PASS portal: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS requester defaults to search-first portal without administrative navigation",
+        "PASS actual UI category create, rename, selection, empty state and confirmed empty-category deletion",
+        "PASS article-preview: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS article-editor: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS toolbar selected state, heading outline, matching rich preview and approximately 800ms real autosave",
+        "PASS two live editors produce server CAS 409; local draft survives cancel; confirmed explicit reload uses server revision",
+        "PASS self-review denied 403; independent KB_EDITOR rejection requires reason; distinct new version approved and published",
+        "PASS knowledge-reader: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS old published source stays readable while a later version awaits review",
+        "PASS browser upload reaches actual parse/chunk pipeline, independent review, publication and authorized reader",
+        "PASS loading state and disabled duplicate-submit control while an actual network request is held then released",
+        "PASS real portal search/category correct-space navigation; empty/offline/error/retry and collapsed-nav keyboard tooltip",
+        "PASS new-ticket: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS ticket-inbox: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS requester creates, agent claims actual unassigned ticket, internal notes stay private and AI adoption never auto-sends",
+        "PASS ticket-detail: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS compact drawers trap/restore focus; resolve/reopen/resolve/close and inbox filter return",
+        "PASS assistant-cited: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS real citation exact document/version/chunk; explicit unsupported-question refusal; persisted server cancellation",
+        "PASS service-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS admin-services: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "FAIL admin services queues membership popconfirm dirty modal and focus: Error: browser assertion or operation failed (business text and call logs omitted)"
+      ]
+    },
+    {
+      "file": "browser-design.log",
+      "sha256": "d17bab3f99591141a82d31e9ed6286a3e2501cceb54ff595d6f40c2da42a1c6f",
+      "summary": [
+        "PASS seven UI sign-ins; synthetic editors complete first password change; existing demo credentials preserved",
+        "PASS portal: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS requester defaults to search-first portal without administrative navigation",
+        "PASS actual UI category create, rename, selection, empty state and confirmed empty-category deletion",
+        "PASS article-preview: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS article-editor: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS toolbar selected state, heading outline, matching rich preview and approximately 800ms real autosave",
+        "PASS two live editors produce server CAS 409; local draft survives cancel; confirmed explicit reload uses server revision",
+        "PASS self-review denied 403; independent KB_EDITOR rejection requires reason; distinct new version approved and published",
+        "PASS knowledge-reader: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS old published source stays readable while a later version awaits review",
+        "PASS browser upload reaches actual parse/chunk pipeline, independent review, publication and authorized reader",
+        "PASS loading state and disabled duplicate-submit control while an actual network request is held then released",
+        "PASS real portal search/category correct-space navigation; empty/offline/error/retry and collapsed-nav keyboard tooltip",
+        "PASS new-ticket: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS ticket-inbox: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS requester creates, agent claims actual unassigned ticket, internal notes stay private and AI adoption never auto-sends",
+        "PASS ticket-detail: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS compact drawers trap/restore focus; resolve/reopen/resolve/close and inbox filter return",
+        "PASS assistant-cited: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "PASS real citation exact document/version/chunk; explicit unsupported-question refusal; persisted server cancellation",
+        "PASS service-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+        "FAIL admin services queues membership popconfirm dirty modal and focus: Error: browser assertion or operation failed (business text and call logs omitted)"
+      ]
+    },
+    {
+      "file": "demo-upgrade.log",
+      "sha256": "9f4b79034568cc1382cc7e7e60a0cf715e6f87a6a30357a2158bdc30b9dea213",
+      "summary": []
+    },
+    {
+      "file": "escape-probe.log",
+      "sha256": "c1ad5e58657a21bf9d587c39334cc5c26609392866a8cf61b15d17e2dbe646d6",
+      "summary": []
+    },
+    {
+      "file": "final-cycle-api-health.log",
+      "sha256": "0f4e5858ed769ca4f1033507781d427a4b5d1cfe24ee8cc2c5d9d11fc3183ba5",
+      "summary": []
+    },
+    {
+      "file": "final-cycle-api-restart.log",
+      "sha256": "636592662f78d513b92266e09dc43510106fba58469ac29858c094910c0fb267",
+      "summary": []
+    },
+    {
+      "file": "final-fix-build.log",
+      "sha256": "74071156f803110fcd3f8af56f85b7f6ea893731a1e05c11b4d451a107614d09",
+      "summary": []
+    },
+    {
+      "file": "final-fix-focused-green.log",
+      "sha256": "1ee1b2f0e0daa2088cc2d82c39fd7d688d8db8950743b516bee0f947b02f4b10",
+      "summary": [
+        " Test Files  3 passed (3)",
+        "      Tests  29 passed (29)",
+        "   Duration  5.27s (import 52%, environment 27%, tests 14%, transform 6%)"
+      ]
+    },
+    {
+      "file": "final-fix-green.log",
+      "sha256": "73e78b6c4af98163703f81b3448c53fd3b9df1bd8613fe48336f11f6fac78aca",
+      "summary": [
+        " Test Files  15 passed (15)",
+        "      Tests  160 passed (160)",
+        "   Duration  11.51s (environment 46%, import 43%, tests 10%, transform 1%)"
+      ]
+    },
+    {
+      "file": "final-fix-lint.log",
+      "sha256": "23eeff4d3a23fa470084af4cc107f856a610158a759f159df0c4728d57ff7151",
+      "summary": []
+    },
+    {
+      "file": "final-fix-red.log",
+      "sha256": "d1023f31434b766e18631649b8f2a6e0d96cb66c3d244c3540192c431f06ed3d",
+      "summary": [
+        " Test Files  3 failed (3)",
+        "      Tests  15 failed | 14 passed (29)",
+        "   Duration  6.64s (import 50%, tests 24%, environment 24%, transform 1%)"
+      ]
+    },
+    {
+      "file": "final-web-build.log",
+      "sha256": "22179a0d41381a8e6cef7e8a63538eee2aeaec0a11d7de33bd37f9a2985cfe07",
+      "summary": []
+    },
+    {
+      "file": "final-web-start.log",
+      "sha256": "d240ba724d4368c52402672c8e217e1d4428c64113949e0716f9473c7b156f40",
+      "summary": []
+    },
+    {
+      "file": "frontend-build.log",
+      "sha256": "13442f8e2ce62a046a56f9e01390900db05532cb00d7076dc356bcf9872264ab",
+      "summary": []
+    },
+    {
+      "file": "frontend-full.log",
+      "sha256": "a71e3475e8751d9fec3d34bbb2efadd98fbfcb17b0804796fa70b17381bed9e2",
+      "summary": [
+        " Test Files  14 passed (14)",
+        "      Tests  144 passed (144)",
+        "   Duration  8.63s (environment 51%, import 39%, tests 9%, transform 1%)"
+      ]
+    },
+    {
+      "file": "frontend-lint.log",
+      "sha256": "23eeff4d3a23fa470084af4cc107f856a610158a759f159df0c4728d57ff7151",
+      "summary": []
+    },
+    {
+      "file": "frontend-typecheck.log",
+      "sha256": "aeed62a9f273e9a8beb0e50e802841fa36dd97ff42d350585e5a7eb3e1caadf4",
+      "summary": []
+    },
+    {
+      "file": "full-test-start.log",
+      "sha256": "bbfa64f8b7870b4c207626ad3ed2824e64dc33152985e1fa0b955fc3ec8644d2",
+      "summary": []
+    },
+    {
+      "file": "image-build.log",
+      "sha256": "7c70963f216c823ffaebbde985318aded9ff1eb4923dfe11b7d2e8f1b674e81c",
+      "summary": [
+        "#20 15.79 [INFO] BUILD SUCCESS"
+      ]
+    },
+    {
+      "file": "knowledge-final-web-build.log",
+      "sha256": "969ce04e231f5f7bb05046100bc48504807ab8941aa68781b3942eb3ed03c891",
+      "summary": []
+    },
+    {
+      "file": "knowledge-final-web-start.log",
+      "sha256": "006f010ed79afebdf0c321c86eac7ddf5c19b74d967c9f01695c7c23f6000c7c",
+      "summary": []
+    },
+    {
+      "file": "knowledge-native-scope-build.log",
+      "sha256": "26d827457ba7016b3484a13bc0643b9fe2a7c28792bfcef70c06d3d96da2a832",
+      "summary": []
+    },
+    {
+      "file": "knowledge-native-scope-lint.log",
+      "sha256": "23eeff4d3a23fa470084af4cc107f856a610158a759f159df0c4728d57ff7151",
+      "summary": []
+    },
+    {
+      "file": "knowledge-visual-accepted.log",
+      "sha256": "7007cfab17dcb175e223ea043e253d4dac01fde55898bbe15d1f62ddb3d72ee3",
+      "summary": [
+        "PASS actual knowledge category/document controls and versions match tokens at five widths; long text wraps without document overflow",
+        "FAIL category and document button geometry"
+      ]
+    },
+    {
+      "file": "knowledge-visual-browser.log",
+      "sha256": "de5eb1115a5bd5ce5032ffb4b7cbc98bb10f26fe302ebe9fd258aeab2f165c33",
+      "summary": [
+        "FAIL category and document button geometry"
+      ]
+    },
+    {
+      "file": "knowledge-visual-build.log",
+      "sha256": "2532a199e1a9296db9a448f299650b73037ad1aadfa06658c90f89c0bf4ea46d",
+      "summary": []
+    },
+    {
+      "file": "knowledge-visual-final.log",
+      "sha256": "3f10f0bd7767696e49c287708d51a7b5d5b710d7f8d38d04e4773399b0c88d1e",
+      "summary": [
+        "PASS actual knowledge category/document controls and versions match tokens at five widths; long text wraps without document overflow",
+        "PASS real category selection, hover and keyboard focus remain usable",
+        "PASS category management and destructive confirmation cancel styled at all five widths; cancel preserves fixture"
+      ]
+    },
+    {
+      "file": "knowledge-visual-lint.log",
+      "sha256": "23eeff4d3a23fa470084af4cc107f856a610158a759f159df0c4728d57ff7151",
+      "summary": []
+    },
+    {
+      "file": "knowledge-web-build.log",
+      "sha256": "a7f3cf42cdc0a1619f437ed62339c337e40ad81d08961b03793ce75e441ec759",
+      "summary": []
+    },
+    {
+      "file": "knowledge-web-start.log",
+      "sha256": "d2e6072fc213af2a06c1b7ff66a7f2439c4f4f24714574a6fe6c190e9b662cdd",
+      "summary": []
+    },
+    {
+      "file": "pillow-lock.log",
+      "sha256": "a0a48d3e91ec08076584b2f598b25dc9fee2b86d19a411a2c0b3ae71521fda1d",
+      "summary": []
+    },
+    {
+      "file": "popup-fix-build.log",
+      "sha256": "31130833b5a4a45d08d407fc8b1b5e49473523b65e0f09e152c5187bdf438955",
+      "summary": []
+    },
+    {
+      "file": "popup-fix-completion-red.log",
+      "sha256": "7cd71c8107329d5daa63b01aa09f43c1bccc0b3f77b6eac1bde78ba29d2e4b43",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  2 failed | 6 skipped (8)",
+        "   Duration  3.66s (import 49%, environment 30%, tests 15%, transform 5%)"
+      ]
+    },
+    {
+      "file": "popup-fix-focused.log",
+      "sha256": "7339851597be97c3656b2db673eb3342506c7ca49275380c9015b17e9d5d2440",
+      "summary": [
+        " Test Files  2 passed (2)",
+        "      Tests  11 passed (11)",
+        "   Duration  5.16s (import 46%, tests 27%, environment 24%, transform 3%)"
+      ]
+    },
+    {
+      "file": "popup-fix-green.log",
+      "sha256": "a88b1bf8eb0cfde1f6b5163428b77ddca67c9d2f15c1910fc7c0fb542304f2d2",
+      "summary": [
+        " Test Files  15 passed (15)",
+        "      Tests  164 passed (164)",
+        "   Duration  9.91s (environment 43%, import 43%, tests 13%, transform 1%)"
+      ]
+    },
+    {
+      "file": "popup-fix-lint.log",
+      "sha256": "23eeff4d3a23fa470084af4cc107f856a610158a759f159df0c4728d57ff7151",
+      "summary": []
+    },
+    {
+      "file": "popup-fix-red.log",
+      "sha256": "fef64023a6895a8652d02fef01aeada83addd6455ec7773fb0fda1aebdd04061",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  2 failed | 4 passed (6)",
+        "   Duration  4.82s (import 40%, tests 39%, environment 20%, transform 1%)"
+      ]
+    },
+    {
+      "file": "popup-web-build.log",
+      "sha256": "f0fd93f07f8c3f1a7da4f7fc7ad665b928ac7b11f3351212e9b3b11432552923",
+      "summary": []
+    },
+    {
+      "file": "popup-web-start.log",
+      "sha256": "9af022816d230a29c41d8c68c71143ee2c6f5a773401680824b855a0de462ed2",
+      "summary": []
+    },
+    {
+      "file": "portal-category-red.log",
+      "sha256": "00b7f3f355f012f3fdcdfa1fba2c337692936154bf66513f1b1fa8ec4e6003f5",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  8 failed | 1 passed | 40 skipped (49)",
+        "   Duration  3.18s (import 57%, environment 31%, tests 10%, transform 2%)"
+      ]
+    },
+    {
+      "file": "review-fixes-red.log",
+      "sha256": "63ec7ce862cd5b5e1ca9380d1a53ed355fbc06edf61c9479ade89d5ed8dd3656",
+      "summary": [
+        "[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 25.14 s <<< FAILURE! -- in com.ticknova.knowledge.KnowledgeAuthoringIntegrationTest",
+        "[ERROR] Tests run: 7, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 8.439 s <<< FAILURE! -- in com.ticknova.workspace.WorkspaceIntegrationTest",
+        "[ERROR] Tests run: 9, Failures: 5, Errors: 0, Skipped: 0",
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "file": "root-citation-tabs-red.log",
+      "sha256": "1a5ad3dbf0abf8428696b72dcb0e211c5a429c8c7bd0d62cbbac5ee19c0cc519",
+      "summary": [
+        " Test Files  2 failed (2)",
+        "      Tests  2 failed | 39 passed (41)",
+        "   Duration  4.21s (import 53%, environment 29%, tests 16%, transform 3%)"
+      ]
+    },
+    {
+      "file": "root-detail-red.log",
+      "sha256": "d4a0f653393ad24d49a6fa679e0281bb93bcabf9718d5296eb5c1c4875ef7823",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  1 failed | 33 passed (34)",
+        "   Duration  6.58s (import 49%, environment 31%, tests 17%, transform 2%)"
+      ]
+    },
+    {
+      "file": "root-inbox-green.log",
+      "sha256": "01a26ff4403d83937470d984289cb8e5d3a1c10f1c4437850c95c4c873d50af6",
+      "summary": [
+        " Test Files  1 passed (1)",
+        "      Tests  3 passed (3)",
+        "   Duration  3.28s (import 59%, environment 32%, tests 7%, transform 2%)"
+      ]
+    },
+    {
+      "file": "root-inbox-red.log",
+      "sha256": "97a9c169e685af68cf751390b835bda896a09b0a2735345254002d84799073f1",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  1 failed | 2 passed (3)",
+        "   Duration  3.38s (import 58%, environment 33%, tests 7%, transform 2%)"
+      ]
+    },
+    {
+      "file": "root-pages-green.log",
+      "sha256": "33f3c6874d1ec885c2adfb779dc4c135eb63a8cf795018afbdff8697eaac43d4",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  1 failed | 1 passed (2)",
+        "   Duration  3.07s (import 58%, environment 34%, tests 6%, transform 2%)"
+      ]
+    },
+    {
+      "file": "root-pages-red.log",
+      "sha256": "11232d3619b126e53465c9eeca2f6839dd7881325f9c3100514a415e43e383b0",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  2 failed (2)",
+        "   Duration  2.97s (import 62%, environment 35%, transform 2%)"
+      ]
+    },
+    {
+      "file": "root-ui-green.log",
+      "sha256": "604b928a52ff02ac0512585729b767d712f94a3d7350f50fb1c37f3490bafb21",
+      "summary": [
+        " Test Files  2 passed (2)",
+        "      Tests  35 passed (35)",
+        "   Duration  4.48s (import 56%, environment 28%, tests 10%, transform 6%)"
+      ]
+    },
+    {
+      "file": "root-ui-red.log",
+      "sha256": "62c33a06b8787480fa9abd52a6b32976b8811d62b397f32acca5b09c3f0c666f",
+      "summary": [
+        " Test Files  2 failed (2)",
+        "      Tests  3 failed | 32 passed (35)",
+        "   Duration  7.27s (import 69%, environment 20%, tests 6%, transform 5%)"
+      ]
+    },
+    {
+      "file": "root-ui-second-green.log",
+      "sha256": "ecbe808d0570a2721b83eae4f7167dbe59065431bc0f369046e66b17f1545ecd",
+      "summary": [
+        " Test Files  2 passed (2)",
+        "      Tests  36 passed (36)",
+        "   Duration  4.06s (import 53%, environment 31%, tests 12%, transform 3%)"
+      ]
+    },
+    {
+      "file": "root-unsaved-green.log",
+      "sha256": "870f0871a901cc810bd31b5f2362751ecf5ae31e79db4f0d052898970fc8db66",
+      "summary": [
+        " Test Files  4 passed (4)",
+        "      Tests  17 passed (17)",
+        "   Duration  4.22s (import 61%, environment 31%, tests 7%, transform 1%)"
+      ]
+    },
+    {
+      "file": "root-unsaved-red.log",
+      "sha256": "d2ef56688d6e2034accaa774e213320a22e128ca99448e1aea864fb4a74cd2db",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  5 failed (5)",
+        "   Duration  3.43s (import 55%, environment 32%, tests 7%, transform 6%)"
+      ]
+    },
+    {
+      "file": "session-logout-red.log",
+      "sha256": "bdd1fd4eebc3a5c2f6495c13cf3d9eea5a98e23a9c16076c61bc44576d27a347",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  1 failed | 3 passed (4)",
+        "   Duration  1.21s (environment 89%, import 7%, transform 3%, tests 1%)"
+      ]
+    },
+    {
+      "file": "task-a-red.log",
+      "sha256": "e12e4fd22190cba605e3b822895c05822f0c4c0a1d05d044782fefc5bb5bd8ef",
+      "summary": [
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "file": "task-a-review-red.log",
+      "sha256": "1d1734d9b2d7bdec333d58c708ab65dcdf0723185ae99910c61907b26808deb2",
+      "summary": [
+        "[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 26.10 s <<< FAILURE! -- in com.ticknova.knowledge.KnowledgeAuthoringIntegrationTest",
+        "[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 8.648 s <<< FAILURE! -- in com.ticknova.knowledge.KnowledgeDoclingIntegrationTest",
+        "[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 0.008 s <<< FAILURE! -- in com.ticknova.knowledge.RichDocumentTest",
+        "[ERROR] Tests run: 5, Failures: 5, Errors: 0, Skipped: 0",
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "file": "task-a-rich-snapshot-red.log",
+      "sha256": "1e3455e39cbf9522a19fcc40fe8d4194159bf451616139648926e804639100b2",
+      "summary": [
+        "[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 29.64 s <<< FAILURE! -- in com.ticknova.knowledge.KnowledgeAuthoringIntegrationTest",
+        "[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0",
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "file": "task-b-filter-red.log",
+      "sha256": "80213e1414ad389aba78847f2b8e0740e745ed96cda6a67a8afd3f803d3b96bc",
+      "summary": [
+        "[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 24.04 s <<< FAILURE! -- in com.ticknova.workspace.WorkspaceIntegrationTest",
+        "[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0",
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "file": "task-b-red.log",
+      "sha256": "9c665f0abf07dfdedbb6135fb02937c367c35382de8871b73ee249acc3241fe8",
+      "summary": [
+        "[ERROR] Tests run: 8, Failures: 8, Errors: 0, Skipped: 0, Time elapsed: 24.61 s <<< FAILURE! -- in com.ticknova.workspace.WorkspaceIntegrationTest",
+        "[ERROR] Tests run: 8, Failures: 8, Errors: 0, Skipped: 0",
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "file": "task-b-review-red.log",
+      "sha256": "96f3545af8700ced7fc0424da4953f32970223413a82c877b3ae3df28c075388",
+      "summary": [
+        "[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 26.75 s <<< FAILURE! -- in com.ticknova.workspace.WorkspaceIntegrationTest",
+        "[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0",
+        "[INFO] BUILD FAILURE"
+      ]
+    },
+    {
+      "file": "task-c-config-green.log",
+      "sha256": "9a301fbb7b0a33634d6ffee4205e16973e16bedd8db03c370f23476a1b890d20",
+      "summary": [
+        " Test Files  6 passed (6)",
+        "      Tests  78 passed (78)",
+        "   Duration  6.08s (environment 50%, import 33%, tests 15%, transform 1%)"
+      ]
+    },
+    {
+      "file": "task-c-config-red.log",
+      "sha256": "fa5d3551eb787ec9a2f64ad7520f76e3745f719f17ba137dc12fd19700c38959",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  2 failed | 1 passed | 50 skipped (53)",
+        "   Duration  2.99s (import 61%, environment 32%, tests 4%, transform 2%)"
+      ]
+    },
+    {
+      "file": "task-d-review-green.log",
+      "sha256": "1be155a26b467bfd2055863715b77f9b1c54962188625a6eb648822300fcb428",
+      "summary": [
+        " Test Files  5 passed (5)",
+        "      Tests  59 passed (59)",
+        "   Duration  4.99s (import 51%, environment 34%, tests 12%, transform 2%)"
+      ]
+    },
+    {
+      "file": "task-d-review-red.log",
+      "sha256": "fdaa7185b09a5b8b5e3719b7aebbfeb7fde0cc504fb376e6d62cd151703f7f45",
+      "summary": [
+        " Test Files  1 failed (1)",
+        "      Tests  6 failed | 5 passed (11)",
+        "   Duration  3.34s (import 53%, environment 30%, tests 14%, transform 3%)"
+      ]
+    },
+    {
+      "file": "test-reset.log",
+      "sha256": "e8616a92a20f16d1051829bc98c0536089b110b10e12a994618211d786236a64",
+      "summary": []
+    },
+    {
+      "file": "test-start.log",
+      "sha256": "b846eae370ee83150576ab6385536313e0694581460ee0d6b2b6a41c4e0fd5cf",
+      "summary": []
+    },
+    {
+      "file": "test-stop.log",
+      "sha256": "a07b5a4b7b4d27720b8f5076fd1bd94a5784abff828adde468129ce907038079",
+      "summary": []
+    },
+    {
+      "file": "visual-cycle-api-health.log",
+      "sha256": "76f114a68efe06a6cb965e91c90ee1a2c9869a4e10fe64ab86f6ae14ac7254ab",
+      "summary": []
+    },
+    {
+      "file": "visual-cycle-api-restart.log",
+      "sha256": "636592662f78d513b92266e09dc43510106fba58469ac29858c094910c0fb267",
+      "summary": []
+    }
+  ]
+}

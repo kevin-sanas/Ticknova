@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-20T13:34:05.383Z",
+  "base": "http://127.0.0.1",
+  "checks": [
+    "requester creates ticket through the browser",
+    "engineer claims an authorized queue ticket",
+    "internal note is hidden from requester",
+    "triage → progress → resolve → requester reopen → resolve → confirm close",
+    "375px ticket layout has no horizontal document overflow",
+    "administrator configures service, queue and membership",
+    "administrator creates and disables an account",
+    "administrator can inspect audit records",
+    "page refresh clears the in-memory session"
+  ],
+  "uncaughtPageErrors": 0,
+  "status": "PASS"
+}

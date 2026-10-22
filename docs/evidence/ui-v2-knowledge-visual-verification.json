@@ -1,0 +1,44 @@
+{
+  "recordedAt": "2026-10-21T15:18:06.855Z",
+  "status": "PASS",
+  "base": "http://127.0.0.1",
+  "scope": "Knowledge CSS only follow-up to unchanged functional35-pass suite",
+  "checks": [
+    {
+      "name": "actual knowledge category/document controls and versions match tokens at five widths; long text wraps without document overflow",
+      "pass": true
+    },
+    {
+      "name": "real category selection, hover and keyboard focus remain usable",
+      "pass": true
+    },
+    {
+      "name": "category management and destructive confirmation cancel styled at all five widths; cancel preserves fixture",
+      "pass": true
+    }
+  ],
+  "screenshots": [
+    "ui-v2-knowledge-polish-1920.png",
+    "ui-v2-knowledge-polish-1440.png",
+    "ui-v2-knowledge-polish-1280.png",
+    "ui-v2-knowledge-polish-768.png",
+    "ui-v2-knowledge-polish-390.png",
+    "ui-v2-knowledge-controls-1920.png",
+    "ui-v2-knowledge-controls-1440.png",
+    "ui-v2-knowledge-controls-1280.png",
+    "ui-v2-knowledge-controls-768.png",
+    "ui-v2-knowledge-controls-390.png"
+  ],
+  "fixtures": {
+    "spaceId": "3acda9f6-d100-4a6a-a9f0-c90eedd54a3d",
+    "categoryId": "a614fd18-df9d-49fa-9458-5e286e2bb4cf",
+    "documentId": "0e63d220-5ff7-4fa6-9098-42040465a2db",
+    "versionId": "3748fb80-69cd-4b13-9754-fdee7fa4e3ec"
+  },
+  "logins": 1,
+  "uncaughtPageErrors": 0,
+  "limitations": [
+    "Chromium only; screenshots require manual inspection.",
+    "Synthetic private space/article retained; no existing credentials or publications changed."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "recordedAt": "2026-10-22T11:40:01.178Z",
+  "status": "PASS",
+  "checks": [
+    "input focus, real login error feedback and preserved username",
+    "actual request controls the login loading and success transition",
+    "portal, knowledge and users have no horizontal overflow at 1440 and 390 px",
+    "dialog input and checkbox keyboard focus; closing leaves no overlay",
+    "button loading state follows a delayed real users request",
+    "simulated request failure is visible; real retry restores server data",
+    "engineer ticket list buttons and filters have no horizontal overflow at 1440 and 390 px"
+  ],
+  "visualReview": "14 screenshots at 1440 and 390 px were reviewed and removed after validation at the user's request; the earlier failed-attempt screenshot was also removed",
+  "pageErrors": [],
+  "scope": "isolated ticknova_browser database; Chromium only; no existing demo database"
+}

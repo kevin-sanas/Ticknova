@@ -1,0 +1,107 @@
+{
+  "recordedAt": "2026-10-21T20:37:21.4117807+08:00",
+  "status": "PASS_LOCAL_G4_CLOSEOUT",
+  "scope": "User-approved G4 text boundary fix and verification; G5 next round",
+  "backend": {
+    "command": "Java21 api-test: mvnw -B -ntp clean verify",
+    "skipped": 0.0,
+    "redFailures": 4,
+    "tests": 153.0,
+    "errors": 0.0,
+    "failures": 0.0,
+    "focused": 15
+  },
+  "frontend": {
+    "build": "PASS",
+    "redFailures": 4,
+    "typecheck": "PASS",
+    "tests": 76,
+    "lint": "PASS",
+    "focused": 32
+  },
+  "evaluation": {
+    "recallAt5": 1,
+    "candidateLabelCitationPrecision": 1,
+    "cases": 32,
+    "refusalErrorRate": 0,
+    "humanQuality": "NOT RUN",
+    "mode": "mock"
+  },
+  "browser": {
+    "date": "2026-10-21T12:34:20.551Z",
+    "base": "http://127.0.0.1",
+    "status": "PASS",
+    "mode": "mock",
+    "checks": [
+      "published Docling source is indexed and retrieved through the actual async AI API",
+      "Chinese assistant displays a cited answer and explicit local demonstration mode",
+      "390px assistant layout has no horizontal overflow",
+      "accepting a reply confirms replacement and fills the public draft without sending",
+      "only the existing manual send action creates a public ticket reply",
+      "feedback reauthorization clears the cached answer and citations after withdrawal",
+      "unrelated knowledge question produces explicit refusal without fabricated citations"
+    ],
+    "uncaughtPageErrors": 0,
+    "fixtureTicketId": "1aa9d197-7369-43b2-9554-46344b8e48d2"
+  },
+  "deployment": {
+    "build": "PASS",
+    "composeConfig": "PASS (demo and test)",
+    "testContainersRunning": 0,
+    "webImage": "sha256:4c69737ae78320d2ed7225013f8934d45f4545c93b115bbee064a84f2fe1e5b5",
+    "webStatus": 200,
+    "readiness": "UP",
+    "preserveDemoDataAndPasswords": true,
+    "services": [
+      {
+        "Service": "api",
+        "State": "running",
+        "Health": "healthy",
+        "Image": "ticknova-api:0.1.0"
+      },
+      {
+        "Service": "docling",
+        "State": "running",
+        "Health": "healthy",
+        "Image": "ticknova-docling:0.1.0"
+      },
+      {
+        "Service": "postgres",
+        "State": "running",
+        "Health": "healthy",
+        "Image": "pgvector/pgvector:0.8.1-pg17@sha256:3e8b3adfd27b5707128f60956f62a793c3c9326ea8cfaf0eab7adccb5d700b21"
+      },
+      {
+        "Service": "web",
+        "State": "running",
+        "Health": "",
+        "Image": "ticknova-web:0.1.0"
+      }
+    ],
+    "apiImage": "sha256:5c6a6670d21b4416cdfe76f9ac29a64deb27cc78c6bd143b3f901120437a9d0e"
+  },
+  "review": "PASS scoped source review; no blocking findings",
+  "unrun": [
+    "G5 implementation",
+    "Real external models and human semantic evaluation",
+    "Independent Python suite rerun",
+    "Old ticket and knowledge browser suites rerun this closeout",
+    "New OSV query; dependencies unchanged, historic audit retained",
+    "Performance/stress",
+    "Backup restore",
+    "OS advisories",
+    "Remote CI/production publication"
+  ],
+  "git": {
+    "writes": "NONE",
+    "commitOrPush": "NONE",
+    "stagedBaseline": 133
+  },
+  "secretScan": {
+    "checkedAt": "2026-10-21T12:38:03.814Z",
+    "status": "PASS",
+    "scannedTextFiles": 230,
+    "localSecretFieldsChecked": 8,
+    "matches": []
+  }
+}

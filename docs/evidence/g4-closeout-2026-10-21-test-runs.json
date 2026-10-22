@@ -1,0 +1,67 @@
+{
+  "recordedAt": "2026-10-21T20:35:03.1327900+08:00",
+  "runs": {
+    "backend-full.log": [
+      "[INFO] Tests run: 36, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 29.13 s -- in com.ticknova.ai.AiIntegrationTest",
+      "[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.924 s -- in com.ticknova.ai.AiResultValidatorTest",
+      "[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.446 s -- in com.ticknova.ai.model.AiModelTest",
+      "[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.012 s -- in com.ticknova.ai.model.ModelConfigurationTest",
+      "[INFO] Tests run: 26, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 7.229 s -- in com.ticknova.ai.model.SpringAiModelTest",
+      "[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 11.43 s -- in com.ticknova.evaluation.RagEvaluationTest",
+      "[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in com.ticknova.identity.AdminBoundaryTest",
+      "[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.470 s -- in com.ticknova.identity.AuthServiceTest",
+      "[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.178 s -- in com.ticknova.identity.BearerSessionFilterTest",
+      "[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.592 s -- in com.ticknova.identity.IdentityIntegrationTest",
+      "[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.009 s -- in com.ticknova.identity.LoginRateLimiterTest",
+      "[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.007 s -- in com.ticknova.identity.SessionTokensTest",
+      "[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.090 s -- in com.ticknova.knowledge.DoclingClientTest",
+      "[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.006 s -- in com.ticknova.knowledge.KnowledgeChunkerTest",
+      "[INFO] Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 43.80 s -- in com.ticknova.knowledge.KnowledgeCrashRecoveryTest",
+      "[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 22.49 s -- in com.ticknova.knowledge.KnowledgeDoclingIntegrationTest",
+      "[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.375 s -- in com.ticknova.knowledge.KnowledgeIngestTest",
+      "[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.101 s -- in com.ticknova.knowledge.KnowledgeIntegrationTest",
+      "[INFO] Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.195 s -- in com.ticknova.ticket.TicketIntegrationTest",
+      "[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.003 s -- in com.ticknova.ticket.TicketPolicyTest",
+      "[INFO] Tests run: 153, Failures: 0, Errors: 0, Skipped: 0",
+      "[INFO] BUILD SUCCESS"
+    ],
+    "backend-green-focused.log": [
+      "[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.442 s -- in com.ticknova.ai.AiResultValidatorTest",
+      "[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0",
+      "[INFO] BUILD SUCCESS"
+    ],
+    "backend-red.log": [
+      "[ERROR] Tests run: 15, Failures: 4, Errors: 0, Skipped: 0, Time elapsed: 3.203 s <<< FAILURE! -- in com.ticknova.ai.AiResultValidatorTest",
+      "[ERROR] Tests run: 15, Failures: 4, Errors: 0, Skipped: 0",
+      "[INFO] BUILD FAILURE"
+    ],
+    "browser.log": [
+      "PASS published Docling source is indexed and retrieved through the actual async AI API",
+      "PASS Chinese assistant displays a cited answer and explicit local demonstration mode",
+      "PASS 390px assistant layout has no horizontal overflow",
+      "PASS accepting a reply confirms replacement and fills the public draft without sending",
+      "PASS only the existing manual send action creates a public ticket reply",
+      "PASS feedback reauthorization clears the cached answer and citations after withdrawal",
+      "PASS unrelated knowledge question produces explicit refusal without fabricated citations"
+    ],
+    "demo-start.log": [],
+    "frontend-checks.log": [],
+    "frontend-full.log": [
+      " Test Files  7 passed (7)",
+      "      Tests  76 passed (76)"
+    ],
+    "frontend-green-focused.log": [
+      " Test Files  1 passed (1)",
+      "      Tests  32 passed (32)"
+    ],
+    "frontend-red.log": [
+      " Test Files  1 failed (1)",
+      "      Tests  4 failed | 28 passed (32)"
+    ],
+    "images-build.log": [
+      "#22 19.36 [INFO] BUILD SUCCESS"
+    ],
+    "test-start.log": []
+  },
+  "note": "Sanitized outcome lines, no environment properties or original payloads"
+}

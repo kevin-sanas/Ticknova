@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-20T13:34:25.956Z",
+  "base": "http://127.0.0.1",
+  "status": "PASS",
+  "checks": [
+    "administrator creates an explicitly authorized knowledge space",
+    "browser upload reaches real Docling and versioned chunks",
+    "read-only ACL member can read the current published text and cannot edit",
+    "new version parsing retains the old publication until atomic publish",
+    "failed PDF exposes a stable error and manual retry creates a new job",
+    "390px real knowledge page has no horizontal overflow",
+    "actual authorization-hiding 404 clears previously displayed private content",
+    "withdrawal and archive complete through the browser"
+  ],
+  "uncaughtPageErrors": 0,
+  "fixtureDocumentId": "293f6436-dfe9-4106-b63a-b94534f69d1d"
+}

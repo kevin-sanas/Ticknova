@@ -1,0 +1,11 @@
+{
+  "environment": "isolated ticknova-test browser DB, Chromium 1440/390, local mock AI with worker disabled",
+  "checks": [
+    "invalid file is explained without network upload, and clearing preserves title",
+    "failed upload retains the file; retry receives 202, parser reaches READY, version picker rejects invalid file",
+    "AI status follows a real QUEUED job and only shows CANCELLED after server-confirmed cancellation"
+  ],
+  "visualReview": "10 screenshots at 1440 and 390 px were reviewed and removed after validation at the user's request",
+  "pageErrors": [],
+  "status": "PASS"
+}

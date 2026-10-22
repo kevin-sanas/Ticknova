@@ -1,0 +1,108 @@
+{
+  "recordedAt": "2026-10-20T15:41:30.8330557+08:00",
+  "branch": "codex/g0-g2",
+  "delivery": "Local staged source, no commit or push",
+  "backend": {
+    "suites": [
+      {
+        "name": "com.ticknova.identity.AdminBoundaryTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.ticknova.identity.AuthServiceTest",
+        "tests": 5,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.ticknova.identity.BearerSessionFilterTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.ticknova.identity.IdentityIntegrationTest",
+        "tests": 10,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.ticknova.identity.LoginRateLimiterTest",
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.ticknova.identity.SessionTokensTest",
+        "tests": 2,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.ticknova.ticket.TicketIntegrationTest",
+        "tests": 12,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      {
+        "name": "com.ticknova.ticket.TicketPolicyTest",
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    ],
+    "totals": {
+      "tests": 39,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "command": "scripts/Test-Backend.ps1",
+    "status": "PASS"
+  },
+  "frontend": {
+    "productionBuild": "PASS",
+    "tests": 19,
+    "lint": "PASS",
+    "typecheck": "PASS",
+    "status": "PASS"
+  },
+  "browser": {
+    "pageErrors": 0,
+    "firstPasswordChange": "Verified for admin/agent/requester in the initial browser setup",
+    "timezone": "Asia/Shanghai",
+    "checks": 9,
+    "status": "PASS"
+  },
+  "supplyChain": {
+    "npmAuditFindings": 0,
+    "frontendManifestOnlyLicenseDeclarations": 1,
+    "osvFindings": 0,
+    "osvPackages": 358,
+    "status": "PASS"
+  },
+  "build": {
+    "readiness": "UP",
+    "web": "PASS",
+    "api": "PASS"
+  },
+  "notRun": [
+    "G3-G5",
+    "RAG/provider evaluation",
+    "Outbox worker",
+    "Performance/load tests",
+    "Backup/restore",
+    "Container OS package vulnerability scan",
+    "Remote GitHub Actions"
+  ]
+}

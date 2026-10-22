@@ -1,0 +1,155 @@
+{
+  "recordedAt": "2026-10-21T15:23:36.7642325Z",
+  "product": "Ticknova",
+  "scope": "User-authorized UI design remediation and missing portal, categories, rich authoring, independent review, analytics and server cancellation",
+  "status": "LOCAL_FUNCTIONAL_UI_PASS_SUPPLY_CHAIN_BLOCKED",
+  "backend": {
+    "errors": 0.0,
+    "tests": 201.0,
+    "source": "ui-v2-backend-tests.json",
+    "failures": 0.0,
+    "skipped": 0.0
+  },
+  "frontend": {
+    "lint": "PASS, zero warnings",
+    "cssFollowUp": "CSS only after full164; lint/typecheck/build and focused visual rerun, no logic/test changes",
+    "build": "PASS",
+    "tests": 164,
+    "failures": 0,
+    "typecheck": "PASS",
+    "files": 15
+  },
+  "browser": {
+    "checks": 35,
+    "status": "PASS",
+    "source": "ui-v2-design-verification.json",
+    "uncaughtPageErrors": 0,
+    "screenshots": 108
+  },
+  "knowledgeVisual": {
+    "checks": 3,
+    "status": "PASS",
+    "source": "ui-v2-knowledge-visual-verification.json",
+    "uncaughtPageErrors": 0,
+    "screenshots": 10
+  },
+  "visualInspection": {
+    "method": "Manual actual PNG inspection and comparison with preserved original blue baseline; automated DOM/keyboard checks at1920/1440/1280/768/390; not a pixel-diff CI claim",
+    "representativeFiles": [
+      "ui-v2-before-desktop.png",
+      "ui-v2-ticknova-login-1440.png",
+      "ui-v2-portal-390.png",
+      "ui-v2-article-editor-1280.png",
+      "ui-v2-article-preview-390.png",
+      "ui-v2-ticket-detail-1280.png",
+      "ui-v2-ticket-drawer-properties-390.png",
+      "ui-v2-ticket-drawer-copilot-390.png",
+      "ui-v2-service-dialog-390.png",
+      "ui-v2-ticket-inbox-390.png",
+      "ui-v2-analytics-1440.png",
+      "ui-v2-audit-dialog-390.png",
+      "ui-v2-user-dialog-390.png",
+      "ui-v2-queue-member-popconfirm-1440.png",
+      "ui-v2-assistant-cited-1440.png",
+      "ui-v2-assistant-cancelled-1440.png",
+      "ui-v2-knowledge-polish-1440.png",
+      "ui-v2-knowledge-polish-390.png",
+      "ui-v2-knowledge-controls-390.png"
+    ]
+  },
+  "review": {
+    "important": 0,
+    "critical": 0,
+    "result": "APPROVE local mock functionality and UI",
+    "source": "ui-v2-review.json"
+  },
+  "runtime": {
+    "recordedAt": "2026-10-21T15:22:25.0719763Z",
+    "composeDemo": "PASS",
+    "composeTest": "PASS",
+    "health": {
+      "groups": [
+        "liveness",
+        "readiness"
+      ],
+      "status": "UP"
+    },
+    "demo": [
+      {
+        "Service": "api",
+        "Name": "ticknova-api-1",
+        "Image": "ticknova-api:0.1.0",
+        "State": "running",
+        "Health": "healthy"
+      },
+      {
+        "Service": "docling",
+        "Name": "ticknova-docling-1",
+        "Image": "ticknova-docling:0.1.0",
+        "State": "running",
+        "Health": "healthy"
+      },
+      {
+        "Service": "postgres",
+        "Name": "ticknova-postgres-1",
+        "Image": "pgvector/pgvector:0.8.1-pg17@sha256:3e8b3adfd27b5707128f60956f62a793c3c9326ea8cfaf0eab7adccb5d700b21",
+        "State": "running",
+        "Health": "healthy"
+      },
+      {
+        "Service": "web",
+        "Name": "ticknova-web-1",
+        "Image": "ticknova-web:0.1.0",
+        "State": "running",
+        "Health": ""
+      }
+    ],
+    "test": [
+      {
+        "Service": "docling",
+        "Name": "ticknova-test-docling-1",
+        "Image": "ticknova-docling:0.1.0",
+        "State": "exited",
+        "Health": ""
+      },
+      {
+        "Service": "postgres",
+        "Name": "ticknova-test-postgres-1",
+        "Image": "pgvector/pgvector:0.8.1-pg17@sha256:3e8b3adfd27b5707128f60956f62a793c3c9326ea8cfaf0eab7adccb5d700b21",
+        "State": "exited",
+        "Health": ""
+      }
+    ]
+  },
+  "secretScan": {
+    "matches": 0,
+    "status": "PASS",
+    "scannedTextFiles": 300
+  },
+  "git": {
+    "indexWrites": false,
+    "commits": false,
+    "push": false,
+    "branch": "codex/g0-g2",
+    "hasHead": false,
+    "stagedBaselineFiles": 133
+  },
+  "dataPreservation": {
+    "existingTicketsAndKnowledge": "Preserved",
+    "syntheticAcceptanceFixtures": "Retained; only explicitly named synthetic reviewers disabled",
+    "migration": "ui-v2-demo-upgrade.json",
+    "existingAccountsAndPasswords": "Preserved"
+  },
+  "unresolved": [
+    "Existing Pillow12.3.0 nine advisories; official Docling constraints block13 upgrade; full supply-chain and production gates NOT PASSED.",
+    "G5 failed-index operations, legacy G3 timeout Minor issues and consistent backup/restore remain."
+  ],
+  "notRun": [
+    "Real provider calls and model quality",
+    "Human groundedness/relevance assessment",
+    "Performance/P95/load tests",
+    "Independent Python suite rerun",
+    "Container OS vulnerability scan",
+    "Remote CI and production release"
+  ]
+}

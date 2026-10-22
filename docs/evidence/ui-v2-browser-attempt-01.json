@@ -1,0 +1,31 @@
+{
+  "recordedAt": "2026-10-21T14:22:55.723Z",
+  "base": "http://127.0.0.1",
+  "status": "FAILED",
+  "mode": "mock",
+  "step": "seven isolated UI logins and dedicated fixture setup",
+  "checks": [
+    {
+      "name": "seven UI sign-ins; synthetic editors complete first password change; existing demo credentials preserved",
+      "pass": true
+    }
+  ],
+  "screenshots": [
+    "ui-v2-failure-0.png"
+  ],
+  "fixtures": {
+    "authorId": "276c27fa-216e-4b4a-bcbd-00743bc4d8f9",
+    "reviewerId": "2a48034f-e004-4926-b242-a7c1a8ae755e"
+  },
+  "logins": 7,
+  "observations": [],
+  "uncaughtPageErrors": 0,
+  "failure": {
+    "step": "seven isolated UI logins and dedicated fixture setup",
+    "code": "BRAND_GREEN_TOKEN"
+  },
+  "limitations": [
+    "Automated DOM and keyboard checks supplement human screenshot inspection.",
+    "Synthetic fixtures retained as audit evidence; existing demo credentials unchanged."
+  ]
+}

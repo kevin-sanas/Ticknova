@@ -1,0 +1,11 @@
+Command: E:/Nodejs/node.exe node_modules/vitest/vitest.mjs run
+
+ RUN  v5.0.5 E:/javaProjects/Ticknova/frontend
+
+
+ Test Files  7 passed (7)
+      Tests  70 passed (70)
+   Start at  21:00:20
+   Duration  7.94s (import 50%, environment 36%, tests 12%, transform 1%)
+
+Exit code: 0

@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-10-20T07:31:18.885Z",
+  "missing": [],
+  "declaredOnly": [
+    {
+      "name": "lodash-unified",
+      "version": "1.0.3",
+      "author": "Jack Works",
+      "license": "MIT",
+      "source": "https://www.npmjs.com/package/lodash-unified"
+    }
+  ]
+}

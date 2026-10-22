@@ -1,0 +1,42 @@
+Check: frontend-typecheck.log
+
+> ticknova-frontend@0.1.0 typecheck
+> vue-tsc --noEmit
+
+
+Check: frontend-lint.log
+
+> ticknova-frontend@0.1.0 lint
+> eslint . --max-warnings 0
+
+
+Check: frontend-build.log
+
+> ticknova-frontend@0.1.0 build
+> npm run typecheck && vite build
+
+
+> ticknova-frontend@0.1.0 typecheck
+> vue-tsc --noEmit
+
+vite v8.3.4 building client environment for production...
+transforming...
+✓ 1620 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                                 0.53 kB │ gzip:   0.33 kB
+dist/assets/index-tk7kNgx7.css                376.82 kB │ gzip:  52.13 kB
+dist/assets/StatusBadge-CbzzQRdK.js             0.31 kB │ gzip:   0.25 kB
+dist/assets/StateView-BzZR4F5o.js               1.20 kB │ gzip:   0.83 kB
+dist/assets/ErrorNotice---ps0X2b.js             1.77 kB │ gzip:   1.10 kB
+dist/assets/LoginView-BI3rcSyF.js               2.11 kB │ gzip:   1.20 kB
+dist/assets/ChangePasswordView-HKYEoNmu.js      2.52 kB │ gzip:   1.31 kB
+dist/assets/NewTicketView-Cvj8uvD7.js           3.78 kB │ gzip:   1.99 kB
+dist/assets/AuditView-BuY_7zid.js               4.60 kB │ gzip:   2.05 kB
+dist/assets/UsersView-CTdfsEjY.js               7.86 kB │ gzip:   3.14 kB
+dist/assets/TicketsView-E7oH6F2z.js             8.05 kB │ gzip:   3.09 kB
+dist/assets/CatalogView-CWhQSvjR.js            10.00 kB │ gzip:   3.96 kB
+dist/assets/TicketDetailView-BbPXR_vg.js       13.71 kB │ gzip:   5.03 kB
+dist/assets/index-D4RTpcoU.js               1,025.78 kB │ gzip: 332.87 kB
+
+✓ built in 1.69s

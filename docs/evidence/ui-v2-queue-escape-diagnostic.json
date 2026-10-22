@@ -1,0 +1,8 @@
+{
+  "recordedAt": "2026-10-21T14:52:12.4718238Z",
+  "status": "REPRODUCED",
+  "sourceRun": "ui-v2-browser-attempt-03.json",
+  "originalFailure": "Escape after member removal leaves parent dialog open",
+  "diagnostic": "One real admin session repeated only synthetic V2_1792593993993 queue add/remove; waiting for popconfirm invisibility then parent contains(activeElement) timed out after5sec.",
+  "limitation": "Diagnostic aborted on failed focus assertion, no PASS claim; no existing accounts modified."
+}

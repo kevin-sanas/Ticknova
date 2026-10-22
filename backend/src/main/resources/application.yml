@@ -1,0 +1,59 @@
+spring:
+  application:
+    name: ticknova
+  task:
+    scheduling:
+      pool:
+        size: 3
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ticknova}
+    username: ${DB_USER:ticknova}
+    password: ${DB_PASSWORD}
+  flyway:
+    enabled: true
+    clean-disabled: true
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 21MB
+server:
+  port: 8080
+  error:
+    include-message: never
+    include-stacktrace: never
+springdoc:
+  api-docs:
+    path: /api/v1/openapi
+  paths-to-match: /api/v1/**
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+      group:
+        readiness:
+          include: readinessState,db
+ticknova:
+  ai:
+    provider: ${AI_PROVIDER:mock}
+    base-url: ${AI_BASE_URL:}
+    api-key: ${AI_API_KEY:}
+    chat-model: ${AI_MODEL:}
+    embedding-model: ${EMBEDDING_MODEL:}
+    worker-enabled: ${AI_WORKER_ENABLED:true}
+  session-pepper: ${SESSION_TOKEN_PEPPER}
+  seed:
+    enabled: ${DEMO_SEED_ENABLED:false}
+    password: ${DEMO_INITIAL_PASSWORD:}
+  knowledge:
+    upload-root: ${UPLOAD_ROOT:data/uploads}
+    max-upload-bytes: ${MAX_UPLOAD_BYTES:20971520}
+    worker-enabled: ${KNOWLEDGE_WORKER_ENABLED:true}
+    docling-base-url: ${DOCLING_BASE_URL:http://docling:8000}
+    docling-token: ${DOCLING_INTERNAL_TOKEN:}
+    max-attempts: ${JOB_MAX_ATTEMPTS:5}

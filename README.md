@@ -1,0 +1,92 @@
+# Ticknova｜AI 智能工单与知识协同平台
+
+> 当前已实现 G0–G4：身份权限、工单闭环、管理页面、知识摄取，以及带引用的知识问答和人工采纳的工单 AI 建议。默认使用无需密钥的本地 mock 演示模式；真实模型质量未验收。实际验证及暂停接续记录见第 12/16 篇。
+
+## 本地启动
+
+Ticknova V2 已补齐员工门户与授权搜索、知识分类、富文本自动保存/冲突保护、独立审核、运营分析和服务端AI中止，采用浅色设计、三栏工单与窄屏抽屉。后端201项、前端164项、完整浏览器35项及知识视觉3项通过，实测与未测边界见第12篇。现有Docling/Pillow的版本兼容公告命中尚未解决，见第15篇，整体安全与生产发布门未通过。
+
+前提：可用的 Docker Desktop Linux engine / Docker Compose，建议至少 8 GiB 可用内存。首次构建需要访问官方依赖和镜像源；宿主无需安装 Java 21。
+
+```powershell
+Set-Location E:\javaProjects\Ticknova
+.\scripts\Start-Local.ps1
+```
+
+访问 [Ticknova 工作台](http://127.0.0.1:5173)。脚本首次生成项目本地 `.env`，已有文件保留。演示用户名为 `admin`、`agent`、`requester`、`editor`，初始密码在本地 `.env` 的 `DEMO_INITIAL_PASSWORD`；首次登录必须改密。浏览器验收已改密的账号使用同文件内对应 `DEMO_ADMIN_PASSWORD` / `DEMO_AGENT_PASSWORD` / `DEMO_REQUESTER_PASSWORD`。不要将 `.env` 加入版本库或截图。
+
+管理员管理用户、角色、队列、成员、服务和审计。工程师显式加入队列后处理工单，请求者仅读取本人工单。知识编辑者可创建知识空间；拥有空间编辑权限后可上传、创作、预览与撤回；新版本须由另一位有空间编辑权限的知识编辑者审核通过后才能发布，成员权限由创建者或管理员配置。管理员也需空间读取权限才能查看文档。页面刷新清除内存会话，需要重新登录。演示初始化只在空库执行，重启不会重置密码或清空数据。
+
+知识页面支持 PDF、DOCX、Markdown、TXT，单文件最多 20 MiB、PDF 最多 100 页。PDF 当前提取原生文字，不启用 OCR；扫描件会明确报无可提取文字。`READY` 表示解析与分块完成；后台另行生成当前模型 profile 的索引，只有已审核发布且索引就绪的可读知识参与问答。上传原件保存在项目私有数据卷，撤回和归档不会物理删除文件。
+
+登录后进入“知识助手”提问；工单详情可生成回复、摘要或分类建议。回复及摘要最多10,000字符，与公开回复上限一致；历史超长建议会提示重新生成并保留原稿。采纳只填入草稿或字段，仍需手动发送或保存。默认 `AI_PROVIDER=mock` 用确定性检索演示链路；切换真实 provider 需在项目 `.env` 显式配置地址、密钥、聊天及 embedding 模型，详见第 11 篇。
+
+Compose 使用 `ticknova` 专用网络与数据卷；数据库和解析服务不映射到宿主端口，解析网络禁止外网访问。API 位于 `/api/v1`，通过网页同源代理访问；[readiness](http://127.0.0.1:8080/actuator/health/readiness) 检查数据库和应用就绪。已登录用户可用 bearer token 请求 `/api/v1/openapi` 获取机器可读契约。
+
+```powershell
+# 停止本项目服务，保留数据
+docker compose --env-file .env -f deploy/compose.yaml stop
+# 再次启动
+.\scripts\Start-Local.ps1
+```
+
+## 验证与开发
+
+```powershell
+# 仅使用隔离的 ticknova_test 临时数据库；禁止指向现有业务库
+.\scripts\Test-Backend.ps1
+
+Set-Location E:\javaProjects\Ticknova\frontend
+npm ci --ignore-scripts
+npm run typecheck
+npm run lint
+npm test
+npm run build
+npm run dev
+```
+
+后端通过 Java 21 容器构建；Maven Wrapper 3.9.11 / wrapper 3.3.4 均固定下载来源和摘要，SQL 唯一来源为根目录 `db/migration`。前端 Node 基线 24.22.0，开发代理连接 `127.0.0.1:8080`。解析服务固定 Python 3.12.12、Docling 2.140.0 和 uv 锁文件，无需模型下载。依赖、镜像和许可证证据位于 `docs/evidence`，审计脚本只向 OSV 发送公开包坐标与版本。解析测试使用 `docling-service` 下的 `uv sync --frozen`、`uv run --frozen pytest -q`。
+
+浏览器验收使用固定 Playwright 1.64.1 镜像，与本项目 web 容器共享网络命名空间，以 `http://127.0.0.1` 保持与真实本地访问一致的安全上下文；脚本会创建虚构演示记录并完成初次改密，改后的演示密码只保存在本地 `.env`。已保存截图和结果见 `docs/evidence`。
+
+启动服务后可运行 `.\scripts\Test-Browser.ps1` 重现浏览器验收；频繁重复登录仍受应用限流约束。
+
+## 项目目标与后续路线
+
+用 Java/Spring Boot 与 Spring AI 构建工单、知识库、检索和 AI 建议主流程；Vue 3 提供操作界面；Python/FastAPI 仅封装 Docling 文档解析。项目展示 Java 业务建模、异步可靠性、权限、RAG、前后端协作和可观测性。
+
+## 建议阅读顺序
+
+1. [Codex 执行指南](CODEX_EXECUTION.md)：仓库建议结构、阶段顺序和执行约束。
+2. [项目章程与 PRD](docs/01-项目章程与PRD.md)：目标用户、范围、成功标准。
+3. [需求、角色与用例](docs/02-角色用例与需求.md)：角色、功能和非功能需求。
+4. [架构与技术选型](docs/05-架构与技术选型.md)、[数据模型与 SQL](docs/06-数据模型ERD与SQL.md)、[API 契约](docs/07-API契约.md)：实现前的技术依据。
+5. 按 [阶段门与验收矩阵](docs/12-测试矩阵与阶段门.md) 推进并记录实测证据。
+
+## 目录
+
+| 文档 | 主题 |
+|---|---|
+| [01](docs/01-项目章程与PRD.md) | 章程、产品目标、MVP 与范围 |
+| [02](docs/02-角色用例与需求.md) | 角色、权限意图、用例、功能及 NFR |
+| [03](docs/03-领域模型与状态机.md) | 领域对象、工单/文档状态机、业务规则 |
+| [04](docs/04-边界与模块设计.md) | 原创范围、服务职责、模块边界 |
+| [05](docs/05-架构与技术选型.md) | 架构、部署拓扑、技术基线 |
+| [06](docs/06-数据模型ERD与SQL.md) | Mermaid ERD、PostgreSQL/pgvector DDL 与索引 |
+| [07](docs/07-API契约.md) | REST API、JSON、错误和版本约定 |
+| [08](docs/08-异步消息与幂等.md) | PostgreSQL Outbox、任务租约、幂等和重试 |
+| [09](docs/09-安全隐私与权限.md) | RBAC、文件/提示注入、保留与删除 |
+| [10](docs/10-RAG设计与评测.md) | Docling 边界、分块、召回、引用和评测 |
+| [11](docs/11-本地部署运维与CI-CD.md) | 本地启动、环境变量、CI/CD 与运行手册 |
+| [12](docs/12-测试矩阵与阶段门.md) | 验收矩阵、阶段门、拟定性能目标 |
+| [13](docs/13-迭代任务与发布交付.md) | 迭代任务、发布清单、交接 |
+| [14](docs/14-简历演示与答辩.md) | 简历表达、演示脚本、可追问的工程取舍 |
+| [15](docs/15-开源许可证与接口边界.md) | 上游仓库、许可证、版本与 API 边界核查 |
+
+## 关键约束
+
+- 这是单组织本地部署的演示型 MVP，不宣称为多租户 SaaS。
+- Java 是业务与 AI 编排主语言；Python 只提供内部文档解析 API。
+- AI 输出为建议，需人工确认；不自动回复、关闭工单或变更权限。
+- 性能表中的数值都是**拟定验收目标**。尚无实现或测量结果，不能称为已达成。
+- 开源项目的当前信息按 2026-10-20 核验；实施时仍需锁定依赖并复核上游变更。

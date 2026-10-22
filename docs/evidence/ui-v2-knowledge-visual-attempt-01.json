@@ -1,0 +1,27 @@
+{
+  "recordedAt": "2026-10-21T15:13:23.907Z",
+  "status": "FAILED",
+  "base": "http://127.0.0.1",
+  "scope": "Knowledge CSS only follow-up to unchanged functional35-pass suite",
+  "checks": [],
+  "screenshots": [
+    "ui-v2-knowledge-visual-failure.png"
+  ],
+  "fixtures": {
+    "spaceId": "83484d49-dbe3-4d2d-a359-40943767b9d1",
+    "categoryId": "db8b4aa0-3b17-46e4-b618-dd84586f9f0f",
+    "documentId": "b98a97a7-23c9-43b7-9e32-3b2d6f41a134",
+    "versionId": "27331a5d-1d46-484b-b9e9-b7fd45ea4712"
+  },
+  "logins": 1,
+  "uncaughtPageErrors": 0,
+  "failure": {
+    "phase": "category and document button geometry",
+    "code": "Knowledge visual assertion failed; raw call logs omitted",
+    "location": "    at ensure (file:///workspace/scripts/Browser-Knowledge-Visual.mjs:14:39)\n    at file:///workspace/scripts/Browser-Knowledge-Visual.mjs:27:197"
+  },
+  "limitations": [
+    "Chromium only; screenshots require manual inspection.",
+    "Synthetic private space/article retained; no existing credentials or publications changed."
+  ]
+}

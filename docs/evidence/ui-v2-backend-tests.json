@@ -1,0 +1,202 @@
+{
+  "recordedAt": "2026-10-21T14:38:14.528113Z",
+  "environment": "ticknova-test dedicated fresh tmpfs PostgreSQL 17 + pgvector; Java21; actual local Docling",
+  "command": "docker compose --env-file .env -f deploy/compose.test.yaml run --rm --no-deps api-test env -u MAVEN_CONFIG sh ./mvnw -B -ntp clean verify",
+  "result": "BUILD SUCCESS",
+  "tests": 201.0,
+  "failures": 0.0,
+  "errors": 0.0,
+  "skipped": 0.0,
+  "migrations": "V1-V6 applied from empty test database",
+  "suites": [
+    {
+      "name": "com.ticknova.ai.AiIntegrationTest",
+      "tests": 38,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 25.159
+    },
+    {
+      "name": "com.ticknova.ai.AiResultValidatorTest",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.576
+    },
+    {
+      "name": "com.ticknova.ai.model.AiModelTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.304
+    },
+    {
+      "name": "com.ticknova.ai.model.ModelConfigurationTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.008
+    },
+    {
+      "name": "com.ticknova.ai.model.SpringAiModelTest",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 3.757
+    },
+    {
+      "name": "com.ticknova.evaluation.RagEvaluationTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 9.004
+    },
+    {
+      "name": "com.ticknova.identity.AdminBoundaryTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.005
+    },
+    {
+      "name": "com.ticknova.identity.AuthServiceTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.413
+    },
+    {
+      "name": "com.ticknova.identity.BearerSessionFilterTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.147
+    },
+    {
+      "name": "com.ticknova.identity.IdentityIntegrationTest",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 7.824
+    },
+    {
+      "name": "com.ticknova.identity.LoginRateLimiterTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.005
+    },
+    {
+      "name": "com.ticknova.identity.SessionTokensTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.004
+    },
+    {
+      "name": "com.ticknova.knowledge.DoclingClientTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 1.077
+    },
+    {
+      "name": "com.ticknova.knowledge.KnowledgeAuthoringIntegrationTest",
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 7.895
+    },
+    {
+      "name": "com.ticknova.knowledge.KnowledgeChunkerTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.004
+    },
+    {
+      "name": "com.ticknova.knowledge.KnowledgeCrashRecoveryTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 39.858
+    },
+    {
+      "name": "com.ticknova.knowledge.KnowledgeDoclingIntegrationTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 22.746
+    },
+    {
+      "name": "com.ticknova.knowledge.KnowledgeIngestTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 4.615
+    },
+    {
+      "name": "com.ticknova.knowledge.KnowledgeIntegrationTest",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.723
+    },
+    {
+      "name": "com.ticknova.knowledge.RichDocumentTest",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.065
+    },
+    {
+      "name": "com.ticknova.ticket.TicketIntegrationTest",
+      "tests": 12,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 9.556
+    },
+    {
+      "name": "com.ticknova.ticket.TicketPolicyTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 0.003
+    },
+    {
+      "name": "com.ticknova.workspace.WorkspaceIntegrationTest",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 5.708
+    }
+  ],
+  "limitations": [
+    "Post-run TicketController/TicketRepository trailing blank lines only removed; no semantic backend change.",
+    "Standalone Python suite not rerun; real Docling roundtrip Java integration executed.",
+    "Mock provider only; real provider, performance, G5 backup and production NOT RUN."
+  ]
+}

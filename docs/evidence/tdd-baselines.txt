@@ -1,0 +1,20 @@
+Baseline: policy-red.log
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0, Time elapsed: 0.486 s <<< FAILURE! -- in com.ticknova.ticket.TicketPolicyTest
+[ERROR] Tests run: 3, Failures: 3, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+Baseline: review-backend-red.log
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0, Time elapsed: 25.33 s <<< FAILURE! -- in com.ticknova.ticket.TicketIntegrationTest
+[ERROR] Tests run: 2, Failures: 2, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+Baseline: auth-race-red.log
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 3.760 s <<< FAILURE! -- in com.ticknova.identity.AuthServiceTest
+[ERROR] Tests run: 4, Failures: 1, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+Baseline: fallback-red.log
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 20.59 s <<< FAILURE! -- in com.ticknova.identity.IdentityIntegrationTest
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+Baseline: openapi-red.log
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 18.44 s <<< FAILURE! -- in com.ticknova.ticket.TicketIntegrationTest
+[ERROR] Tests run: 1, Failures: 1, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE

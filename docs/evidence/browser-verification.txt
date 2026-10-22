@@ -1,0 +1,10 @@
+PASS requester creates ticket through the browser
+PASS engineer claims an authorized queue ticket
+PASS internal note is hidden from requester
+PASS triage → progress → resolve → requester reopen → resolve → confirm close
+PASS 375px ticket layout has no horizontal document overflow
+PASS administrator configures service, queue and membership
+PASS administrator creates and disables an account
+PASS administrator can inspect audit records
+PASS page refresh clears the in-memory session
+Browser verification passed: 9 checks.

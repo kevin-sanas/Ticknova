@@ -1,0 +1,58 @@
+{
+  "recordedAt": "2026-10-21T15:22:25.0719763Z",
+  "composeDemo": "PASS",
+  "composeTest": "PASS",
+  "health": {
+    "groups": [
+      "liveness",
+      "readiness"
+    ],
+    "status": "UP"
+  },
+  "demo": [
+    {
+      "Service": "api",
+      "Name": "ticknova-api-1",
+      "Image": "ticknova-api:0.1.0",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "docling",
+      "Name": "ticknova-docling-1",
+      "Image": "ticknova-docling:0.1.0",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "postgres",
+      "Name": "ticknova-postgres-1",
+      "Image": "pgvector/pgvector:0.8.1-pg17@sha256:3e8b3adfd27b5707128f60956f62a793c3c9326ea8cfaf0eab7adccb5d700b21",
+      "State": "running",
+      "Health": "healthy"
+    },
+    {
+      "Service": "web",
+      "Name": "ticknova-web-1",
+      "Image": "ticknova-web:0.1.0",
+      "State": "running",
+      "Health": ""
+    }
+  ],
+  "test": [
+    {
+      "Service": "docling",
+      "Name": "ticknova-test-docling-1",
+      "Image": "ticknova-docling:0.1.0",
+      "State": "exited",
+      "Health": ""
+    },
+    {
+      "Service": "postgres",
+      "Name": "ticknova-test-postgres-1",
+      "Image": "pgvector/pgvector:0.8.1-pg17@sha256:3e8b3adfd27b5707128f60956f62a793c3c9326ea8cfaf0eab7adccb5d700b21",
+      "State": "exited",
+      "Health": ""
+    }
+  ]
+}

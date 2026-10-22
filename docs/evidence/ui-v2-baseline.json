@@ -1,0 +1,18 @@
+{
+  "recordedAt": "2026-10-21T12:57:50.127Z",
+  "checks": [
+    {
+      "name": "warm canvas",
+      "pass": false
+    },
+    {
+      "name": "green brand token",
+      "pass": false
+    },
+    {
+      "name": "employee portal navigation",
+      "pass": false
+    }
+  ],
+  "status": "FAILED"
+}

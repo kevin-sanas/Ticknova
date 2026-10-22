@@ -1,0 +1,1 @@
+{"formats": ["PDF", "DOCX", "MD", "TXT"], "txtLiteralFidelity": "PASS", "nestedHeadingProvenance": "PASS", "jsonMetadataBudgets": ["ascii PASS", "utf8 PASS", "escapes PASS"], "ordinary600Sections": "PASS", "nonRootReadOnlyAuthCleanup": "PASS"}

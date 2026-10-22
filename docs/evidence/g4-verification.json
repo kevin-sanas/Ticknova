@@ -1,0 +1,55 @@
+{
+  "recordedAt": "2026-10-20T21:36:19.0624158+08:00",
+  "status": "LOCAL_G4_VERIFIED_PAUSED_FOR_FOLLOWUP",
+  "backend": {
+    "failures": 0.0,
+    "skipped": 0.0,
+    "migrations": "Fresh test V1-V4 and incremental demo V4",
+    "errors": 0.0,
+    "tests": 143.0,
+    "command": "mvnw -B -ntp clean verify"
+  },
+  "frontend": {
+    "typecheck": "PASS",
+    "lint": "PASS",
+    "build": "PASS",
+    "tests": 70
+  },
+  "browser": {
+    "ai": 7,
+    "uncaughtErrors": 0,
+    "screenshots": "Desktop and 390px visually inspected",
+    "knowledge": 8,
+    "ticket": 9
+  },
+  "evaluation": {
+    "candidateCases": 32,
+    "humanQuality": "NOT RUN",
+    "realProvider": "NOT RUN",
+    "mode": "mock",
+    "profile": "mock:hash-v1:1024"
+  },
+  "images": {
+    "build": "PASS",
+    "apiManifest": "sha256:8b6122e5f6d7ea2d3d3820572d05d713b8c38b6702b16f902e5cce245c4b6b6b",
+    "demoHealth": "3 healthchecked services healthy; web running, startup --wait PASS"
+  },
+  "supplyChain": {
+    "osvCoordinates": 447,
+    "javaComponents": 120,
+    "findings": 0
+  },
+  "unrun": [
+    "Independent Python suite rerun in G4",
+    "Real-provider and human quality",
+    "Performance and stress",
+    "Backup restore",
+    "OS vulnerability scan",
+    "Remote CI and production publication"
+  ],
+  "remaining": [
+    "16k suggestion versus 10k public comment boundary Minor",
+    "G5 release hardening not started"
+  ],
+  "userStop": "2026-10-20 21:40 Asia/Shanghai; no automatic resume"
+}

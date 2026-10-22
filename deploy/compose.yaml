@@ -1,0 +1,97 @@
+name: ticknova
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.1-pg17@sha256:3e8b3adfd27b5707128f60956f62a793c3c9326ea8cfaf0eab7adccb5d700b21
+    environment:
+      POSTGRES_DB: ticknova
+      POSTGRES_USER: ticknova
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Generate the local .env first}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ticknova -d ticknova"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  api:
+    image: ticknova-api:0.1.0
+    build:
+      context: ..
+      dockerfile: deploy/api.Dockerfile
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/ticknova
+      DB_USER: ticknova
+      DB_PASSWORD: ${DB_PASSWORD:?Generate the local .env first}
+      SESSION_TOKEN_PEPPER: ${SESSION_TOKEN_PEPPER:?Generate the local .env first}
+      DEMO_SEED_ENABLED: ${DEMO_SEED_ENABLED:-true}
+      DEMO_INITIAL_PASSWORD: ${DEMO_INITIAL_PASSWORD:?Set the initial demo password}
+      TZ: UTC
+      UPLOAD_ROOT: /var/lib/ticknova/uploads
+      DOCLING_BASE_URL: http://docling:8000
+      DOCLING_INTERNAL_TOKEN: ${DOCLING_INTERNAL_TOKEN:?Generate the local parser token}
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-20971520}
+      AI_PROVIDER: ${AI_PROVIDER:-mock}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      AI_WORKER_ENABLED: ${AI_WORKER_ENABLED:-true}
+    volumes:
+      - uploads:/var/lib/ticknova/uploads
+    networks:
+      - default
+      - parser
+    depends_on:
+      postgres:
+        condition: service_healthy
+      docling:
+        condition: service_started
+    ports:
+      - "127.0.0.1:${API_PORT:-8080}:8080"
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, http://localhost:8080/actuator/health/readiness]
+      interval: 5s
+      timeout: 3s
+      start_period: 30s
+      retries: 20
+    restart: unless-stopped
+  docling:
+    image: ticknova-docling:0.1.0
+    build:
+      context: ..
+      dockerfile: deploy/docling.Dockerfile
+      args:
+        PYTHON_IMAGE: ${DOCLING_PYTHON_IMAGE:-python:3.12.12-slim-bookworm@sha256:593bd06efe90efa80dc4eee3948be7c0fde4134606dd40d8dd8dbcade98e669c}
+    environment:
+      DOCLING_INTERNAL_TOKEN: ${DOCLING_INTERNAL_TOKEN:?Generate the local parser token}
+      MAX_UPLOAD_BYTES: ${MAX_UPLOAD_BYTES:-20971520}
+      MAX_PDF_PAGES: ${MAX_PDF_PAGES:-100}
+    networks:
+      - parser
+    read_only: true
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    mem_limit: 1g
+    cpus: 1
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    restart: unless-stopped
+  web:
+    image: ticknova-web:0.1.0
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    ports:
+      - "127.0.0.1:${WEB_PORT:-5173}:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+volumes:
+  postgres_data:
+  uploads:
+networks:
+  parser:
+    internal: true

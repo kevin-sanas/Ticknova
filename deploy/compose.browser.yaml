@@ -1,0 +1,44 @@
+name: ticknova-test
+services:
+  api:
+    image: ticknova-api:browser-test
+    build:
+      context: ..
+      dockerfile: deploy/api.Dockerfile
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/ticknova_browser
+      DB_USER: ticknova_test
+      DB_PASSWORD: ${TEST_DB_PASSWORD:?Generate the project .env first}
+      SESSION_TOKEN_PEPPER: ${SESSION_TOKEN_PEPPER:?Generate the project .env first}
+      DEMO_SEED_ENABLED: "true"
+      DEMO_INITIAL_PASSWORD: ${DEMO_INITIAL_PASSWORD:?Set the test initial password}
+      TZ: UTC
+      UPLOAD_ROOT: /var/lib/ticknova/uploads
+      DOCLING_BASE_URL: http://docling:8000
+      DOCLING_INTERNAL_TOKEN: ${DOCLING_INTERNAL_TOKEN:?Generate the parser token}
+      AI_PROVIDER: mock
+      AI_WORKER_ENABLED: "false"
+    tmpfs:
+      - /var/lib/ticknova/uploads:size=256m,mode=1777,uid=10001,gid=10001
+    networks: [default, parser]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      docling:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, http://localhost:8080/actuator/health/readiness]
+      interval: 5s
+      timeout: 3s
+      start_period: 30s
+      retries: 20
+  web:
+    image: ticknova-web:browser-test
+    build:
+      context: ..
+      dockerfile: deploy/web.Dockerfile
+    ports:
+      - "127.0.0.1:5174:80"
+    depends_on:
+      api:
+        condition: service_healthy

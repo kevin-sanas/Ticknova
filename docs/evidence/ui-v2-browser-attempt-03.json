@@ -1,0 +1,291 @@
+{
+  "recordedAt": "2026-10-21T14:48:26.315Z",
+  "base": "http://127.0.0.1",
+  "status": "FAILED",
+  "mode": "mock",
+  "step": "admin services queues membership popconfirm dirty modal and focus",
+  "checks": [
+    {
+      "name": "seven UI sign-ins; synthetic editors complete first password change; existing demo credentials preserved",
+      "pass": true
+    },
+    {
+      "name": "Ticknova login, workspace navigation, footer and document title across all seven sessions",
+      "pass": true
+    },
+    {
+      "name": "portal: responsive screenshots, accessible names/labels, control size and no document overflow",
+      "pass": true,
+      "details": {
+        "widths": [
+          1920,
+          1440,
+          1280,
+          768,
+          390
+        ]
+      }
+    },
+    {
+      "name": "requester defaults to search-first portal without administrative navigation",
+      "pass": true
+    },
+    {
+      "name": "actual UI category create, rename, selection, empty state and confirmed empty-category deletion",
+      "pass": true
+    },
+    {
+      "name": "article-preview: responsive screenshots, accessible names/labels, control size and no document overflow",
+      "pass": true,
+      "details": {
+        "widths": [
+          1920,
+          1440,
+          1280,
+          768,
+          390
+        ]
+      }
+    },
+    {
+      "name": "article-editor: responsive screenshots, accessible names/labels, control size and no document overflow",
+      "pass": true,
+      "details": {
+        "widths": [
+          1920,
+          1440,
+          1280,
+          768,
+          390
+        ]
+      }
+    },
+    {
+      "name": "toolbar selected state, heading outline, matching rich preview and approximately 800ms real autosave",
+      "pass": true
+    },
+    {
+      "name": "two live editors produce server CAS 409; local draft survives cancel; confirmed explicit reload uses server revision",
+      "pass": true
+    },
+    {
+      "name": "self-review denied 403; independent KB_EDITOR rejection requires reason; distinct new version approved and published",
+      "pass": true
+    },
+    {
+      "name": "knowledge-reader: responsive screenshots, accessible names/labels, control size and no document overflow",
+      "pass": true,
+      "details": {
+        "widths": [
+          1920,
+          1440,
+          1280,
+          768,
+          390
+        ]
+      }
+    },
+    {
+      "name": "old published source stays readable while a later version awaits review",
+      "pass": true
+    },
+    {
+      "name": "browser upload reaches actual parse/chunk pipeline, independent review, publication and authorized reader",
+      "pass": true
+    },
+    {
+      "name": "loading state and disabled duplicate-submit control while an actual network request is held then released",
+      "pass": true
+    },
+    {
+      "name": "real portal search/category correct-space navigation; empty/offline/error/retry and collapsed-nav keyboard tooltip",
+      "pass": true
+    },
+    {
+      "name": "new-ticket: responsive screenshots, accessible names/labels, control size and no document overflow",
+      "pass": true,
+      "details": {
+        "widths": [
+          1920,
+          1440,
+          1280,
+          768,
+          390
+        ]
+      }
+    },
+    {
+      "name": "ticket-inbox: responsive screenshots, accessible names/labels, control size and no document overflow",
+      "pass": true,
+      "details": {
+        "widths": [
+          1920,
+          1440,
+          1280,
+          768,
+          390
+        ]
+      }
+    },
+    {
+      "name": "requester creates, agent claims actual unassigned ticket, internal notes stay private and AI adoption never auto-sends",
+      "pass": true
+    },
+    {
+      "name": "ticket-detail: responsive screenshots, accessible names/labels, control size and no document overflow",
+      "pass": true,
+      "details": {
+        "widths": [
+          1920,
+          1440,
+          1280,
+          768,
+          390
+        ]
+      }
+    },
+    {
+      "name": "compact drawers trap/restore focus; resolve/reopen/resolve/close and inbox filter return",
+      "pass": true
+    },
+    {
+      "name": "assistant-cited: responsive screenshots, accessible names/labels, control size and no document overflow",
+      "pass": true,
+      "details": {
+        "widths": [
+          1920,
+          1440,
+          1280,
+          768,
+          390
+        ]
+      }
+    },
+    {
+      "name": "real citation exact document/version/chunk; explicit unsupported-question refusal; persisted server cancellation",
+      "pass": true,
+      "details": {
+        "cancellationAttempts": 1
+      }
+    },
+    {
+      "name": "service-dialog: responsive screenshots, accessible names/labels, control size and no document overflow",
+      "pass": true,
+      "details": {
+        "widths": [
+          1920,
+          1440,
+          1280,
+          768,
+          390
+        ]
+      }
+    },
+    {
+      "name": "admin-services: responsive screenshots, accessible names/labels, control size and no document overflow",
+      "pass": true,
+      "details": {
+        "widths": [
+          1920,
+          1440,
+          1280,
+          768,
+          390
+        ]
+      }
+    }
+  ],
+  "screenshots": [
+    "ui-v2-ticknova-login-1440.png",
+    "ui-v2-portal-1920.png",
+    "ui-v2-portal-1440.png",
+    "ui-v2-portal-1280.png",
+    "ui-v2-portal-768.png",
+    "ui-v2-portal-390.png",
+    "ui-v2-knowledge-empty-1440.png",
+    "ui-v2-category-confirm-1440.png",
+    "ui-v2-article-preview-1920.png",
+    "ui-v2-article-preview-1440.png",
+    "ui-v2-article-preview-1280.png",
+    "ui-v2-article-preview-768.png",
+    "ui-v2-article-preview-390.png",
+    "ui-v2-article-editor-1920.png",
+    "ui-v2-article-editor-1440.png",
+    "ui-v2-article-editor-1280.png",
+    "ui-v2-article-editor-768.png",
+    "ui-v2-article-editor-390.png",
+    "ui-v2-article-conflict-1440.png",
+    "ui-v2-review-rejected-1440.png",
+    "ui-v2-knowledge-reader-1920.png",
+    "ui-v2-knowledge-reader-1440.png",
+    "ui-v2-knowledge-reader-1280.png",
+    "ui-v2-knowledge-reader-768.png",
+    "ui-v2-knowledge-reader-390.png",
+    "ui-v2-portal-loading-1440.png",
+    "ui-v2-portal-empty-1440.png",
+    "ui-v2-portal-offline-1440.png",
+    "ui-v2-navigation-keyboard-tooltip-1440.png",
+    "ui-v2-new-ticket-1920.png",
+    "ui-v2-new-ticket-1440.png",
+    "ui-v2-new-ticket-1280.png",
+    "ui-v2-new-ticket-768.png",
+    "ui-v2-new-ticket-390.png",
+    "ui-v2-ticket-inbox-1920.png",
+    "ui-v2-ticket-inbox-1440.png",
+    "ui-v2-ticket-inbox-1280.png",
+    "ui-v2-ticket-inbox-768.png",
+    "ui-v2-ticket-inbox-390.png",
+    "ui-v2-ai-human-confirm-1440.png",
+    "ui-v2-ticket-detail-1920.png",
+    "ui-v2-ticket-detail-1440.png",
+    "ui-v2-ticket-detail-1280.png",
+    "ui-v2-ticket-detail-768.png",
+    "ui-v2-ticket-detail-390.png",
+    "ui-v2-ticket-drawer-properties-768.png",
+    "ui-v2-ticket-drawer-copilot-768.png",
+    "ui-v2-ticket-drawer-properties-390.png",
+    "ui-v2-ticket-drawer-copilot-390.png",
+    "ui-v2-assistant-cited-1920.png",
+    "ui-v2-assistant-cited-1440.png",
+    "ui-v2-assistant-cited-1280.png",
+    "ui-v2-assistant-cited-768.png",
+    "ui-v2-assistant-cited-390.png",
+    "ui-v2-citation-location-1440.png",
+    "ui-v2-assistant-refusal-1440.png",
+    "ui-v2-assistant-cancelled-1440.png",
+    "ui-v2-service-dialog-1920.png",
+    "ui-v2-service-dialog-1440.png",
+    "ui-v2-service-dialog-1280.png",
+    "ui-v2-service-dialog-768.png",
+    "ui-v2-service-dialog-390.png",
+    "ui-v2-dirty-modal-confirm-1440.png",
+    "ui-v2-admin-services-1920.png",
+    "ui-v2-admin-services-1440.png",
+    "ui-v2-admin-services-1280.png",
+    "ui-v2-admin-services-768.png",
+    "ui-v2-admin-services-390.png",
+    "ui-v2-queue-member-popconfirm-1440.png",
+    "ui-v2-failure-69.png"
+  ],
+  "fixtures": {
+    "authorId": "a8fe2fcc-4c67-4edc-8b21-a97a1ad938bd",
+    "reviewerId": "7f143bf4-0aa5-431e-8241-a2fbff28c13f",
+    "spaceId": "fe2b9c9a-de47-47d5-8e55-0b2e22ab4c11",
+    "documentId": "4dca3cce-1cc8-4147-9316-eeb36ac81f46",
+    "uploadDocumentId": "7630d6ed-420d-4245-9069-b55aaf7a3f77",
+    "ticketId": "3570125f-9c34-4c1b-a70b-8249efad9f60"
+  },
+  "logins": 7,
+  "observations": [],
+  "uncaughtPageErrors": 0,
+  "failure": {
+    "step": "admin services queues membership popconfirm dirty modal and focus",
+    "code": "Error: browser assertion or operation failed (business text and call logs omitted)",
+    "location": "    at /workspace/scripts/Browser-Design.mjs:306:73\n    at async phase (/workspace/scripts/Browser-Design.mjs:25:49)\n    at async file:///workspace/scripts/Browser-Design.mjs:297:3"
+  },
+  "limitations": [
+    "Automated DOM and keyboard checks supplement human screenshot inspection.",
+    "Synthetic fixtures retained as audit evidence; existing demo credentials unchanged."
+  ],
+  "screenshotArchiveDirectory": "ui-v2-browser-attempt-03/"
+}

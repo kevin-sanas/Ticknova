@@ -1,0 +1,27 @@
+{
+  "recordedAt": "2026-10-21T14:17:39.6602653Z",
+  "environment": "Ticknova local demonstration only",
+  "fromSchema": "4",
+  "toSchema": "6",
+  "beforeCounts": {
+    "users": 9,
+    "tickets": 9,
+    "documents": 9,
+    "versions": 18
+  },
+  "afterCounts": {
+    "users": 9,
+    "tickets": 9,
+    "documents": 9,
+    "versions": 18
+  },
+  "checks": {
+    "accountsAndPasswordsUnchanged": true,
+    "existingTicketsUnchanged": true,
+    "existingPublicationPointersAndTitlesUnchanged": true,
+    "existingVersionSourcesUnchanged": true,
+    "currentPublicationsApproved": true,
+    "schemaIsV6": true
+  },
+  "status": "PASS"
+}

@@ -1,0 +1,17 @@
+{
+  "date": "2026-10-21T12:34:20.551Z",
+  "base": "http://127.0.0.1",
+  "status": "PASS",
+  "mode": "mock",
+  "checks": [
+    "published Docling source is indexed and retrieved through the actual async AI API",
+    "Chinese assistant displays a cited answer and explicit local demonstration mode",
+    "390px assistant layout has no horizontal overflow",
+    "accepting a reply confirms replacement and fills the public draft without sending",
+    "only the existing manual send action creates a public ticket reply",
+    "feedback reauthorization clears the cached answer and citations after withdrawal",
+    "unrelated knowledge question produces explicit refusal without fabricated citations"
+  ],
+  "uncaughtPageErrors": 0,
+  "fixtureTicketId": "1aa9d197-7369-43b2-9554-46344b8e48d2"
+}

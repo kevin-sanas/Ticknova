@@ -12,6 +12,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserAdminService {
     private static final Set<String> ROLES=Set.of("ADMIN","AGENT","REQUESTER","KB_EDITOR");
+    private static final String USER_SELECT="""
+        SELECT u.id,u.username,u.display_name,u.active,u.must_change_password,u.created_at,
+          COALESCE((SELECT array_agg(r.code ORDER BY r.code) FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=u.id),ARRAY[]::varchar[]) role_codes
+        FROM app_user u
+        """;
     private final JdbcClient jdbc;
     private final PasswordEncoder encoder;
     private final AuditService audit;
@@ -22,8 +27,8 @@ public class UserAdminService {
     public PageResult<UserView> list(Actor actor,int page,int size) {
         actor.requireRole("ADMIN"); PageResult.validate(page,size);
         long total=jdbc.sql("SELECT count(*) FROM app_user").query(Long.class).single();
-        var items=jdbc.sql("SELECT id,username,display_name,active,must_change_password,created_at FROM app_user ORDER BY username,id LIMIT :size OFFSET :offset")
-            .param("size",size).param("offset",(long)page*size).query((rs,n)->new UserView(rs.getObject("id",UUID.class),rs.getString("username"),rs.getString("display_name"),rs.getBoolean("active"),rs.getBoolean("must_change_password"),userRoles(rs.getObject("id",UUID.class)),rs.getTimestamp("created_at").toInstant())).list();
+        var items=jdbc.sql(USER_SELECT+" ORDER BY u.username,u.id LIMIT :size OFFSET :offset")
+            .param("size",size).param("offset",(long)page*size).query((rs,n)->new UserView(rs.getObject("id",UUID.class),rs.getString("username"),rs.getString("display_name"),rs.getBoolean("active"),rs.getBoolean("must_change_password"),Set.copyOf(Arrays.asList((String[])rs.getArray("role_codes").getArray())),rs.getTimestamp("created_at").toInstant())).list();
         return new PageResult<>(items,total,page,size);
     }
 
@@ -75,14 +80,11 @@ public class UserAdminService {
     }
 
     private UserView user(UUID id) {
-        return jdbc.sql("SELECT id,username,display_name,active,must_change_password,created_at FROM app_user WHERE id=:id")
-            .param("id",id).query((rs,n)->new UserView(rs.getObject("id",UUID.class),rs.getString("username"),rs.getString("display_name"),rs.getBoolean("active"),rs.getBoolean("must_change_password"),userRoles(id),rs.getTimestamp("created_at").toInstant())).optional()
+        return jdbc.sql(USER_SELECT+" WHERE u.id=:id")
+            .param("id",id).query((rs,n)->new UserView(rs.getObject("id",UUID.class),rs.getString("username"),rs.getString("display_name"),rs.getBoolean("active"),rs.getBoolean("must_change_password"),Set.copyOf(Arrays.asList((String[])rs.getArray("role_codes").getArray())),rs.getTimestamp("created_at").toInstant())).optional()
             .orElseThrow(() -> new ApiException(404,"USER_NOT_FOUND","用户不存在"));
     }
 
-    private Set<String> userRoles(UUID id) {
-        return Set.copyOf(jdbc.sql("SELECT r.code FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=:id ORDER BY r.code").param("id",id).query(String.class).list());
-    }
 
     private void insertRoles(UUID id,Set<String> roles) {
         for (String role:roles) jdbc.sql("INSERT INTO user_role(user_id,role_id) SELECT :id,id FROM app_role WHERE code=:role")

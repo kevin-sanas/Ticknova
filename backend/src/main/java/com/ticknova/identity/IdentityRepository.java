@@ -41,9 +41,11 @@ public class IdentityRepository {
 
     public Optional<Actor> sessionActor(String hash) {
         return jdbc.sql("""
-            SELECT u.id,u.username,u.display_name,u.must_change_password FROM user_session s JOIN app_user u ON u.id=s.user_id
+            SELECT u.id,u.username,u.display_name,u.must_change_password,
+              COALESCE((SELECT array_agg(r.code ORDER BY r.code) FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=u.id),ARRAY[]::varchar[]) role_codes
+            FROM user_session s JOIN app_user u ON u.id=s.user_id
              WHERE s.token_hash=:hash AND s.revoked_at IS NULL AND s.expires_at>now() AND u.active
-            """).param("hash",hash).query((rs,n)->new Actor(rs.getObject("id",UUID.class),rs.getString("username"),rs.getString("display_name"),roles(rs.getObject("id",UUID.class)),rs.getBoolean("must_change_password"))).optional();
+            """).param("hash",hash).query((rs,n)->new Actor(rs.getObject("id",UUID.class),rs.getString("username"),rs.getString("display_name"),Set.copyOf(Arrays.asList((String[])rs.getArray("role_codes").getArray())),rs.getBoolean("must_change_password"))).optional();
     }
 
     public void revokeSession(UUID userId,String hash) {

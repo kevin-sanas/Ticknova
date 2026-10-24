@@ -7,11 +7,12 @@ import { signInDemo, changeDemoPassword, parseDemoEnv } from './Demo-Credentials
 // The PowerShell entry point holds a local exclusive lock and verifies the empty database identity.
 const [base, envFile, confirmation] = process.argv.slice(2)
 const browserTest = confirmation === 'verified-empty-ticknova-browser'
-if ((!browserTest && confirmation !== 'verified-empty-ticknova-demo') || !base || !envFile) throw Error('Run scripts/Seed-Demo.ps1 after starting the clean demo Compose project')
+const performanceTest = confirmation === 'verified-empty-ticknova-perf'
+if ((!browserTest && !performanceTest && confirmation !== 'verified-empty-ticknova-demo') || !base || !envFile) throw Error('Run the dedicated demo or performance entry point after verifying its empty database')
 const origin = new URL(base)
 if (origin.protocol !== 'http:' || origin.hostname !== '127.0.0.1' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) throw Error('Seed requires the local origin')
 const marker = await fetch(origin, { signal: AbortSignal.timeout(10000), redirect: 'error' })
-if (!marker.ok || marker.headers.get('x-ticknova-environment') !== (browserTest ? 'browser-test' : 'demo')) throw Error('Refusing seed: target environment does not match')
+if (!marker.ok || marker.headers.get('x-ticknova-environment') !== (performanceTest ? 'perf-test' : browserTest ? 'browser-test' : 'demo')) throw Error('Refusing seed: target environment does not match')
 const envPath = resolve(envFile), settings = parseDemoEnv(await readFile(envPath, 'utf8'))
 const request = { post: async (url, { data, headers }) => {
   const result = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', ...headers }, body: JSON.stringify(data), signal: AbortSignal.timeout(15000) })
@@ -23,7 +24,7 @@ async function call(actor, method, path, data, idempotent = false) {
   return response.status === 204 ? null : response.json()
 }
 async function login(username) {
-  const prefix = browserTest ? 'DEMO_BROWSER' : 'DEMO'
+  const prefix = performanceTest ? 'DEMO_PERF' : browserTest ? 'DEMO_BROWSER' : 'DEMO'
   let signed = await signInDemo(request, base, envPath, username, undefined, prefix)
   if (signed.login.user.mustChangePassword) {
     await changeDemoPassword(request, base, envPath, username, signed.password, signed.login.accessToken, `Demo-${randomBytes(24).toString('hex')}!`, undefined, prefix)

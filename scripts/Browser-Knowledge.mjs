@@ -1,22 +1,21 @@
+import { browserEnvironment } from './Browser-Environment.mjs'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import {createEditorFixture,permitReview,approveVersion} from './Browser-Review.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const { base, envPath, env, evidence } = await browserEnvironment(root)
 const { chromium } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/playwright/index.mjs')))
 const { expect: baseExpect } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/@playwright/test/index.mjs')))
 const expect = baseExpect.configure({ timeout: 45_000 })
-const base = process.env.TICKNOVA_URL || 'http://127.0.0.1:5173'
-const env = Object.fromEntries((await readFile(resolve(root, '.env'), 'utf8')).split(/\r?\n/).filter(line => line && !line.startsWith('#')).map(line => { const i = line.indexOf('='); return [line.slice(0, i), line.slice(i + 1)] }))
 const secrets = Object.entries(env).filter(([key]) => /PASSWORD|PEPPER|TOKEN/.test(key)).map(([, value]) => value).filter(Boolean)
-const evidence = resolve(root, 'docs/evidence'); await mkdir(evidence, { recursive: true })
 const browser = await chromium.launch({ headless: true }); const contexts = []; const checks = []; const errors = []; let step = 'login'
 function checked(name) { checks.push(name); console.log(`PASS ${name}`) }
 async function login(username,password) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1050 }, locale: 'zh-CN', timezoneId: 'Asia/Shanghai' }); contexts.push(context)
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message))
-  await page.goto(`${base}/login`); await page.locator('#username').fill(username); await page.locator('#password').fill(password || env[`DEMO_${username.toUpperCase()}_PASSWORD`] || env.DEMO_INITIAL_PASSWORD)
+  await page.goto(`${base}/login`); await page.locator('#username').fill(username); await page.locator('#password').fill(password || env[`DEMO_BROWSER_${username.toUpperCase()}_PASSWORD`] || env.DEMO_INITIAL_PASSWORD)
   const response = page.waitForResponse(r => r.url().endsWith('/auth/login') && r.request().method() === 'POST')
   await page.getByRole('button', { name: /登录工作台/ }).click(); const result = await response; expect(result.status()).toBe(200); const loginResult = await result.json(); const user = loginResult.user
   if (user.mustChangePassword) throw new Error('Run the full Test-Browser.ps1 first to complete the initial demo-account password flow.')
@@ -62,6 +61,8 @@ try {
   await expect(reader.locator('.knowledge-chunks')).toContainText('虚构第一版知识'); await expect(reader.getByRole('button', { name: '发布此版本', exact: true })).toHaveCount(0)
   checked('read-only ACL member can read the current published text and cannot edit')
   step = 'new version preserves old publication'
+  // ACL refresh reloads the workspace; reopen the exact document before the next action.
+  await admin.getByRole('button', { name: title, exact: true }).click()
   const nextVersion=await uploadVersion(admin, 'gateway.md', 'text/markdown', '# 网关排障\n\n虚构第二版知识：先检查健康状态，再核对路由配置。')
   await expect(admin.getByText('新版本处理或待发布期间，旧版本仍保持发布。', { exact: true })).toBeVisible()
   await expect(admin.locator('.knowledge-versions > li').first().getByText('解析就绪', { exact: true })).toBeVisible()

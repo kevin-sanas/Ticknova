@@ -93,9 +93,10 @@ class RagEvaluationTest {
         report.put("documents",fixtures.entrySet().stream().collect(java.util.stream.Collectors.toMap(Map.Entry::getKey,e->e.getValue().document().toString())));
         report.put("recallAt5",positives==0?0.0:(double)recalled/positives);report.put("candidateLabelCitationPrecision",citations==0?0.0:(double)relevantCitations/citations);report.put("refusalErrorRate",refusals==0?0.0:(double)wrongRefusals/refusals);
         report.put("results",rows);report.put("notRun",List.of("Real model semantic quality","Human groundedness/label review","Classification Macro-F1","Performance P95"));
-        String evidenceTag=System.getenv().getOrDefault("TICKNOVA_EVIDENCE_TAG","g4");
+        String evidenceTag=System.getenv("TICKNOVA_EVIDENCE_TAG");
+        if(evidenceTag==null)evidenceTag="local";
         if(!evidenceTag.matches("[a-z0-9-]+"))throw new IllegalArgumentException("Invalid evidence tag");
-        Path evidence=Path.of("../docs/evidence/"+evidenceTag+"-rag-evaluation.json");Files.createDirectories(evidence.getParent());
+        Path evidence=Path.of(System.getenv("TICKNOVA_EVIDENCE_TAG")==null?"../.cache/rag-evaluation.json":"../docs/evidence/"+evidenceTag+"-rag-evaluation.json");Files.createDirectories(evidence.getParent());
         try { checks.assertAll();report.put("status","PASS"); }
         catch(AssertionError failure) {report.put("status","FAILED");Files.writeString(evidence,json.writeValueAsString(report)+"\n");throw failure;}
         Files.writeString(evidence,json.writeValueAsString(report)+"\n");

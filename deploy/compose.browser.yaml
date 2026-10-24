@@ -1,5 +1,10 @@
-name: ticknova-test
+name: ticknova-browser
 services:
+  postgres:
+    environment:
+      POSTGRES_DB: ticknova_browser
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ticknova_test -d ticknova_browser"]
   api:
     image: ticknova-api:browser-test
     build:
@@ -17,7 +22,7 @@ services:
       DOCLING_BASE_URL: http://docling:8000
       DOCLING_INTERNAL_TOKEN: ${DOCLING_INTERNAL_TOKEN:?Generate the parser token}
       AI_PROVIDER: mock
-      AI_WORKER_ENABLED: "false"
+      AI_WORKER_ENABLED: ${BROWSER_AI_WORKER_ENABLED:-true}
     tmpfs:
       - /var/lib/ticknova/uploads:size=256m,mode=1777,uid=10001,gid=10001
     networks: [default, parser]
@@ -37,6 +42,8 @@ services:
     build:
       context: ..
       dockerfile: deploy/web.Dockerfile
+    environment:
+      TICKNOVA_ENVIRONMENT: browser-test
     ports:
       - "127.0.0.1:5174:80"
     depends_on:

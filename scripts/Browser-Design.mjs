@@ -1,3 +1,4 @@
+import { browserEnvironment } from './Browser-Environment.mjs'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -5,17 +6,16 @@ import { randomUUID } from 'node:crypto'
 import { actorRequest, createEditorFixture, permitReview } from './Browser-Review.mjs'
 
 // Real local services only: no response fulfillment, provider changes, or existing
-// demo password changes. Fixture records are retained as auditable test evidence.
+// demo password changes. Fixtures live only in the disposable browser database.
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const base = process.env.TICKNOVA_URL || 'http://127.0.0.1:5173', origin = new URL(base)
+const { base, envPath, env, evidence } = await browserEnvironment(root)
+const origin = new URL(base)
 if (origin.hostname !== '127.0.0.1' || origin.protocol !== 'http:' || origin.username || origin.password || origin.pathname !== '/' || origin.search || origin.hash) throw new Error('Requires local http://127.0.0.1 origin')
 if (process.env.UI_BASELINE === 'true') throw new Error('Historical before evidence is immutable')
-const env = Object.fromEntries((await readFile(resolve(root, '.env'), 'utf8')).split(/\r?\n/).filter(line => line && !line.startsWith('#')).map(line => { const i = line.indexOf('='); return [line.slice(0, i), line.slice(i + 1)] }))
 const secrets = Object.entries(env).filter(([key]) => /PASSWORD|PEPPER|TOKEN|KEY|SECRET/.test(key)).map(([, value]) => value).filter(Boolean)
 const { chromium } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/playwright/index.mjs')))
 const { expect: baseExpect } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/@playwright/test/index.mjs')))
 const expect = baseExpect.configure({ timeout: 45_000 })
-const evidence = resolve(root, 'docs/evidence'); await mkdir(evidence, { recursive: true })
 const checks = [], screenshots = [], contexts = [], pageErrors = [], fixtures = {}, observations = []
 const stamp = Date.now(), widths = [1920, 1440, 1280, 768, 390]
 let browser, step = 'launch', currentPage, logins = 0, failure
@@ -42,7 +42,7 @@ async function login(username, password) {
   await expect(page.locator('.auth-brand .brand-mark')).toHaveText('t')
   await expect(page).toHaveTitle(/Ticknova/)
   if (!logins) await snapshot(page, 'ticknova-login')
-  await page.locator('#username').fill(username); await page.locator('#password').fill(password || env[`DEMO_${username.toUpperCase()}_PASSWORD`] || env.DEMO_INITIAL_PASSWORD)
+  await page.locator('#username').fill(username); await page.locator('#password').fill(password || env[`DEMO_BROWSER_${username.toUpperCase()}_PASSWORD`] || env.DEMO_INITIAL_PASSWORD)
   const result = await responseFor(page, 'POST', '/auth/login', () => page.getByRole('button', { name: /登录工作台/ }).click(), [200])
   secrets.push(result.accessToken); ensure(!result.user.mustChangePassword, 'DEMO_FIRST_PASSWORD_CHANGE_REQUIRED_USE_EXISTING_SETUP')
   await page.waitForURL(url => !['/login', '/change-password'].includes(url.pathname)); logins++

@@ -1,0 +1,20 @@
+name: ticknova-demo
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: ticknova_demo
+      POSTGRES_USER: ticknova_demo
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ticknova_demo -d ticknova_demo"]
+  api:
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/ticknova_demo
+      DB_USER: ticknova_demo
+      AI_PROVIDER: mock
+      AI_BASE_URL: ""
+      AI_API_KEY: ""
+      AI_MODEL: ""
+      EMBEDDING_MODEL: ""
+  web:
+    environment:
+      TICKNOVA_ENVIRONMENT: demo

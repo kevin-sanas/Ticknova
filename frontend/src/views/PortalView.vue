@@ -43,3 +43,12 @@ onMounted(search); onBeforeUnmount(() => { generation++ })
     <section v-if="ticketsAllowed" class="panel portal-tickets"><div class="panel-header"><h2>{{ result.query ? '相关工单' : '我的工单与进展' }}</h2><router-link to="/tickets">查看全部 →</router-link></div><p v-if="!result.tickets.length" class="empty-state">{{ result.query ? '没有找到相关工单。' : '还没有待跟进的工单，可以先搜索帮助内容。' }}</p><div v-for="ticket in result.tickets" :key="ticket.id" class="portal-ticket-row"><div><span class="ticket-number">{{ ticket.ticketNo }}</span><router-link :to="`/tickets/${ticket.id}`">{{ ticket.title }}</router-link></div><div class="inline-actions"><span class="badge">{{ statuses[ticket.status] || ticket.status }}</span><span class="small muted">{{ priorities[ticket.priority] || ticket.priority }}</span><time :datetime="ticket.updatedAt">{{ formatTime(ticket.updatedAt) }}</time></div></div></section>
   </template>
 </template>
+<style scoped>
+.portal-main .document-result p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+</style>

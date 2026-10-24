@@ -1,3 +1,4 @@
+import { browserEnvironment } from './Browser-Environment.mjs'
 import { readFile, mkdir, writeFile } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -6,15 +7,13 @@ import { createEditorFixture, actorRequest } from './Browser-Review.mjs'
 import { signInDemo, changeDemoPassword } from './Demo-Credentials.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const envPath = resolve(root, '.env')
+const { base, envPath, env, evidence } = await browserEnvironment(root)
 const { chromium } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/playwright/index.mjs')))
 const { expect: baseExpect } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/@playwright/test/index.mjs')))
 const expect = baseExpect.configure({ timeout: 45000 })
-const base = process.env.TICKNOVA_URL || 'http://127.0.0.1:5173'
 const prefix = 'knowledge-recovery-2026-10-22'
 const origin = new URL(base)
 if (origin.protocol !== 'http:' || origin.hostname !== '127.0.0.1' || origin.pathname !== '/') throw Error('Ticknova local test origin required')
-const evidence = resolve(root, 'docs/evidence'); await mkdir(evidence, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 const contexts = [], errors = [], checks = [], screenshots = [], secrets = []
 let phase = 'login', fixture = {}, reviewerPage

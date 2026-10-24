@@ -1,19 +1,16 @@
+import { browserEnvironment } from './Browser-Environment.mjs'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createHmac, randomBytes } from 'node:crypto'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const { base, envPath, env: settings, evidence } = await browserEnvironment(root)
 process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve(root, '.cache/ms-playwright')
 const { chromium } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/playwright/index.mjs')))
 const { expect } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/@playwright/test/index.mjs')))
-const base = process.env.TICKNOVA_URL || 'http://127.0.0.1:5173'
-const envPath = resolve(root, '.env')
 let envText = await readFile(envPath, 'utf8')
-const settings = Object.fromEntries(envText.split(/\r?\n/).filter(line => line && !line.startsWith('#')).map(line => { const i = line.indexOf('='); return [line.slice(0,i), line.slice(i+1)] }))
 const secrets = new Set(Object.entries(settings).filter(([key]) => /PASSWORD|PEPPER/.test(key)).map(([,value]) => value).filter(Boolean))
-const evidence = resolve(root, 'docs/evidence')
-await mkdir(evidence, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 const contexts = [], pageErrors = [], checks = []
 let step = 'initialization'
@@ -24,7 +21,7 @@ async function login(username) {
   contexts.push(context)
   const page = await context.newPage()
   page.on('pageerror', error => pageErrors.push(error.message))
-  const key = `DEMO_${username.toUpperCase()}_PASSWORD`
+  const key = `DEMO_BROWSER_${username.toUpperCase()}_PASSWORD`
   let password = settings[key] || settings.DEMO_INITIAL_PASSWORD
   await page.goto(`${base}/login`)
   await page.locator('#username').fill(username)
@@ -126,7 +123,7 @@ try {
   step = 'administrator creates service and queue'
   await navigate(admin,'/admin/services')
   await admin.getByRole('button',{name:/新建服务/}).click()
-  const code = `DEMO_${Date.now()}`
+  const code = `DEMO_BROWSER_${Date.now()}`
   await admin.locator('#catalog-code').fill(code)
   await admin.locator('#catalog-name').fill('浏览器验收服务')
   await admin.getByRole('dialog').getByRole('button',{name:'保存',exact:true}).click()

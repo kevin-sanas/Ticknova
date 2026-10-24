@@ -9,11 +9,12 @@ Ticknova 已补齐员工门户与授权搜索、知识分类、富文本自动�
 前提：可用的 Docker Desktop Linux engine / Docker Compose，建议至少 8 GiB 可用内存。首次构建需要访问官方依赖和镜像源；宿主无需安装 Java 21。
 
 ```powershell
-Set-Location E:\javaProjects\Ticknova
 .\scripts\Start-Local.ps1
 ```
 
-访问 [Ticknova 工作台](http://127.0.0.1:5173)。脚本首次生成项目本地 `.env`，已有文件保留。演示用户名为 `admin`、`agent`、`requester`、`editor`，初始密码在本地 `.env` 的 `DEMO_INITIAL_PASSWORD`；首次登录必须改密。浏览器验收已改密的账号可使用同文件内对应的 `DEMO_<用户名大写>_PASSWORD`。不要将 `.env` 加入版本库或截图。
+在项目根目录执行，访问 [Ticknova 工作台](http://127.0.0.1:5173)。脚本创建独立的 `ticknova-demo` 环境和被 Git 忽略的 `.env.demo`，旧 `ticknova` 数据卷及 `.env` 保留。演示账号为 `admin`、`agent`、`requester`、`editor`、`reviewer`，当前密码在 `.env.demo` 的 `DEMO_<用户名大写>_PASSWORD`。初始化通过真实登录/首次改密流程准备数据，不跳过密码策略。不要将任何 `.env*` 内容加入版本库或截图。
+
+空库自动加入 4 个队列、8 项服务、12 篇原创且由另一位编辑审核发布并索引的知识，以及 24 张不同状态的工单。已完成的种子重复执行时跳过；非空且缺少完成记录时保留数据并报错，不覆盖或假装完成。独立演示环境固定为 **mock**，可尝试“网络无法连接怎么办”“VPN 连不上”“怎么重置密码”，回答附真实授权知识引用。已有本地解析镜像时可用 `Start-Local.ps1 -SkipParserBuild`，脚本会先核对五份源码/锁文件摘要。
 
 管理员管理用户、角色、队列、成员、服务和审计。工程师显式加入队列后处理工单，请求者仅读取本人工单。知识编辑者可创建知识空间；拥有空间编辑权限后可上传、创作、预览与撤回；新版本须由另一位有空间编辑权限的知识编辑者审核通过后才能发布，成员权限由创建者或管理员配置。管理员也需空间读取权限才能查看文档。页面刷新清除内存会话，需要重新登录。演示初始化只在空库执行，重启不会重置密码或清空数据。
 
@@ -21,13 +22,13 @@ Set-Location E:\javaProjects\Ticknova
 
 知识页面支持 PDF、DOCX、Markdown、TXT，单文件最多 20 MiB、PDF 最多 100 页。PDF 当前提取原生文字，不启用 OCR；扫描件会明确报无可提取文字。`READY` 表示解析与分块完成；后台另行生成当前模型 profile 的索引，只有已审核发布且索引就绪的可读知识参与问答。空间编辑者可在版本历史中查看索引失败码并点击“重试索引”；解析重试与索引重试是两个独立操作。上传原件保存在项目私有数据卷，撤回和归档不会物理删除文件。
 
-登录后进入“知识助手”提问；工单详情可生成回复、摘要或分类建议。回复及摘要最多10,000字符，与公开回复上限一致；历史超长建议会提示重新生成并保留原稿。采纳只填入草稿或字段，仍需手动发送或保存。默认 `AI_PROVIDER=mock` 用确定性检索演示链路；切换真实 provider 需在项目 `.env` 显式配置地址、密钥、聊天及 embedding 模型，详见第 11 篇。
+登录后进入“知识助手”提问；工单详情可生成回复、摘要或分类建议。回复及摘要最多10,000字符，与公开回复上限一致；历史超长建议会提示重新生成并保留原稿。采纳只填入草稿或字段，仍需手动发送或保存。mock 用确定性检索演示链路，不代表真实模型语义质量；真实 provider 的独立配置与验收留待展示证据阶段，接口配置说明见第 11 篇。
 
-Compose 使用 `ticknova` 专用网络与数据卷；数据库和解析服务不映射到宿主端口，解析网络禁止外网访问。API 位于 `/api/v1`，通过网页同源代理访问；[readiness](http://127.0.0.1:8080/actuator/health/readiness) 检查数据库和应用就绪。已登录用户可用 bearer token 请求 `/api/v1/openapi` 获取机器可读契约。
+Compose 使用 `ticknova-demo` 专用网络与数据卷；数据库和解析服务不映射到宿主端口，解析网络禁止外网访问。API 位于 `/api/v1`，通过网页同源代理访问；[readiness](http://127.0.0.1:8080/actuator/health/readiness) 检查数据库和应用就绪。已登录用户可用 bearer token 请求 `/api/v1/openapi` 获取机器可读契约。
 
 ```powershell
 # 停止本项目服务，保留数据
-docker compose --env-file .env -f deploy/compose.yaml stop
+docker compose --env-file .env.demo -p ticknova-demo -f deploy/compose.yaml -f deploy/compose.demo.yaml stop
 # 再次启动
 .\scripts\Start-Local.ps1
 ```
@@ -36,7 +37,7 @@ docker compose --env-file .env -f deploy/compose.yaml stop
 
 ```powershell
 .\scripts\Backup-Local.ps1
-.\scripts\Test-Restore.ps1 -BackupDirectory 'E:\javaProjects\Ticknova\data\backups\<备份目录名>'
+.\scripts\Test-Restore.ps1 -BackupDirectory '<项目绝对路径>/data/backups/<备份目录名>'
 ```
 
 ## 验证与开发
@@ -45,7 +46,7 @@ docker compose --env-file .env -f deploy/compose.yaml stop
 # 仅使用隔离的 ticknova_test 临时数据库；禁止指向现有业务库
 .\scripts\Test-Backend.ps1
 
-Set-Location E:\javaProjects\Ticknova\frontend
+Set-Location frontend
 npm ci --ignore-scripts
 npm run typecheck
 npm run lint
@@ -56,9 +57,9 @@ npm run dev
 
 后端通过 Java 21 容器构建；Maven Wrapper 3.9.11 / wrapper 3.3.4 均固定下载来源和摘要，SQL 唯一来源为根目录 `db/migration`。前端 Node 基线 24.22.0，开发代理连接 `127.0.0.1:8080`。解析服务固定 Python 3.12.12、Docling 2.140.0 和 uv 锁文件，无需模型下载。依赖、镜像和许可证证据位于 `docs/evidence`，审计脚本只向 OSV 发送公开包坐标与版本。解析测试使用 `docling-service` 下的 `uv sync --frozen`、`uv run --frozen pytest -q`。
 
-浏览器验收使用固定 Playwright 1.64.1 镜像，与本项目 web 容器共享网络命名空间，以 `http://127.0.0.1` 保持与真实本地访问一致的安全上下文；脚本会创建虚构演示记录并完成初次改密，改后的演示密码只保存在本地 `.env`。文字结果见 `docs/evidence`；验收截图在检查后从项目清理。
+浏览器验收使用固定 Playwright 1.64.1 镜像、`ticknova-browser` Compose、独立 `ticknova_browser` tmpfs 库及一次性 `.env.browser`。每个入口在登录前检查测试服务标记，拒绝演示站点和演示凭据文件；合成数据只进入测试库。截图和报告仅写系统临时目录，默认随测试结束清理；`-KeepArtifacts` 可暂留供人工核对，检查后删除。测试套件间重启专用 API 清空内存登录配额，业务限流规则不变。
 
-启动服务后可运行 `.\scripts\Test-Browser.ps1` 重现浏览器验收；频繁重复登录仍受应用限流约束。
+运行 `.\scripts\Test-Browser.ps1` 重现工单、知识、AI 和审核回归；`-Scope Demo` 会在测试库生成同一套原创数据，检查五种账号及常见问题。测试会自行启动、清理环境，不依赖演示站点。缺省构建完整镜像；源码匹配的本地解析镜像可用 `-SkipParserBuild` 复用。
 
 ## 项目目标与后续路线
 

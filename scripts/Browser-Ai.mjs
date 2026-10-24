@@ -1,16 +1,15 @@
+import { browserEnvironment } from './Browser-Environment.mjs'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import {createEditorFixture,permitReview,approveVersion} from './Browser-Review.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const { base, envPath, env, evidence } = await browserEnvironment(root)
 const { chromium } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/playwright/index.mjs')))
 const { expect: baseExpect } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/@playwright/test/index.mjs')))
 const expect = baseExpect.configure({ timeout: 30_000 })
-const env = Object.fromEntries((await readFile(resolve(root, '.env'), 'utf8')).split(/\r?\n/).filter(line => line && !line.startsWith('#')).map(line => { const index = line.indexOf('='); return [line.slice(0, index), line.slice(index + 1)] }))
 const secrets = Object.entries(env).filter(([key]) => /PASSWORD|PEPPER|TOKEN|API_KEY/.test(key)).map(([, value]) => value).filter(Boolean)
-const base = process.env.TICKNOVA_URL || 'http://127.0.0.1:5173'
-const evidence = resolve(root, 'docs/evidence'); await mkdir(evidence, { recursive: true })
 const evidenceTag = process.env.TICKNOVA_EVIDENCE_TAG || 'g4'
 if (!/^[a-z0-9-]+$/.test(evidenceTag)) throw new Error('Invalid evidence tag')
 const screenshotPrefix = evidenceTag === 'g4' ? 'assistant' : `${evidenceTag}-assistant`
@@ -19,7 +18,7 @@ const checked = name => { checks.push(name); console.log(`PASS ${name}`) }
 async function login(username, password) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1050 }, locale: 'zh-CN', timezoneId: 'Asia/Shanghai' }); contexts.push(context)
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.message))
-  await page.goto(`${base}/login`); await page.locator('#username').fill(username); await page.locator('#password').fill(password || env[`DEMO_${username.toUpperCase()}_PASSWORD`] || env.DEMO_INITIAL_PASSWORD)
+  await page.goto(`${base}/login`); await page.locator('#username').fill(username); await page.locator('#password').fill(password || env[`DEMO_BROWSER_${username.toUpperCase()}_PASSWORD`] || env.DEMO_INITIAL_PASSWORD)
   const pending = page.waitForResponse(response => response.url().endsWith('/auth/login') && response.request().method() === 'POST')
   await page.getByRole('button', { name: /登录工作台/ }).click(); const response = await pending; expect(response.status()).toBe(200)
   const body = await response.json(); if (body.user.mustChangePassword) throw new Error('Run full browser verification to finish demo first-login flow')

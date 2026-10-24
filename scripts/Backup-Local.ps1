@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param()
+param([switch]$Legacy)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $backupRoot = Join-Path $projectRoot 'data/backups'
@@ -11,9 +11,12 @@ foreach ($path in @($dataRoot, $backupRoot)) {
 $folder = 'ticknova-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssZ') + '-' + [guid]::NewGuid().ToString('N').Substring(0,8)
 $backup = [IO.Path]::GetFullPath((Join-Path $backupRoot $folder))
 if (-not $backup.StartsWith($backupRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe backup path.' }
-if (-not (Test-Path -LiteralPath (Join-Path $projectRoot '.env'))) { throw 'Project .env is missing; start Ticknova first.' }
+$envFile = if ($Legacy) { '.env' } else { '.env.demo' }
+$dbName = if ($Legacy) { 'ticknova' } else { 'ticknova_demo' }
+if (-not (Test-Path -LiteralPath (Join-Path $projectRoot $envFile))) { throw 'Project environment is missing; start Ticknova first.' }
 New-Item -ItemType Directory -Path (Join-Path $backup 'uploads') -Force | Out-Null
-$compose = @('compose','--env-file','.env','-f','deploy/compose.yaml')
+$compose = @('compose','--env-file',$envFile,'-p',$(if ($Legacy) { 'ticknova' } else { 'ticknova-demo' }),'-f','deploy/compose.yaml')
+if (-not $Legacy) { $compose += @('-f','deploy/compose.demo.yaml') }
 $postgresStarted = $false
 $apiStopped = $false
 $dumpPath = '/tmp/ticknova-backup-' + [guid]::NewGuid().ToString('N') + '.dump'
@@ -36,13 +39,13 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Cannot quiesce Ticknova api.' }
         $apiStopped = $true
     }
-    & docker exec $postgresId pg_dump -U ticknova -d ticknova -Fc -f $dumpPath
+    & docker exec $postgresId pg_dump -U $dbName -d $dbName -Fc -f $dumpPath
     if ($LASTEXITCODE -ne 0) { throw 'pg_dump failed.' }
     & docker cp "${postgresId}:${dumpPath}" (Join-Path $backup 'database.dump')
     if ($LASTEXITCODE -ne 0) { throw 'Cannot copy database dump.' }
     & docker cp "${apiId}:/var/lib/ticknova/uploads/." (Join-Path $backup 'uploads')
     if ($LASTEXITCODE -ne 0) { throw 'Cannot copy uploads.' }
-    $rows = @(& docker exec $postgresId psql -U ticknova -d ticknova -At -c 'SELECT storage_key || ''|'' || sha256 FROM document_version ORDER BY storage_key')
+    $rows = @(& docker exec $postgresId psql -U $dbName -d $dbName -At -c 'SELECT storage_key || ''|'' || sha256 FROM document_version ORDER BY storage_key')
     if ($LASTEXITCODE -ne 0) { throw 'Cannot read document file references.' }
     $references = @($rows | Where-Object { $_ } | ForEach-Object {
         $parts = $_.Split('|')
@@ -57,7 +60,7 @@ try {
             @{ name = $_.Name; sha256 = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() }
         } else { throw 'Unexpected upload entry in backup.' }
     })
-    $schema = (& docker exec $postgresId psql -U ticknova -d ticknova -At -c 'SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').Trim()
+    $schema = (& docker exec $postgresId psql -U $dbName -d $dbName -At -c 'SELECT version FROM flyway_schema_history WHERE success ORDER BY installed_rank DESC LIMIT 1').Trim()
     if ($LASTEXITCODE -ne 0 -or -not $schema) { throw 'Cannot read Flyway schema version.' }
     $manifest = @{
         formatVersion = 1

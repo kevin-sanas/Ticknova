@@ -1,3 +1,4 @@
+import { browserEnvironment } from './Browser-Environment.mjs'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -5,17 +6,13 @@ import { randomBytes } from 'node:crypto'
 import { signInDemo, changeDemoPassword } from './Demo-Credentials.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const envPath = resolve(root, '.env')
-const base = process.env.TICKNOVA_URL || 'http://127.0.0.1'
+const { base, envPath, env, evidence } = await browserEnvironment(root)
 const origin = new URL(base)
 if (origin.protocol !== 'http:' || origin.hostname !== '127.0.0.1' || origin.pathname !== '/') throw Error('Only the isolated local Ticknova browser stack is allowed')
-const env = Object.fromEntries((await readFile(resolve(root, '.env'), 'utf8')).split(/\r?\n/).filter(line => line && !line.startsWith('#')).map(line => { const index = line.indexOf('='); return [line.slice(0, index), line.slice(index + 1)] }))
 const { chromium } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/playwright/index.mjs')))
 const { expect: baseExpect } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/@playwright/test/index.mjs')))
 const expect = baseExpect.configure({ timeout: 45000 })
-const evidence = resolve(root, 'docs/evidence')
 const prefix = 'galaxy-batch2-2026-10-22'
-await mkdir(evidence, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 const context = await browser.newContext({ viewport: { width: 1440, height: 960 }, locale: 'zh-CN', timezoneId: 'Asia/Shanghai' })
 const page = await context.newPage()

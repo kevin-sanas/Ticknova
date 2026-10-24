@@ -15,6 +15,15 @@ function response(status, login) {
   return { status: () => status, json: async () => login }
 }
 
+test('demo seed credentials remain separate from browser credentials', async () => {
+  const io = memoryEnv('DEMO_INITIAL_PASSWORD=initial\nDEMO_BROWSER_ADMIN_PASSWORD=browser-password\n')
+  const request = { post: async () => response(204) }
+  await changeDemoPassword(request, 'http://127.0.0.1', '.env.demo', 'admin', 'initial', 'token', 'demo-password', io, 'DEMO')
+  assert.equal(io.settings().DEMO_ADMIN_PASSWORD, 'demo-password')
+  assert.equal(io.settings().DEMO_BROWSER_ADMIN_PASSWORD, 'browser-password')
+  assert.equal(io.settings().DEMO_ADMIN_PENDING_PASSWORD, undefined)
+})
+
 test('fresh demo sign-in uses initial password without changing the environment', async () => {
   const io = memoryEnv()
   const request = { post: async (_url, options) => {

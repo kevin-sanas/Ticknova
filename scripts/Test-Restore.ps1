@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([Parameter(Mandatory=$true)][string]$BackupDirectory)
+param([Parameter(Mandatory=$true)][string]$BackupDirectory,[switch]$Legacy)
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $backupRoot = [IO.Path]::GetFullPath((Join-Path $projectRoot 'data/backups'))
@@ -33,7 +33,7 @@ foreach ($reference in @($manifest.references)) {
     if ($reference.key -notmatch '^[0-9a-f-]{36}\.bin$' -or $reference.sha256 -notmatch '^[0-9a-f]{64}$' -or -not $fileHashes.ContainsKey($reference.key) -or $fileHashes[$reference.key] -ne $reference.sha256) { throw 'A document references a missing or altered upload.' }
 }
 $projectName = 'ticknova-restore-' + [guid]::NewGuid().ToString('N').Substring(0,8)
-$compose = @('compose','--env-file','.env','-f','deploy/compose.restore.yaml','-p',$projectName)
+$compose = @('compose','--env-file',$(if ($Legacy) { '.env' } else { '.env.demo' }),'-f','deploy/compose.restore.yaml','-p',$projectName)
 $previousUploads = [Environment]::GetEnvironmentVariable('TICKNOVA_RESTORE_UPLOADS','Process')
 $env:TICKNOVA_RESTORE_UPLOADS = $uploads
 Push-Location -LiteralPath $projectRoot

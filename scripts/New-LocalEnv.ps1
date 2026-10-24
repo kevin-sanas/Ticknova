@@ -1,8 +1,8 @@
 [CmdletBinding()]
-param()
+param([ValidateSet('.env','.env.demo','.env.browser')][string]$FileName = '.env')
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$envPath = Join-Path $projectRoot '.env'
+$envPath = Join-Path $projectRoot $FileName
 function New-LocalSecret {
     $bytes = [byte[]]::new(32)
     $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
@@ -14,8 +14,8 @@ if (Test-Path -LiteralPath $envPath) {
     if ($existing -notmatch '(?m)^DOCLING_INTERNAL_TOKEN=.+$') {
         [System.IO.File]::AppendAllText($envPath, "`nDOCLING_INTERNAL_TOKEN=$(New-LocalSecret)`n", [System.Text.UTF8Encoding]::new($false))
         Write-Output 'Preserved .env and added the missing private parser token.'
-    } else { Write-Output '.env already exists; preserved.' }
-    exit 0
+    } else { Write-Output "$FileName already exists; preserved." }
+    return
 }
 $content = @(
     "DB_PASSWORD=$(New-LocalSecret)",
@@ -28,4 +28,4 @@ $content = @(
     'API_PORT=8080'
 )
 [System.IO.File]::WriteAllLines($envPath, $content, [System.Text.UTF8Encoding]::new($false))
-Write-Output 'Generated project-local .env. Read DEMO_INITIAL_PASSWORD locally for the first login; secrets are not printed.'
+Write-Output "Generated project-local $FileName. Secrets are not printed."

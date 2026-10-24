@@ -1,5 +1,17 @@
 # 11｜本地部署、运维与 CI/CD
 
+## 阶段 A：干净演示与测试隔离（2026-10-24，当前入口）
+
+`scripts/Start-Local.ps1` 现在使用 `.env.demo`、`compose.yaml + compose.demo.yaml` 和 `ticknova-demo` 项目，数据库为 `ticknova_demo`，卷为 `ticknova-demo_postgres_data` / `ticknova-demo_uploads`；默认只使用 mock。旧 `ticknova` 应用容器停止，原 `.env`、`ticknova_postgres_data` 和 `ticknova_uploads` 保留。下面各历史章节中的 `.env` / `ticknova` 指旧入口，不应混用于新演示库。
+
+`scripts/Seed-Demo.ps1` 校验数据库身份、空业务库及原始四账号，再通过现有登录/首次改密、目录、工单、知识创作、Docling、独立审核、发布和索引接口准备原创样例。密码只写 `.env.demo`；完成后记录 `DEMO_CONTENT_SEEDED` 事件。已完成的种子重复执行不写业务或审计；非空且无完成事件时保留数据并报错，避免把中断的初始化误报为成功。当前种子为五个账号、四队列、八服务、十二篇知识、二十四张工单，全部为虚构演示内容。
+
+`scripts/Test-Browser.ps1` 自建 `ticknova-browser` 项目、`ticknova_browser` tmpfs 库和一次性 `.env.browser`，全入口先验证 Nginx 的 `browser-test` 标记，禁止连接演示入口。它使用独立于后端 `ticknova-test` 的容器和网络；每个浏览器套件之间重启专用 API 清空内存登录配额，保持产品登录限流配置不变。结束后清理测试栈和凭据；截图/JSON 只进入系统临时目录，默认清理，人工检查使用 `-KeepArtifacts` 后及时删除。`-Scope Demo` 在测试库运行同一原创样例，不向演示库写浏览器合成夹具。
+
+默认完整构建。官方 Python 镜像元数据访问失败而本地解析镜像可用时，启动和浏览器脚本可加 `-SkipParserBuild`；`Assert-ParserImage.ps1` 必须先核对 app.py、worker.py、limits.py、uv.lock、pyproject.toml 五份 SHA-256，任一不同即拒绝复用。
+
+备份与隔离恢复默认使用新 `.env.demo`；操作旧库时显式加 `-Legacy`。切回旧环境只需先停止新演示栈，再执行 `docker compose --env-file .env -p ticknova -f deploy/compose.yaml start`，使用保留的原容器及原卷。切换前先记录当前正在使用的环境，不删除任何演示卷。
+
 ## G5 本地备份与隔离恢复（2026-10-23）
 
 运行 `.\scripts\Backup-Local.ps1` 时，现有 API 若正在运行会先停写，PostgreSQL 保持运行；脚本生成 `pg_dump` 自定义格式快照并从 API 私有卷复制原件，逐一核对数据库 `storage_key` 与 SHA-256，最后写入 manifest。脚本结束会恢复 API/数据库原先的运行状态；若恢复服务失败会明确报错。备份位于项目已忽略的 `data/backups`，包含账号与文档等敏感数据，不能提交仓库。

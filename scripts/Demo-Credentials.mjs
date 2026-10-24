@@ -17,10 +17,10 @@ function updateDemoEnv(content, values) {
   return kept.join(newline) + newline
 }
 
-export async function signInDemo(request, base, envPath, username, io = { readFile, writeFile }) {
+export async function signInDemo(request, base, envPath, username, io = { readFile, writeFile }, prefix = 'DEMO_BROWSER') {
   // Browser regression uses an isolated database, so its credentials must never overwrite demo account keys.
-  const key = `DEMO_BROWSER_${username.toUpperCase()}_PASSWORD`
-  const pendingKey = `DEMO_BROWSER_${username.toUpperCase()}_PENDING_PASSWORD`
+  const key = `${prefix}_${username.toUpperCase()}_PASSWORD`
+  const pendingKey = `${prefix}_${username.toUpperCase()}_PENDING_PASSWORD`
   const settings = parseDemoEnv(await io.readFile(envPath, 'utf8'))
   const candidates = [...new Set([settings[pendingKey], settings[key], settings.DEMO_INITIAL_PASSWORD].filter(Boolean))]
   for (const password of candidates) {
@@ -37,9 +37,9 @@ export async function signInDemo(request, base, envPath, username, io = { readFi
   throw new Error(`${username} demo password does not match the project .env`)
 }
 
-export async function changeDemoPassword(request, base, envPath, username, oldPassword, token, nextPassword, io = { readFile, writeFile }) {
-  const key = `DEMO_BROWSER_${username.toUpperCase()}_PASSWORD`
-  const pendingKey = `DEMO_BROWSER_${username.toUpperCase()}_PENDING_PASSWORD`
+export async function changeDemoPassword(request, base, envPath, username, oldPassword, token, nextPassword, io = { readFile, writeFile }, prefix = 'DEMO_BROWSER') {
+  const key = `${prefix}_${username.toUpperCase()}_PASSWORD`
+  const pendingKey = `${prefix}_${username.toUpperCase()}_PENDING_PASSWORD`
   const before = await io.readFile(envPath, 'utf8')
   if (parseDemoEnv(before)[pendingKey]) throw new Error(`${username} has an unresolved pending demo password`)
   // Persist the candidate before the server change; an interrupted response can be recovered on the next sign-in.

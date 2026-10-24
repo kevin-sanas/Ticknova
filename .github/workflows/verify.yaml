@@ -26,6 +26,13 @@ jobs:
       - name: Frontend checks
         working-directory: frontend
         run: npm run typecheck && npm run lint && npm test && npm run build
+      - name: Operational scripts and isolation guards
+        run: |
+          node --test scripts/*.test.mjs
+          node --check eval/service-desk.k6.js
+          pwsh -NoProfile -File scripts/Test-PerformanceReport.ps1
+          sh -n scripts/Start-Local.sh
+          sh -n scripts/Seed-Demo.sh
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
         with:
           version: 0.13.1

@@ -1,5 +1,17 @@
 # 11｜本地部署、运维与 CI/CD
 
+## 跨平台启动与独立压测（2026-10-24）
+
+在仓库根目录运行 Windows `./scripts/Start-Local.ps1`，Linux/macOS `sh scripts/Start-Local.sh`。两者均显式使用 `ticknova-demo`、`.env.demo`、`compose.yaml + compose.demo.yaml`，宿主只需Docker/Compose。Shell入口通过固定Node容器生成独立随机密钥，已有配置保留；种子仍经真实API、首次改密、独立审核和索引，仅空业务库执行。有完成标识时跳过，非空且未完成时失败并保留现场。密码不进入README或公共文档。
+
+平台证据边界：Windows完整启动及Linux容器内Shell语法/配置生成测试分别记录第12篇；原生Linux/macOS从零启动尚未实跑。Linux执行者需能访问Docker，并对仓库目录有写权限；不要求宿主Java/Node/Python，也不配置WSL或全局Docker镜像。两个种子入口不支持同时运行；中断留下的锁须先确认没有活动初始化再人工处理。
+
+知识审核入口：作者提交版本后，另一位具有该空间读/编辑权限的有效KB_EDITOR从“审核待办”查看确切版本，通过或填写原因退回。作者根据结果修订/重提；通过后由授权编辑者发布。只有ADMIN角色不能自审或绕过内容ACL。新版本未发布前仍提供旧已发布版本。
+
+基础压测运行 `./scripts/Run-Performance.ps1`，固定k6 1.0.0镜像，仅创建 `ticknova-perf` / `ticknova_perf` tmpfs，禁止演示站点，且强制mock。准备12篇原创已索引知识和1,000张工单，随后50并发列表5分钟、50并发创建500张、2并发异步问答30次。列表/创建P95门限500ms，创建和完成数量必须完整，HTTP及业务检查失败不能标为PASS。异步完成耗时包含排队、检索、mock生成和客户端轮询；**不是纯检索P95或真实provider性能**。
+
+运行结束写唯一时间戳 `docs/evidence/performance-mock-*.json`，记录数据量、CPU/内存、镜像、样本、失败和清理结果。只有专用测试栈清理成功后才删一次性配置/凭据；清理失败将报告失败并保留恢复所需文件。首轮失败记录保留，不通过减少负载或放宽阈值掩盖。使用 `-SkipParserBuild` 前必须通过五份源码/锁文件hash检查；测试不要与本机构建或其他压测同时运行。
+
 ## 独立 RAG 评测（2026-10-24）
 
 演示入口继续固定 mock。评测使用 `.env.eval`、`deploy/compose.test.yaml + deploy/compose.eval.yaml`、独立 `ticknova-eval` 项目和 `ticknova_eval` tmpfs 数据库，不复用 `.env.demo`、演示账号或原件。需要 Docker Desktop 的 Linux 引擎已运行。

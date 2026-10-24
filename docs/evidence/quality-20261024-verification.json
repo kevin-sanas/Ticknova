@@ -1,0 +1,303 @@
+{
+  "recordedAt": "2026-10-24T12:10:18.5651952Z",
+  "scope": "Engineering regression for source-specifics, connection borrowing, parser compatibility and startup; performance is reported separately",
+  "base": "51e282d",
+  "branch": "codex/quality-performance",
+  "status": "PASS_WITH_QUALITY_GATES_PENDING",
+  "backend": {
+    "failures": 0,
+    "skipped": 0,
+    "durationSeconds": 205,
+    "productionPoolIncreased": false,
+    "suites": [
+      {
+        "name": "com.ticknova.ai.AiIndexBatchIntegrationTest",
+        "skipped": 0,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.ai.AiIntegrationTest",
+        "skipped": 0,
+        "tests": 41,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.ai.AiResultValidatorTest",
+        "skipped": 0,
+        "tests": 26,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.ai.model.AiModelTest",
+        "skipped": 0,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.ai.model.ModelConfigurationTest",
+        "skipped": 0,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.ai.model.SpringAiModelTest",
+        "skipped": 0,
+        "tests": 28,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.evaluation.RagEvaluationTest",
+        "skipped": 0,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.identity.AdminBoundaryTest",
+        "skipped": 0,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.identity.AuthServiceTest",
+        "skipped": 0,
+        "tests": 5,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.identity.BearerSessionFilterTest",
+        "skipped": 0,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.identity.IdentityIntegrationTest",
+        "skipped": 0,
+        "tests": 10,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.identity.IdentityPoolIntegrationTest",
+        "skipped": 0,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.identity.LoginRateLimiterTest",
+        "skipped": 0,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.identity.SessionTokensTest",
+        "skipped": 0,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.knowledge.DoclingClientTest",
+        "skipped": 0,
+        "tests": 4,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.knowledge.KnowledgeAuthoringIntegrationTest",
+        "skipped": 0,
+        "tests": 24,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.knowledge.KnowledgeChunkerTest",
+        "skipped": 0,
+        "tests": 2,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.knowledge.KnowledgeCrashRecoveryTest",
+        "skipped": 0,
+        "tests": 1,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.knowledge.KnowledgeDoclingIntegrationTest",
+        "skipped": 0,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.knowledge.KnowledgeIngestTest",
+        "skipped": 0,
+        "tests": 7,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.knowledge.KnowledgeIntegrationTest",
+        "skipped": 0,
+        "tests": 8,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.knowledge.RichDocumentTest",
+        "skipped": 0,
+        "tests": 6,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.ticket.TicketIntegrationTest",
+        "skipped": 0,
+        "tests": 12,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.ticket.TicketPolicyTest",
+        "skipped": 0,
+        "tests": 3,
+        "failures": 0,
+        "errors": 0
+      },
+      {
+        "name": "com.ticknova.workspace.WorkspaceIntegrationTest",
+        "skipped": 0,
+        "tests": 18,
+        "failures": 0,
+        "errors": 0
+      }
+    ],
+    "command": "scripts/Test-Backend.ps1",
+    "tests": 224,
+    "errors": 0,
+    "earlierFailure": "224 tests, 18 context startup errors from cached test connections; new test now releases its context after class"
+  },
+  "frontend": {
+    "commands": [
+      "npm run typecheck",
+      "npm run lint",
+      "npm test",
+      "npm run build"
+    ],
+    "productUiChanged": false,
+    "files": 17,
+    "tests": 191,
+    "status": "PASS"
+  },
+  "parser": {
+    "warnings": 1,
+    "pypdf": "6.21.2",
+    "slim": "2.142.1",
+    "core": "2.104.0",
+    "warning": "Existing Starlette/httpx TestClient deprecation",
+    "compileall": "PASS",
+    "tests": 47,
+    "pillow": "13.0.0",
+    "assertionChange": "User explicitly approved exact parser version string update; all functional assertions retained"
+  },
+  "browser": {
+    "checks": [
+      "admin first-login password change and re-login",
+      "requester first-login password change and re-login",
+      "agent first-login password change and re-login",
+      "requester creates ticket through the browser",
+      "engineer claims an authorized queue ticket",
+      "internal note is hidden from requester",
+      "triage → progress → resolve → requester reopen → resolve → confirm close",
+      "375px ticket layout has no horizontal document overflow",
+      "administrator configures service, queue and membership",
+      "administrator creates and disables an account",
+      "administrator can inspect audit records",
+      "page refresh clears the in-memory session",
+      "administrator creates an explicitly authorized knowledge space",
+      "browser upload reaches real Docling and versioned chunks",
+      "read-only ACL member can read the current published text and cannot edit",
+      "new version parsing retains the old publication until atomic publish",
+      "failed PDF exposes a stable error and manual retry creates a new job",
+      "390px real knowledge page has no horizontal overflow",
+      "actual authorization-hiding 404 clears previously displayed private content",
+      "withdrawal and archive complete through the browser",
+      "published Docling source is indexed and retrieved through the actual async AI API",
+      "Chinese assistant displays a cited answer and explicit local demonstration mode",
+      "390px assistant layout has no horizontal overflow",
+      "accepting a reply confirms replacement and fills the public draft without sending",
+      "only the existing manual send action creates a public ticket reply",
+      "feedback reauthorization clears the cached answer and citations after withdrawal",
+      "unrelated knowledge question produces explicit refusal without fabricated citations",
+      "real parser completes an unpublished Markdown file",
+      "existing saved blank draft remains unchanged until source preview and explicit confirmation",
+      "confirmed import saves through the draft version lock",
+      "missing independent reviewer is explained and repaired through member management",
+      "another current KB_EDITOR opens the exact pending version by keyboard, rejects with reason, and author sees it",
+      "second eligible editor approves a revised version, author publishes it, and review task disappears"
+    ],
+    "database": "ticknova_browser",
+    "artifacts": "System temp, removed by runner",
+    "tests": 33,
+    "projectScreenshots": 0,
+    "command": "scripts/Test-Browser.ps1 -Scope All -SkipParserBuild"
+  },
+  "scripts": {
+    "linuxContainerEnvTests": 3,
+    "readmeAndMovedWorkflowLinks": "PASS",
+    "powershellContracts": 8,
+    "shellSyntax": "PASS",
+    "powershellParsing": "PASS",
+    "compose": "PASS",
+    "nodeTests": 18,
+    "k6Syntax": "PASS"
+  },
+  "demo": {
+    "scope": "Four business tables incl password hashes; excludes sessions/audit/AI jobs and uploads byte recheck",
+    "configurationUnchanged": true,
+    "url": "http://127.0.0.1:5173",
+    "httpStatus": 200,
+    "mode": "mock",
+    "accountTicketDocumentVersionUnchanged": true,
+    "readiness": "UP",
+    "seed": "Skipped existing completed seed"
+  },
+  "dependencyAudit": "quality-20261024-parser-final-audit.json",
+  "realSample": "rag-benchmark-real-20261024T113203422Z.json",
+  "notRun": [
+    "Human relevance and groundedness signoff",
+    "Real-provider performance",
+    "Isolated retrieval-only load",
+    "Native Linux/macOS complete startup",
+    "Container OS vulnerability scan",
+    "Other browser engines",
+    "Remote GitHub Actions",
+    "Production release",
+    "UI migration awaiting design-system handoff"
+  ],
+  "performanceEvidence": [
+    "performance-mock-20261024T114334061Z.json",
+    "performance-mock-20261024T121400557Z.json"
+  ],
+  "performanceFinalStatus": "PASS; cleanup COMPLETED; see independent mock latency scope",
+  "secretScan": {
+    "matches": 0,
+    "status": "PASS",
+    "source": "scripts/Scan-Secrets.mjs, final project scan",
+    "scannedTextFiles": 360
+  }
+}

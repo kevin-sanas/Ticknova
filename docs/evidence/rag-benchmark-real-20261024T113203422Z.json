@@ -1,0 +1,133 @@
+{
+  "recordedAt" : "2026-10-24T11:30:50.629536779Z",
+  "dataset" : "ticknova-original-service-desk-v1",
+  "datasetSha256" : "525a2ee2eae2560d79ecdcef4500b4a7d0a35e945f46e91812f9a78b0947828e",
+  "labelStatus" : "Developer candidate evidence anchors; human relevance and groundedness review NOT RUN",
+  "mode" : "openai",
+  "profile" : "openai:c15bda3a28562b8590f3fcbdcb059bef48cb809a7af2e5c9e968fe9ff2a28930",
+  "chatModel" : "qwen-plus",
+  "embeddingModel" : "text-embedding-v4",
+  "embeddingDimensions" : 1024,
+  "scope" : "Real Docling + independent review/publish + production retrieval/context/validator; direct generation, not HTTP/outbox latency",
+  "results" : [ {
+    "id" : "positive-01",
+    "question" : "网络无法连接怎么办",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "32f64f27-9816-4535-865b-824289406f58" ],
+    "retrievalMs" : 329.416688,
+    "retrievedChunkIds" : [ "32f64f27-9816-4535-865b-824289406f58", "e2553126-d133-4206-ac89-2d119f3c06e4", "1960d418-20bf-4d39-8b49-1b0470213b2c" ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "positive-04",
+    "question" : "VPN 连不上先检查什么",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "72ebad20-f0c6-436e-8050-ca37778cf003" ],
+    "retrievalMs" : 352.604586,
+    "retrievedChunkIds" : [ "72ebad20-f0c6-436e-8050-ca37778cf003", "1960d418-20bf-4d39-8b49-1b0470213b2c" ],
+    "outcome" : "ANSWERED",
+    "answer" : "VPN 连不上时，应优先检查以下五项：\n1. 普通网络是否可用（如能否访问公网或企业门户）；\n2. 使用的 VPN 客户端是否为企业批准的版本；\n3. 账号状态是否正常（未过期、未禁用），且已完成多因素认证（MFA）；\n4. 客户端配置的连接地址是否正确，设备系统时间是否准确（偏差过大将导致证书或令牌校验失败）；\n5. 尝试重启客户端后重试一次；若反复出现认证失败，请立即停止尝试，防止账号被临时锁定。\n\n提交工单时，请提供：错误代码、发生时间、VPN 客户端版本、是否能访问企业门户；切勿上传密码、一次性验证码或含会话令牌的日志。",
+    "citations" : [ {
+      "documentId" : "4b1c99f5-4d92-4ea9-8da4-f06c2d0dccb7",
+      "versionId" : "3bbdcd5e-c869-4004-9934-b7a608f27660",
+      "version" : 1,
+      "title" : "VPN 连接失败处理指南",
+      "page" : 1,
+      "chunkId" : "72ebad20-f0c6-436e-8050-ca37778cf003",
+      "snippet" : "VPN 连接失败处理指南\nVPN 连不上时，先确认普通网络可用、VPN 客户端为企业批准的版本，再检查账号状态和多因素认证是否完成。\n核对客户端显示的连接地址和设备系统时间，重新打开客户端后重试一次。反复出现认证失败时停止重复尝试，避免账号被锁定。\n工单中提供错误代码、发生时间、客户端版本及是否能够访问企业门户。不要上传密码、一次性验证码或含会话令牌的日志。"
+    } ]
+  }, {
+    "id" : "positive-06",
+    "question" : "VPN 工单不能上传哪些敏感信息",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "72ebad20-f0c6-436e-8050-ca37778cf003" ],
+    "retrievalMs" : 299.966733,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "positive-07",
+    "question" : "怎么重置密码",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "7415b0d3-7a30-42a3-bc28-7bcdd9481cb1" ],
+    "retrievalMs" : 333.110662,
+    "retrievedChunkIds" : [ "7415b0d3-7a30-42a3-bc28-7bcdd9481cb1" ],
+    "outcome" : "ANSWERED",
+    "answer" : "请通过企业批准的自助服务入口重置密码：选择‘重置密码’选项，完成身份核验（如多因素认证）后设置符合企业密码策略的新密码。新密码必须唯一，不得复用其他网站密码。若无法完成身份核验，请提交密码重置工单。注意：密码、多因素认证恢复信息严禁通过工单正文发送。重置成功后，请退出所有旧会话，并使用新密码重新登录；如仍无法登录，请记录具体错误提示及发生时间，交由账号支持队列进一步处理。",
+    "citations" : [ {
+      "documentId" : "aee159a6-7239-4b45-bfed-297d525ffc82",
+      "versionId" : "8cd9ae54-9c1c-47f2-b51f-fffe82c0e6a9",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "7415b0d3-7a30-42a3-bc28-7bcdd9481cb1",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-32",
+    "question" : "打印故障和软件安装故障分别提交哪些信息",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "cd1b5b77-c951-4fe5-8618-e0f834ccd6e8", "9e18a0e5-779f-49da-9921-46950a0add8d" ],
+    "retrievalMs" : 290.688154,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-1",
+    "question" : "今天午餐菜单是什么",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 277.168506,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  } ],
+  "status" : "COMPLETED",
+  "selectedCaseIds" : [ "positive-01", "positive-04", "positive-06", "positive-07", "positive-32", "refusal-unrelated-1" ],
+  "selectedStrategies" : [ "HYBRID" ],
+  "generationPolicy" : "source-specifics-v1",
+  "timingCaveat" : "Query embedding cache is reused; diagnostic timings do not compare strategy latency fairly",
+  "sourceSha256" : {
+    "help-01" : "5cda09ed36b5a407db293fe389ccd418d5c38a265ff4a02e47ec281a89aaee7f",
+    "help-02" : "da66ee64832660bd7e29c58d74c833a2a492a845eae01a35a648abfe6e3ffcc5",
+    "help-03" : "c320469cf7d07a6bf37dcb5514c781f557fa37b4eae2156cf1779e2b66e3644b",
+    "help-04" : "e2cbaf21d14dbe7e5a18e0d4fc5174600b00c7b0b5c9db5a9e9a2fbe1c70b782",
+    "help-05" : "906be519018121eb1997e618936d37a4741c3634fe517d594d6e5bafa5b72bb2",
+    "help-06" : "a3ed151cecdca422d72b72bae5ea901f6c6cc74d91350896af702bc5cc7c7651",
+    "help-07" : "3780de331092fcb7761b9eba34f716768df6c37e411b0c84c5c89115b3eaa18a",
+    "help-08" : "b310af67a07da31243dfb056678a8862b23e8a56c10cf41255e4e64925dbfe6b",
+    "help-09" : "728bc50c6bc27596fea45fbaf7d5af5284d0e96ccf1ed2141a8db896a741eaca",
+    "help-10" : "d0705a06fd43ca45348c632a9b8079ae0678e23d3c44cc934242d049dd6c39b0",
+    "help-11" : "b821a7d06e33d66b302d0863630301b7d50280d10d9904bad74e669af1754e05",
+    "help-12" : "164acafc0dd71aa9b32ff3191f3042af81c28f4975f125a933e88f11f72275c9"
+  },
+  "strategies" : {
+    "HYBRID" : {
+      "cases" : 6,
+      "positiveCases" : 5,
+      "refusalCases" : 1,
+      "chunkRecallAt5" : 0.6,
+      "hitAt5" : 0.6,
+      "candidateLabelCitationPrecision" : 1.0,
+      "refusalFalseAnswerRate" : 0.0,
+      "providerFailures" : 0,
+      "retrievalP95Ms" : 352.604586
+    }
+  },
+  "qualityClaim" : "Real-provider measurements; candidate labels still require human review",
+  "calls" : {
+    "maxChatCalls" : 6,
+    "maxEmbeddingInputs" : 20,
+    "embeddingInputItems" : 19,
+    "embeddingAdapterCalls" : 19,
+    "chatCalls" : 3,
+    "outputTextChars" : 714,
+    "queryEmbeddingCache" : "Same query reused across VECTOR/HYBRID; corpus indexed once",
+    "inputTextChars" : 1025
+  },
+  "notRun" : [ "Human relevance/groundedness review", "Provider-billed token usage and cost reconciliation", "HTTP/outbox end-to-end performance" ]
+}

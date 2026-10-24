@@ -1,5 +1,15 @@
 # 10｜RAG 设计与评测
 
+## 2026-10-24：来源具体细节约束与六题复测
+
+本轮在提示之外增加 `AiEvidenceGuard` 服务端兜底：ANSWER/REPLY 中出现的地址、量化值和显式代码须能在**实际引用的**片段中找到对应依据；时长允许等价单位，Markdown 链接/行内格式不影响合法网址。REPLY 还可使用实际送入模型的公开工单标题、描述及公开回复，内部备注不能支撑结果。缺少依据时返回既有 `INSUFFICIENT_EVIDENCE`，不返回未经校验的正文或引用，不静默删改答案。SUMMARY/CLASSIFICATION 继续原公开工单上下文契约，10,000/16,000 字符预算不变。
+
+这是对可客观匹配细节的保守检查，不能证明自然语言语义蕴含，也可能拒绝本可合理回答的问题。代码/数字相同不意味着整句事实正确，人工 groundedness 门仍需完成。26项验证器测试及公开/内部工单上下文集成回归验证边界，不能代替真实答案质量。
+
+用户单独授权六题、仅混合检索、最多6次聊天与20条embedding输入。实际命令为 `scripts/Run-RagEvaluation.ps1 -Real -AllowPaid -MaxChatCalls 6 -MaxEmbeddingInputs 20 -CaseIds 'positive-01,positive-04,positive-06,positive-07,positive-32,refusal-unrelated-1' -Strategy HYBRID`；报告 `evidence/rag-benchmark-real-20261024T113203422Z.json` 记录 **3次聊天、19条embedding输入、0 provider错误**，没有继续消耗未授权预算。
+
+5道正例中VPN与密码重置2题获得带引用回答；网络题有候选证据仍被保守拒答，旧误例06/32仍拒答，1道无关负例正确拒答。该子集chunk Recall@5/Hit@5均为3/5，返回的2条引用候选标签精确率为1；**子集不能与前一轮40题总分比较**。VPN答案不再给出此前无依据的5分钟/示例网址，但仍存在一般性扩写；密码回答的MFA举例也未完成逐句人工判断。正式人工groundedness、完整质量门及账单核对仍为 **NOT RUN**，不宣称真实质量整改全部通过。演示库继续mock，既有40题和标签不改。
+
 ## 2026-10-24：独立原创语料评测入口
 
 `eval/service-desk-cases.json` 固定 12 篇原创帮助文档和 40 道题：32 道有证据问题（含跨文档题），8 道无证据/无权限/撤回/未发布问题。标签由开发者提供，以文档稳定键及原文锚点解析为实际 Docling 片段 ID；人工相关性和 groundedness 复核仍为 **NOT RUN**。原有 32 条 mock 回归及其断言保留。

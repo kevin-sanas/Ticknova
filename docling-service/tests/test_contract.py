@@ -115,7 +115,7 @@ def test_real_docling_conversion(client, kind):
     assert "Hello Ticknova" in result["markdown"]
     assert any("Hello Ticknova" in page["text"] for page in result["pages"])
     assert all(page["pageNo"] >= 1 and isinstance(page["headingPath"], list) for page in result["pages"])
-    assert "docling/2.140.0" in result["parserVersion"]
+    assert "docling/2.142.1" in result["parserVersion"]
     assert isinstance(result["warnings"], list)
     if kind in {"docx", "md"}:
         assert any(page["headingPath"] == ["Manual"] for page in result["pages"])
@@ -155,6 +155,41 @@ def test_timeout_after_headers_never_sends_a_second_response_start(monkeypatch):
         asyncio.run(boundary(scope, receive, send))
     assert [message["status"] for message in sent if message["type"] == "http.response.start"] == [200]
     assert boundary.active == 0
+
+
+def test_worker_exit_racing_timeout_kill_preserves_504_and_cleanup(client, monkeypatch, tmp_path):
+    import asyncio
+    import app as service
+
+    class ExitingProcess:
+        returncode = None
+        waits = 0
+        killed = False
+
+        async def wait(self):
+            self.waits += 1
+            if self.waits == 1:
+                await asyncio.sleep(10)
+            self.returncode = 0
+            return 0
+
+        def kill(self):
+            self.killed = True
+            raise ProcessLookupError("Worker exited between returncode check and kill")
+
+    process = ExitingProcess()
+
+    async def create_process(*args, **kwargs):
+        return process
+
+    monkeypatch.setattr(service.asyncio, "create_subprocess_exec", create_process)
+    monkeypatch.setattr(service, "CONVERSION_TIMEOUT_SECONDS", 0.2)
+    monkeypatch.setattr(service, "TEMP_ROOT", str(tmp_path))
+    response = upload(client)
+    assert response.status_code == 504
+    assert response.json() == {"errorCode": "CONVERSION_TIMEOUT"}
+    assert process.killed and process.waits == 2
+    assert list(tmp_path.iterdir()) == []
 
 
 def test_empty_pdf_does_not_succeed(client):

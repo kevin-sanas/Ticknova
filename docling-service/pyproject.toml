@@ -3,11 +3,13 @@ name = "ticknova-docling"
 version = "0.1.0"
 requires-python = "==3.12.*"
 dependencies = [
-  "docling-slim[convert-core,format-docx,format-markdown,format-pdf-pypdfium2]==2.140.0",
+  "docling-slim[convert-core,format-docx,format-markdown,format-pdf-pypdfium2]==2.142.1",
+  "docling-core==2.104.0",
+  "pillow==13.0.0",
   "fastapi==0.151.0",
   "uvicorn==0.54.0",
   "python-multipart==0.0.32",
-  "pypdf==6.21.1",
+  "pypdf==6.21.2",
   "defusedxml==0.7.1",
 ]
 

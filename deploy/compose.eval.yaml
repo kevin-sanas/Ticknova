@@ -18,4 +18,6 @@ services:
       EVAL_ALLOW_PAID: ${EVAL_ALLOW_PAID:-false}
       EVAL_MAX_CHAT_CALLS: ${EVAL_MAX_CHAT_CALLS:-120}
       EVAL_MAX_EMBEDDING_INPUTS: ${EVAL_MAX_EMBEDDING_INPUTS:-128}
+      EVAL_CASE_IDS: ${EVAL_CASE_IDS:-}
+      EVAL_STRATEGY: ${EVAL_STRATEGY:-ALL}
     command: [env, -u, MAVEN_CONFIG, sh, ./mvnw, -B, -ntp, "-Dtest=RagBenchmarkIT", test]

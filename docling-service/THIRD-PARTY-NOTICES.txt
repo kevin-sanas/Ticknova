@@ -1,8 +1,8 @@
 Ticknova Docling parser dependency notices
-Generated from the Linux runtime uv.lock installation on Python 3.12.12 (2026-10-20).
-Docling SDK: docling-slim 2.140.0, MIT; official slim distribution of docling.
+Generated from the Linux runtime uv.lock installation on Python 3.12.12 (2026-10-24).
+Docling SDK: docling-slim 2.142.1, MIT; official slim distribution of docling.
 PDF: official NativePdfPipeline with PyPdfiumDocumentBackend; no OCR/layout models or model weights.
-SDK source: https://github.com/docling-project/docling/tree/v2.140.0
+SDK source: https://github.com/docling-project/docling/tree/v2.142.1
 PDFium bundled third-party notices are included below from the actual platform wheel.
 Python runtime: PSF-2.0, https://docs.python.org/3.12/license.html
 uv build tool 0.13.1: Apache-2.0 OR MIT, https://github.com/astral-sh/uv/tree/0.13.1
@@ -259,10 +259,10 @@ Agreement.
 
 
 ========================================================================
-doclang 0.7.3
+doclang 0.8.0
 Declared license: Apache-2.0
-Package evidence: https://pypi.org/project/doclang/0.7.3/
---- Bundled doclang-0.7.3.dist-info/licenses/LICENSE ---
+Package evidence: https://pypi.org/project/doclang/0.8.0/
+--- Bundled doclang-0.8.0.dist-info/licenses/LICENSE ---
                                  Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
@@ -466,10 +466,10 @@ Package evidence: https://pypi.org/project/doclang/0.7.3/
    limitations under the License.
 
 ========================================================================
-docling-core 2.103.0
+docling-core 2.104.0
 Declared license: MIT
-Package evidence: https://pypi.org/project/docling-core/2.103.0/
---- Bundled docling_core-2.103.0.dist-info/licenses/LICENSE ---
+Package evidence: https://pypi.org/project/docling-core/2.104.0/
+--- Bundled docling_core-2.104.0.dist-info/licenses/LICENSE ---
 MIT License
 
 Copyright (c) 2024 International Business Machines
@@ -492,10 +492,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ========================================================================
-docling-slim 2.140.0
+docling-slim 2.142.1
 Declared license: MIT
-Package evidence: https://pypi.org/project/docling-slim/2.140.0/
---- Bundled docling_slim-2.140.0.dist-info/licenses/LICENSE ---
+Package evidence: https://pypi.org/project/docling-slim/2.142.1/
+--- Bundled docling_slim-2.142.1.dist-info/licenses/LICENSE ---
 MIT License
 
 Copyright The Docling Contributors
@@ -5330,10 +5330,10 @@ https://opensource.apple.com/source/tcl/tcl-14/tcl/license.terms
   permission to use and distribute the software in accordance with the
   terms specified in this license.
 ========================================================================
-pillow 12.3.0
+pillow 13.0.0
 Declared license: MIT-CMU
-Package evidence: https://pypi.org/project/pillow/12.3.0/
---- Bundled pillow-12.3.0.dist-info/licenses/LICENSE ---
+Package evidence: https://pypi.org/project/pillow/13.0.0/
+--- Bundled pillow-13.0.0.dist-info/licenses/LICENSE ---
 The Python Imaging Library (PIL) is
 
     Copyright © 1997-2011 by Secret Labs AB
@@ -7347,10 +7347,10 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========================================================================
-pypdf 6.21.1
+pypdf 6.21.2
 Declared license: BSD-3-Clause
-Package evidence: https://pypi.org/project/pypdf/6.21.1/
---- Bundled pypdf-6.21.1.dist-info/licenses/LICENSE ---
+Package evidence: https://pypi.org/project/pypdf/6.21.2/
+--- Bundled pypdf-6.21.2.dist-info/licenses/LICENSE ---
 Copyright (c) 2006-2008, Mathieu Fenniak
 Some contributions copyright (c) 2007, Ashish Kulkarni <kulkarni.ashish@gmail.com>
 Some contributions copyright (c) 2014, Steve Witham <switham_github@mac-guyver.com>

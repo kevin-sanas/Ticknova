@@ -1,0 +1,9 @@
+{
+  "checkedAt": "2026-10-24T12:00:23.2440736Z",
+  "status": "PASS",
+  "bom": "quality-20261024-parser-final-bom.json",
+  "source": "https://api.osv.dev/v1/querybatch",
+  "packageCount": 56,
+  "findings": [],
+  "scope": "Fresh installed Linux parser runtime; excludes application dependencies, container OS, models and build tools"
+}

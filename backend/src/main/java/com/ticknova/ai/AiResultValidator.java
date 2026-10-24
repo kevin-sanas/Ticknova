@@ -9,6 +9,9 @@ import static com.ticknova.ticket.TicketDtos.COMMENT_MAX_LENGTH;
 @Component
 public class AiResultValidator {
     public AiResult validate(UUID id,String kind,String mode,String profile,AiModel.Output output,List<AiRetriever.Candidate> candidates,List<AiModel.ServiceOption> services){
+        return validate(id,kind,mode,profile,output,candidates,services,List.of());
+    }
+    public AiResult validate(UUID id,String kind,String mode,String profile,AiModel.Output output,List<AiRetriever.Candidate> candidates,List<AiModel.ServiceOption> services,List<String> publicTicketContext){
         if(output==null)return refusal(id,kind,mode,profile);
         List<UUID> ids=output.citationChunkIds();List<String> tags=output.tags();
         if(ids==null||ids.size()>6||ids.stream().anyMatch(Objects::isNull)||new HashSet<>(ids).size()!=ids.size())return refusal(id,kind,mode,profile);
@@ -19,6 +22,11 @@ public class AiResultValidator {
             ||(kind.equals("SUMMARY")&&length(output.summary())>COMMENT_MAX_LENGTH))return refusal(id,kind,mode,profile);
         boolean answer=kind.equals("ANSWER")||kind.equals("REPLY");
         if(answer&&(ids.isEmpty()||blank(output.answer())))return refusal(id,kind,mode,profile);
+        if(answer){
+            List<String> evidence=new ArrayList<>();for(var candidate:candidates)if(ids.contains(candidate.citation().chunkId()))evidence.add(candidate.content());
+            if(kind.equals("REPLY"))evidence.addAll(publicTicketContext);
+            if(!AiEvidenceGuard.supported(output.answer(),evidence))return refusal(id,kind,mode,profile);
+        }
         if(kind.equals("SUMMARY")&&blank(output.summary()))return refusal(id,kind,mode,profile);
         if(kind.equals("CLASSIFICATION")){
             if(output.priority()==null||!Set.of("LOW","NORMAL","HIGH","URGENT").contains(output.priority())||tags==null||tags.size()>10||tags.stream().anyMatch(t->t==null||t.isBlank()||t.length()>32)||new HashSet<>(tags).size()!=tags.size())return refusal(id,kind,mode,profile);

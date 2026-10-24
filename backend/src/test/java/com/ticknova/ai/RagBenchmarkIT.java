@@ -39,6 +39,11 @@ class RagBenchmarkIT {
         if(!provider.mode().equals("mock")&&!Boolean.parseBoolean(System.getenv("EVAL_ALLOW_PAID")))throw new IllegalStateException("Paid benchmark requires an explicit approved invocation");
         byte[] bytes=Files.readAllBytes(Path.of("../eval/service-desk-cases.json"));JsonNode dataset=json.readTree(bytes);
         assertThat(dataset.path("cases").size()).isBetween(30,50);
+        String selected=System.getenv().getOrDefault("EVAL_CASE_IDS","");Set<String> requested=selected.isBlank()?Set.of():new LinkedHashSet<>(Arrays.asList(selected.split(",")));
+        var cases=new ArrayList<JsonNode>();for(JsonNode test:dataset.path("cases"))if(requested.isEmpty()||requested.contains(test.path("id").asText()))cases.add(test);
+        if(!requested.isEmpty())assertThat(cases.stream().map(test->test.path("id").asText()).toList()).containsExactlyInAnyOrderElementsOf(requested);
+        String selection=System.getenv().getOrDefault("EVAL_STRATEGY","ALL");assertThat(selection).isIn("ALL","HYBRID");
+        var strategies=selection.equals("HYBRID")?List.of(AiRetriever.Strategy.HYBRID):Arrays.asList(AiRetriever.Strategy.values());
         var report=new LinkedHashMap<String,Object>();var results=new ArrayList<Map<String,Object>>();
         report.put("recordedAt",Instant.now().toString());report.put("dataset",dataset.path("dataset").asText());
         report.put("datasetSha256",HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(bytes)));
@@ -47,6 +52,8 @@ class RagBenchmarkIT {
         report.put("embeddingModel",provider.mode().equals("mock")?"hash-v1":System.getenv("EMBEDDING_MODEL"));report.put("embeddingDimensions",1024);
         report.put("scope","Real Docling + independent review/publish + production retrieval/context/validator; direct generation, not HTTP/outbox latency");
         report.put("results",results);report.put("status","FAILED");
+        report.put("selectedCaseIds",cases.stream().map(test->test.path("id").asText()).toList());report.put("selectedStrategies",strategies);
+        report.put("generationPolicy","source-specifics-v1");report.put("timingCaveat","Query embedding cache is reused; diagnostic timings do not compare strategy latency fairly");
         var model=new BudgetModel(provider);var retriever=new AiRetriever(jdbc,model,authorization);
         try {
             Actor editor=actor("benchmark-editor","KB_EDITOR"),reviewer=actor("benchmark-reviewer","KB_EDITOR"),reader=actor("benchmark-reader","REQUESTER"),outsider=actor("benchmark-outsider","REQUESTER");
@@ -61,9 +68,9 @@ class RagBenchmarkIT {
             for(var item:documents.entrySet())sourceHashes.put(item.getKey(),jdbc.sql("SELECT sha256 FROM document_version WHERE id=:id").param("id",item.getValue().version()).query(String.class).single());
             report.put("sourceSha256",sourceHashes);
             var metrics=new LinkedHashMap<String,Object>();report.put("strategies",metrics);
-            for(var strategy:AiRetriever.Strategy.values()) {
+            for(var strategy:strategies) {
                 int positives=0,hits=0,negative=0,falseAnswers=0,cited=0,relevant=0,failures=0;double recall=0;var durations=new ArrayList<Double>();
-                for(JsonNode test:dataset.path("cases")) {
+                for(JsonNode test:cases) {
                     String scenario=test.path("scenario").asText();var row=new LinkedHashMap<String,Object>();row.put("id",test.path("id").asText());row.put("question",test.path("question").asText());row.put("strategy",strategy.name());results.add(row);
                     Set<UUID> gold=evidence(test);row.put("expectedChunkIds",gold);boolean positive=!gold.isEmpty();
                     if(positive)positives++;else negative++;
@@ -85,6 +92,7 @@ class RagBenchmarkIT {
                         row.put("retrievedChunkIds",top);row.put("outcome",result.outcome());row.put("answer",Objects.toString(result.answer(),""));row.put("citations",result.citations());
                     } catch(AiModelFailure failure) {failures++;row.put("outcome","FAILED");row.put("errorCode",failure.code());}
                     finally {if(withdrawn!=null)knowledge.publish(editor,withdrawn.id(),withdrawn.version());}
+                    System.out.println("Benchmark "+strategy+" "+test.path("id").asText()+": "+row.get("outcome"));
                 }
                 var summary=new LinkedHashMap<String,Object>();summary.put("cases",positives+negative);summary.put("positiveCases",positives);summary.put("refusalCases",negative);
                 summary.put("chunkRecallAt5",positives==0?null:recall/positives);summary.put("hitAt5",positives==0?null:(double)hits/positives);

@@ -51,7 +51,11 @@ public class AiWorker {
                 else {
                     // This check follows embedding/retrieval; no DB transaction spans either provider call.
                     tx.executeWithoutResult(s->{service.check(request);for(var source:candidates)authorization.citation(request.actor(),source.citation().chunkId(),request.spaces());});
-                    result=validator.validate(suggestion,request.kind(),c.mode(),c.profile(),model.generate(prepared.input()),candidates,prepared.input().services());
+                    List<String> publicContext=new ArrayList<>();
+                    if(request.kind().equals("REPLY")){
+                        publicContext.add(prepared.input().ticketTitle());publicContext.add(prepared.input().ticketDescription());publicContext.addAll(prepared.input().publicReplies());
+                    }
+                    result=validator.validate(suggestion,request.kind(),c.mode(),c.profile(),model.generate(prepared.input()),candidates,prepared.input().services(),publicContext);
                 }
                 AiResult completed=result;tx.executeWithoutResult(s->complete(c,request,completed,candidates));
             }catch(ApiException e){tx.executeWithoutResult(s->fail(c,"SOURCE_UNAVAILABLE",false));}

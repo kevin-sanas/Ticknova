@@ -131,6 +131,18 @@ class AiIntegrationTest {
         assertThat(service.job(reader,job.jobId()).result().summary()).isEqualTo("公开摘要");assertThat(count("ticket_comment")).isEqualTo(2);
         Created reply=service.draft(reader,ticket,new DraftRequest("REPLY",List.of()),"ticket-reply");worker.runOnce();assertThat(service.job(reader,reply.jobId()).result().outcome()).isEqualTo("INSUFFICIENT_EVIDENCE");
     }
+    @Test void sourcedReplyMayRepeatAuthorizedPublicTicketDetailsButNotInternalNotes(){
+        fixture("公开工单网关配置，请检查连接，等待处理并记录分钟。通过代理访问服务。");indexer.runOnce();UUID ticket=ticket();
+        jdbc.sql("UPDATE ticket SET description='网关配置请检查 https://public.example.com，等待10分钟。' WHERE id=:id").param("id",ticket).update();
+        jdbc.sql("UPDATE ticket_comment SET body='内部排查 https://private.example.com，等待5分钟。' WHERE ticket_id=:id AND visibility='INTERNAL_NOTE'").param("id",ticket).update();
+        assertThat(retriever.retrieve(reader,List.of(space),"公开工单\n网关配置请检查 https://public.example.com，等待10分钟。")).hasSize(1);
+        doAnswer(call->new AiModel.Output("请检查 https://public.example.com，等待10分钟。",null,null,null,List.of(),List.of(chunk))).when(model).generate(any());
+        Created job=service.draft(reader,ticket,new DraftRequest("REPLY",List.of()),"public-facts");worker.runOnce();
+        assertThat(service.job(reader,job.jobId()).result().outcome()).isEqualTo("ANSWERED");
+        doAnswer(call->new AiModel.Output("请检查 https://private.example.com，等待5分钟。",null,null,null,List.of(),List.of(chunk))).when(model).generate(any());
+        Created hidden=service.draft(reader,ticket,new DraftRequest("REPLY",List.of()),"internal-facts");worker.runOnce();
+        var result=service.job(reader,hidden.jobId()).result();assertThat(result.outcome()).isEqualTo("INSUFFICIENT_EVIDENCE");assertThat(result.answer()).isNull();assertThat(result.citations()).isEmpty();
+    }
     @Test void staleWorkerLeaseCannotOverwriteNewCompletion(){
         fixture("网关配置");indexer.runOnce();Created job=ask("网关配置");AtomicInteger calls=new AtomicInteger();
         doAnswer(call->{if(calls.incrementAndGet()==1){jdbc.sql("UPDATE outbox_event SET locked_until=now()-interval '1 second' WHERE job_id=:id").param("id",job.jobId()).update();assertThat(worker.runOnce()).isTrue();return new AiModel.Output("陈旧回答",null,null,null,List.of(),List.of(chunk));}return new AiModel.Output("新租约回答",null,null,null,List.of(),List.of(chunk));}).when(model).generate(any());

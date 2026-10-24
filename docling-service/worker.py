@@ -6,6 +6,7 @@ import os
 import socket
 import sys
 import zipfile
+from importlib.metadata import version
 from pathlib import Path
 from limits import configured_limits
 
@@ -199,7 +200,7 @@ def build_response(document, markdown, extension):
               "text": "\n".join(section["parts"])} for section in sections]
     return {"markdown": markdown, "pages": pages,
             "warnings": ["PDF_NATIVE_TEXT_ONLY_NO_OCR_OR_LAYOUT"] if extension == ".pdf" else [],
-            "parserVersion": "docling/2.140.0;ticknova/0.1.0;native-pdf"}
+            "parserVersion": f"docling/{version('docling-slim')};ticknova/0.1.0;native-pdf"}
 
 
 if __name__ == "__main__":

@@ -4,10 +4,10 @@ from pathlib import Path
 
 lines = [
     "Ticknova Docling parser dependency notices",
-    "Generated from the Linux runtime uv.lock installation on Python 3.12.12 (2026-10-20).",
-    "Docling SDK: docling-slim 2.140.0, MIT; official slim distribution of docling.",
+    "Generated from the Linux runtime uv.lock installation on Python 3.12.12 (2026-10-24).",
+    "Docling SDK: docling-slim 2.142.1, MIT; official slim distribution of docling.",
     "PDF: official NativePdfPipeline with PyPdfiumDocumentBackend; no OCR/layout models or model weights.",
-    "SDK source: https://github.com/docling-project/docling/tree/v2.140.0",
+    "SDK source: https://github.com/docling-project/docling/tree/v2.142.1",
     "PDFium bundled third-party notices are included below from the actual platform wheel.",
     "Python runtime: PSF-2.0, https://docs.python.org/3.12/license.html",
     "uv build tool 0.13.1: Apache-2.0 OR MIT, https://github.com/astral-sh/uv/tree/0.13.1",

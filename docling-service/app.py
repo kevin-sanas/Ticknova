@@ -59,7 +59,12 @@ async def execute_worker(source, output):
         await process.wait()
     finally:
         if process.returncode is None:
-            process.kill()
+            try:
+                process.kill()
+            except ProcessLookupError:
+                # The child may exit after the returncode check. Preserve cancellation
+                # so the boundary still returns 504, and always reap the child.
+                pass
             await process.wait()
     if process.returncode != 0 or not output.exists():
         raise ParserError("CONVERSION_FAILED", 422)

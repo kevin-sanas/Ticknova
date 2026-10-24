@@ -1,5 +1,20 @@
 # 11｜本地部署、运维与 CI/CD
 
+## 独立 RAG 评测（2026-10-24）
+
+演示入口继续固定 mock。评测使用 `.env.eval`、`deploy/compose.test.yaml + deploy/compose.eval.yaml`、独立 `ticknova-eval` 项目和 `ticknova_eval` tmpfs 数据库，不复用 `.env.demo`、演示账号或原件。需要 Docker Desktop 的 Linux 引擎已运行。
+
+```powershell
+# 默认只运行本地 mock；缺少 .env.eval 时生成项目内随机配置。
+.\scripts\Run-RagEvaluation.ps1
+# 仅在确认模型、调用量和费用并取得授权后运行真实模式。
+.\scripts\Run-RagEvaluation.ps1 -Real -AllowPaid
+```
+
+真实模式将 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`、`EMBEDDING_MODEL` 写在本机忽略的 `.env.eval`；不修改宿主用户环境或把密钥放进源码。北京百炼可配置 `https://dashscope.aliyuncs.com/compatible-mode/v1`、`qwen-plus`、`text-embedding-v4`，并设 `EMBEDDING_BATCH_SIZE=10`，维度固定 1024。地域与 Key 须一致，详见[百炼官方配置](https://help.aliyun.com/zh/model-studio/get-api-key/)和[embedding 接口约束](https://help.aliyun.com/zh/model-studio/embedding-interfaces-compatible-with-openai)。文件中继续保留 `EVAL_AI_PROVIDER=mock`，脚本仅在显式 `-Real -AllowPaid` 时为本次进程切换 provider；填好 Key 本身不会启动付费调用。
+
+脚本拒绝缺少 `-AllowPaid` 的真实运行，默认最多 120 次聊天、128 条 embedding 输入；SDK 不自动重试，结果保存独立时间戳 JSON，结束后清理临时容器、数据库和网络。预算单位是调用/输入条数，不是扣费硬上限；账单和免费额度以云控制台为准。语料、指标定义与当前人工复核边界见第10篇，实际结果及失败轮次见第12篇。并发运行同一固定评测项目不受支持；先等当前一轮结束。
+
 ## 阶段 A：干净演示与测试隔离（2026-10-24，当前入口）
 
 `scripts/Start-Local.ps1` 现在使用 `.env.demo`、`compose.yaml + compose.demo.yaml` 和 `ticknova-demo` 项目，数据库为 `ticknova_demo`，卷为 `ticknova-demo_postgres_data` / `ticknova-demo_uploads`；默认只使用 mock。旧 `ticknova` 应用容器停止，原 `.env`、`ticknova_postgres_data` 和 `ticknova_uploads` 保留。下面各历史章节中的 `.env` / `ticknova` 指旧入口，不应混用于新演示库。
@@ -54,6 +69,7 @@ Maven 官方镜像的 `MAVEN_CONFIG` 表示路径，与经典 Wrapper 的同名 
 | `AI_PROVIDER` | `mock`；显式`openai`使用OpenAI兼容适配器 | 否 |
 | `AI_BASE_URL/AI_API_KEY/AI_MODEL` | 真实模型配置；只在服务端读取 | API key 是 |
 | `EMBEDDING_MODEL` | 真实模式显式指定模型；维度在代码固定1024并逐响应校验 | 否 |
+| `EMBEDDING_BATCH_SIZE` | 默认32，范围1–32；百炼 text-embedding-v4 设10，每批响应校验后恢复原顺序 | 否 |
 | `AI_WORKER_ENABLED` | 默认true，控制G4索引/生成调度，测试false | 否 |
 | `DOCLING_BASE_URL` | Compose 内网地址 | 否 |
 | `DOCLING_INTERNAL_TOKEN` | 脚本生成的内部 bearer 凭据 | 是 |

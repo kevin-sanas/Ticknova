@@ -4,6 +4,7 @@ import com.ticknova.ai.model.*;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import org.slf4j.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,8 +20,14 @@ public class AiIndexWorker {
     private final TransactionTemplate tx;
     private final AiModel model;
     private final boolean enabled;
+    private final int embeddingBatchSize;
     private final Semaphore slots=new Semaphore(2);
-    public AiIndexWorker(JdbcClient jdbc,PlatformTransactionManager manager,AiModel model,@Value("${ticknova.ai.worker-enabled:true}") boolean enabled){this.jdbc=jdbc;this.tx=new TransactionTemplate(manager);this.model=model;this.enabled=enabled;}
+    public AiIndexWorker(JdbcClient jdbc,PlatformTransactionManager manager,AiModel model,boolean enabled){this(jdbc,manager,model,enabled,32);}
+    @Autowired
+    public AiIndexWorker(JdbcClient jdbc,PlatformTransactionManager manager,AiModel model,@Value("${ticknova.ai.worker-enabled:true}") boolean enabled,@Value("${ticknova.ai.embedding-batch-size:32}") int embeddingBatchSize){
+        if(embeddingBatchSize<1||embeddingBatchSize>32)throw new IllegalArgumentException("Embedding batch size must be between 1 and 32");
+        this.jdbc=jdbc;this.tx=new TransactionTemplate(manager);this.model=model;this.enabled=enabled;this.embeddingBatchSize=embeddingBatchSize;
+    }
     private record Chunk(UUID id,String content) {}
     private record Claim(UUID version,UUID token,String profile,int attempt,List<Chunk> chunks) {}
     @Scheduled(fixedDelayString="${ticknova.ai.index-delay-ms:1200}") public void poll(){if(enabled)try{runOnce();}catch(Exception e){log.warn("AI index polling failed type={}",e.getClass().getSimpleName());}}
@@ -50,7 +57,8 @@ public class AiIndexWorker {
             """).param("profile",profile).query((r,n)->new Object[]{r.getObject(1,UUID.class),r.getString(2),r.getInt(3)}).optional();
         if(version.isEmpty())return null;var row=version.get();UUID id=(UUID)row[0];int attempt=profile.equals(row[1])?(Integer)row[2]+1:1;
         if(attempt>5){jdbc.sql("UPDATE document_version SET embedding_state='FAILED',embedding_error_code='AI_ATTEMPTS_EXHAUSTED',embedding_lease=NULL,embedding_locked_until=NULL WHERE id=:id").param("id",id).update();return null;}
-        List<Chunk> available=jdbc.sql("SELECT id,content FROM knowledge_chunk WHERE document_version_id=:id AND (embedding_profile IS DISTINCT FROM :profile OR embedding IS NULL) ORDER BY chunk_index LIMIT 32").param("id",id).param("profile",profile).query((r,n)->new Chunk(r.getObject(1,UUID.class),r.getString(2))).list();
+        // One provider request per lease; cumulative adapter batching must not consume the 120s lease.
+        List<Chunk> available=jdbc.sql("SELECT id,content FROM knowledge_chunk WHERE document_version_id=:id AND (embedding_profile IS DISTINCT FROM :profile OR embedding IS NULL) ORDER BY chunk_index LIMIT :batchSize").param("id",id).param("profile",profile).param("batchSize",embeddingBatchSize).query((r,n)->new Chunk(r.getObject(1,UUID.class),r.getString(2))).list();
         List<Chunk> batch=new ArrayList<>();int chars=0;
         for(Chunk chunk:available){if(chars+chunk.content().length()>64000)break;batch.add(chunk);chars+=chunk.content().length();}
         if(batch.isEmpty()){

@@ -36,6 +36,7 @@ services:
       AI_API_KEY: ${AI_API_KEY:-}
       AI_MODEL: ${AI_MODEL:-}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-32}
       AI_WORKER_ENABLED: ${AI_WORKER_ENABLED:-true}
     volumes:
       - uploads:/var/lib/ticknova/uploads

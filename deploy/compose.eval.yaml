@@ -1,0 +1,21 @@
+name: ticknova-eval
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: ticknova_eval
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ticknova_test -d ticknova_eval"]
+  api-test:
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/ticknova_eval
+      TICKNOVA_RAG_BENCHMARK: "true"
+      AI_PROVIDER: ${EVAL_AI_PROVIDER:-mock}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_MODEL: ${AI_MODEL:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_BATCH_SIZE: ${EMBEDDING_BATCH_SIZE:-10}
+      EVAL_ALLOW_PAID: ${EVAL_ALLOW_PAID:-false}
+      EVAL_MAX_CHAT_CALLS: ${EVAL_MAX_CHAT_CALLS:-120}
+      EVAL_MAX_EMBEDDING_INPUTS: ${EVAL_MAX_EMBEDDING_INPUTS:-128}
+    command: [env, -u, MAVEN_CONFIG, sh, ./mvnw, -B, -ntp, "-Dtest=RagBenchmarkIT", test]

@@ -49,6 +49,26 @@ class SpringAiModelTest {
         assertThat(request.path("input").get(0).asString()).isEqualTo("密码重置");
     }
 
+    @Test void providerBatchLimitPreservesOrderingAcrossResponses() throws Exception {
+        var sizes=new java.util.ArrayList<Integer>();var offset=new AtomicInteger();
+        server=HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
+        server.createContext("/v1/embeddings",exchange->{
+            int size=json.readTree(exchange.getRequestBody().readAllBytes()).path("input").size();sizes.add(size);int start=offset.getAndAdd(size);
+            var data=new java.util.ArrayList<java.util.Map<String,Object>>();
+            for(int i=size-1;i>=0;i--){float[] vector=new float[1024];vector[start+i]=1;data.add(java.util.Map.of("object","embedding","index",i,"embedding",vector));}
+            byte[] bytes=json.writeValueAsBytes(java.util.Map.of("object","list","model","test-embed","data",data,"usage",java.util.Map.of("prompt_tokens",size,"total_tokens",size)));
+            exchange.getResponseHeaders().set("Content-Type","application/json");exchange.sendResponseHeaders(200,bytes.length);exchange.getResponseBody().write(bytes);exchange.close();
+        });server.start();
+        var model=new SpringAiModel("http://127.0.0.1:"+server.getAddress().getPort()+"/v1","test-contract-key","test-chat","test-embed",Duration.ofSeconds(5),10);
+        var vectors=model.embed(java.util.stream.IntStream.range(0,11).mapToObj(i->"input-"+i).toList());
+        assertThat(sizes).containsExactly(10,1);assertThat(vectors).hasSize(11);
+        for(int i=0;i<11;i++)assertThat(vectors.get(i)[i]).isEqualTo(1);
+    }
+
+    @Test void invalidProviderBatchLimitsFailBeforeRequests(){
+        for(int limit:List.of(0,33))assertThatThrownBy(()->new SpringAiModel("http://127.0.0.1:1/v1","key","chat","embed",Duration.ofSeconds(1),limit)).isInstanceOf(AiModelFailure.class);
+    }
+
     @Test void chatUsesSpringAiAndJsonDataWithSeparateSystemInstructions() throws Exception {
         String result = "{\"answer\":\"已确认\",\"summary\":\"\",\"serviceId\":null,\"priority\":null,\"tags\":[],\"citationChunkIds\":[]}";
         String url = serve(200, chat(result), 0);

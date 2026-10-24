@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const evidenceTag = process.env.TICKNOVA_EVIDENCE_TAG
 if (evidenceTag && !/^[a-z0-9-]+$/.test(evidenceTag)) throw new Error('Invalid evidence tag')
-const local = (await Promise.all(['.env','.env.demo','.env.browser'].map(file => readFile(resolve(root, file), 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error })))).join('\n').split(/\r?\n/).filter(line => /^[A-Z_]*(?:PASSWORD|TOKEN|PEPPER|API_KEY)[A-Z_]*=/.test(line)).map(line => {
+const local = (await Promise.all(['.env','.env.demo','.env.browser','.env.eval','.env.perf'].map(file => readFile(resolve(root, file), 'utf8').catch(error => { if (error.code === 'ENOENT') return ''; throw error })))).join('\n').split(/\r?\n/).filter(line => /^[A-Z_]*(?:PASSWORD|TOKEN|PEPPER|API_KEY)[A-Z_]*=/.test(line)).map(line => {
   const i = line.indexOf('='); return { name: line.slice(0, i), value: line.slice(i + 1) }
 }).filter(secret => secret.value.length >= 12)
 const files = [...new Set(execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], { cwd: root, encoding: 'utf8' }).split('\0').filter(Boolean))]

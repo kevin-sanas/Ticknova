@@ -1,0 +1,2073 @@
+{
+  "recordedAt" : "2026-10-24T10:49:42.981750999Z",
+  "dataset" : "ticknova-original-service-desk-v1",
+  "datasetSha256" : "525a2ee2eae2560d79ecdcef4500b4a7d0a35e945f46e91812f9a78b0947828e",
+  "labelStatus" : "Developer candidate evidence anchors; human relevance and groundedness review NOT RUN",
+  "mode" : "openai",
+  "profile" : "openai:c15bda3a28562b8590f3fcbdcb059bef48cb809a7af2e5c9e968fe9ff2a28930",
+  "chatModel" : "qwen-plus",
+  "embeddingModel" : "text-embedding-v4",
+  "embeddingDimensions" : 1024,
+  "scope" : "Real Docling + independent review/publish + production retrieval/context/validator; direct generation, not HTTP/outbox latency",
+  "results" : [ {
+    "id" : "positive-01",
+    "question" : "网络无法连接怎么办",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "retrievalMs" : 19.349896,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "7403b28e-6200-447b-b92d-6173bd11dc91", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "网络无法连接时，请按以下步骤排查：\n1. 确认物理连接正常（网线插好或Wi-Fi已连接）；\n2. 检查本机是否获取到有效IP地址、默认网关和DNS配置（可通过命令行执行ipconfig（Windows）或ifconfig（macOS/Linux）查看）；\n3. 分别尝试访问企业门户和一个已知可用的公网网站（如www.baidu.com），以判断是全局断网、仅企业服务异常，还是仅本机问题；\n4. 运行系统自带的网络诊断工具并记录诊断时间；\n5. 切勿擅自修改企业指定DNS服务器或临时关闭终端安全防护软件；\n6. 若仅当前设备异常，可尝试断开网络后重新连接；\n7. 若同一办公区域多人同时出现异常，请提交办公网络类工单，并附上：影响范围（如楼层/部门/人数）、连接方式（有线/Wi-Fi/VPN）、以及网络诊断截图。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-02",
+    "question" : "如何判断单个网站故障还是整个办公网络故障",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "retrievalMs" : 5.558097,
+    "retrievedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "可通过以下步骤判断：\n1. 确认本机网线或Wi-Fi连接正常；\n2. 同时访问企业门户（如内部OA系统）和至少一个已知可用的外部网站（如www.baidu.com）；\n   - 若仅目标网站无法访问，而其他网站和企业门户均正常 → 初步判断为该单个网站故障；\n   - 若企业门户和所有外部网站均无法访问 → 更可能为本地网络或办公网络整体故障；\n3. 检查本机是否获取到有效IP地址、默认网关及DNS配置（如通过ipconfig/ifconfig或网络设置界面）；\n4. 若仅本设备异常，可尝试断开后重连网络；若同一办公区多人出现相同问题，则大概率是办公网络故障，需提交工单并附影响范围、连接方式及诊断截图。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-03",
+    "question" : "办公网络工单需要附哪些排查信息",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "retrievalMs" : 4.091626,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "7403b28e-6200-447b-b92d-6173bd11dc91", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "办公网络工单需附以下排查信息：（1）影响范围（如仅本设备异常，或同一办公区多人异常）；（2）连接方式（有线/无线/VPN）；（3）系统网络诊断结果截图（含诊断时间）；（4）设备是否获取到有效的IP地址、默认网关和DNS配置；（5）已尝试的基础操作（如断开重连网络）；（6）企业门户及已知可用网站的访问测试结果，用于区分服务级故障与整体网络故障。注意：不得擅自修改企业DNS或关闭安全防护，不得在工单中附带访问令牌。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-04",
+    "question" : "VPN 连不上先检查什么",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 3.265362,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "outcome" : "ANSWERED",
+    "answer" : "VPN 连不上时，应首先检查以下几项：1）本地普通网络是否正常（如能否访问公网或企业门户）；2）所用 VPN 客户端是否为企业批准的最新版本；3）账号状态是否正常（未过期、未被禁用）、多因素认证（MFA）是否已完成；4）客户端配置中的连接地址是否正确；5）设备系统时间是否准确（偏差过大将导致证书验证失败或令牌失效）；6）尝试完全退出并重新启动 VPN 客户端后重试一次。若反复出现认证失败，请立即停止重试，以防账号被临时锁定。提交工单时请提供具体错误代码、发生时间、客户端版本号，以及是否能正常访问企业门户；严禁上传密码、一次性验证码、会话令牌或含敏感信息的日志。",
+    "citations" : [ {
+      "documentId" : "d2f48532-685c-4bb4-bcb5-cea96bf765a8",
+      "versionId" : "d755ee52-6e22-4d07-ac23-9bcf24f59edd",
+      "version" : 1,
+      "title" : "VPN 连接失败处理指南",
+      "page" : 1,
+      "chunkId" : "ae47f3bd-870f-497c-9659-b9729fe48a52",
+      "snippet" : "VPN 连接失败处理指南\nVPN 连不上时，先确认普通网络可用、VPN 客户端为企业批准的版本，再检查账号状态和多因素认证是否完成。\n核对客户端显示的连接地址和设备系统时间，重新打开客户端后重试一次。反复出现认证失败时停止重复尝试，避免账号被锁定。\n工单中提供错误代码、发生时间、客户端版本及是否能够访问企业门户。不要上传密码、一次性验证码或含会话令牌的日志。"
+    } ]
+  }, {
+    "id" : "positive-05",
+    "question" : "VPN 认证连续失败时应该怎么处理",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 3.944689,
+    "retrievedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52", "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "VPN 认证连续失败时，请立即停止重复尝试，避免触发账号锁定机制。首先确认：1）本地网络正常；2）使用企业批准的VPN客户端版本；3）账号状态有效、未过期或禁用；4）已完成多因素认证（MFA）流程；5）客户端配置的连接地址正确，且设备系统时间与标准时间偏差不超过5分钟。若仍失败，请勿反复重试，而是收集以下信息提交工单：错误代码、具体发生时间（含时区）、VPN客户端版本号、是否能正常访问企业门户。严禁在工单中上传密码、一次性验证码、会话令牌或敏感日志内容。",
+    "citations" : [ {
+      "documentId" : "d2f48532-685c-4bb4-bcb5-cea96bf765a8",
+      "versionId" : "d755ee52-6e22-4d07-ac23-9bcf24f59edd",
+      "version" : 1,
+      "title" : "VPN 连接失败处理指南",
+      "page" : 1,
+      "chunkId" : "ae47f3bd-870f-497c-9659-b9729fe48a52",
+      "snippet" : "VPN 连接失败处理指南\nVPN 连不上时，先确认普通网络可用、VPN 客户端为企业批准的版本，再检查账号状态和多因素认证是否完成。\n核对客户端显示的连接地址和设备系统时间，重新打开客户端后重试一次。反复出现认证失败时停止重复尝试，避免账号被锁定。\n工单中提供错误代码、发生时间、客户端版本及是否能够访问企业门户。不要上传密码、一次性验证码或含会话令牌的日志。"
+    } ]
+  }, {
+    "id" : "positive-06",
+    "question" : "VPN 工单不能上传哪些敏感信息",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 2.774413,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "positive-07",
+    "question" : "怎么重置密码",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "retrievalMs" : 2.406148,
+    "retrievedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "您可以通过企业批准的自助服务入口重置密码：选择‘重置密码’，完成身份核验后设置符合企业密码策略的新密码（需唯一，不可复用其他网站密码）。若无法完成核验，请提交密码重置工单。注意：密码和多因素认证恢复信息严禁通过工单正文发送；重置完成后请退出所有旧会话并用新密码重新登录。如仍登录失败，请记录具体错误提示及发生时间，交由账号支持队列处理。",
+    "citations" : [ {
+      "documentId" : "8899bae4-4bad-475f-afef-3714f3b91cf7",
+      "versionId" : "23e8cc27-ead3-43b4-916b-6e550ddba313",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "58c46971-8de4-4a77-991f-2f1540d2a028",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-08",
+    "question" : "密码重置完成后如何验证登录",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "retrievalMs" : 2.573449,
+    "retrievedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "密码重置完成后，请退出所有当前登录的会话（包括浏览器、客户端、移动应用等），然后使用新密码重新登录系统。若登录失败，请准确记录错误提示信息（如‘用户名或密码错误’‘账户被锁定’‘多因素认证失败’等）及发生时间，并提交至账号支持队列处理。注意：新密码必须符合企业密码策略（如长度、复杂度、不可复用等），且不得与您在其他网站使用的密码相同。",
+    "citations" : [ {
+      "documentId" : "8899bae4-4bad-475f-afef-3714f3b91cf7",
+      "versionId" : "23e8cc27-ead3-43b4-916b-6e550ddba313",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "58c46971-8de4-4a77-991f-2f1540d2a028",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-09",
+    "question" : "设置新密码需要注意什么",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "retrievalMs" : 2.954006,
+    "retrievedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "设置新密码时需注意以下几点：1）必须通过企业批准的自助服务入口操作，并完成身份核验；2）新密码须严格符合企业密码策略（如长度、复杂度、不可包含用户名等），且不得复用其他网站或历史密码；3）严禁在工单正文、邮件、即时消息等非加密渠道发送密码、多因素认证恢复信息；4）重置成功后，应主动退出所有旧会话，并使用新密码重新登录；5）若登录失败，请准确记录错误提示内容及发生时间，并提交至账号支持队列进一步排查。",
+    "citations" : [ {
+      "documentId" : "8899bae4-4bad-475f-afef-3714f3b91cf7",
+      "versionId" : "23e8cc27-ead3-43b4-916b-6e550ddba313",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "58c46971-8de4-4a77-991f-2f1540d2a028",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-10",
+    "question" : "新员工申请账号需要哪些资料",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 3.273168,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "新员工申请账号需提供以下资料：入职日期、所属团队、所需访问的系统名称，以及审批联系人。注意不可笼统申请“全部系统权限”，须按实际工作需要明确指定系统。账号开通遵循最小权限原则，由支持人员核对审批结果后执行；初始凭据通过批准的安全渠道交付，首次登录必须修改密码并完成多因素认证。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-11",
+    "question" : "账号开通应该遵循什么权限原则",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 2.264997,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "账号开通应遵循最小权限原则，即仅授予员工履行其岗位职责所必需的最低限度系统访问权限，避免笼统申请全部系统权限。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-12",
+    "question" : "员工离职后如何处理原有账号权限",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 3.037497,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "员工离职后，应另行发起账号权限停用申请，由账号支持人员核对审批结果后执行权限回收与账号停用操作，并保留完整的审批及执行记录。操作须遵循最小权限原则，确保及时、可追溯。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-13",
+    "question" : "企业邮箱如何配置",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "retrievalMs" : 2.435676,
+    "retrievedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "outcome" : "ANSWERED",
+    "answer" : "企业邮箱配置前，请先确认账号已开通且可在企业批准的网页邮箱中正常登录。建议优先使用企业提供的自动配置方式（如Outlook的自动发现、Mac Mail的Exchange/IMAP自动设置等）。若需手动配置，请严格依据企业管理员提供的官方配置说明，核对以下关键参数：接收服务器（IMAP/POP3）地址、发送服务器（SMTP）地址、对应端口号、加密方式（如SSL/TLS/STARTTLS）；切勿从来源不明的邮件或网页复制配置信息，严禁关闭客户端的SSL证书校验。配置完成后，请分别通过客户端发送和接收一封不含敏感信息的测试邮件以验证连通性与功能完整性。如网页端可正常使用但客户端配置失败，请提供所用客户端名称（如Outlook 2021、Thunderbird 115）、具体版本号及完整错误提示代码，以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "582d3004-8c66-44c5-ae79-393cace26249",
+      "versionId" : "7c589194-f1a7-4f29-8720-f74d30f91533",
+      "version" : 1,
+      "title" : "企业邮箱客户端配置",
+      "page" : 1,
+      "chunkId" : "5f5d86d2-0bfb-4192-9ff2-d9cd828be717",
+      "snippet" : "企业邮箱客户端配置\n配置企业邮箱前，确认账号已开通并能够在企业批准的网页邮箱中登录。优先采用企业提供的自动配置方式。\n如需手动配置，从管理员提供的配置说明核对服务器地址、加密方式和端口，不要从陌生邮件复制设置，也不要关闭证书校验。\n发送和接收各测试一封不含敏感信息的邮件。若网页端正常而客户端异常，提交客户端名称、版本及错误代码。"
+    } ]
+  }, {
+    "id" : "positive-14",
+    "question" : "手动配置邮箱时应该核对哪些参数",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "retrievalMs" : 2.114436,
+    "retrievedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "outcome" : "ANSWERED",
+    "answer" : "手动配置邮箱时，应核对以下参数：服务器地址（包括接收服务器IMAP/POP3地址和发送服务器SMTP地址）、加密方式（如SSL/TLS/STARTTLS）及对应端口（例如IMAP+SSL常用993，SMTP+SSL常用465，IMAP+STARTTLS常用143，SMTP+STARTTLS常用587）。所有参数必须严格依据企业管理员提供的官方配置说明进行核对，不得从陌生邮件、非授权网页或第三方教程中复制；同时禁止关闭客户端的SSL证书校验功能。配置完成后，须分别通过客户端发送和接收一封不含敏感信息的测试邮件以验证连通性与功能完整性。",
+    "citations" : [ {
+      "documentId" : "582d3004-8c66-44c5-ae79-393cace26249",
+      "versionId" : "7c589194-f1a7-4f29-8720-f74d30f91533",
+      "version" : 1,
+      "title" : "企业邮箱客户端配置",
+      "page" : 1,
+      "chunkId" : "5f5d86d2-0bfb-4192-9ff2-d9cd828be717",
+      "snippet" : "企业邮箱客户端配置\n配置企业邮箱前，确认账号已开通并能够在企业批准的网页邮箱中登录。优先采用企业提供的自动配置方式。\n如需手动配置，从管理员提供的配置说明核对服务器地址、加密方式和端口，不要从陌生邮件复制设置，也不要关闭证书校验。\n发送和接收各测试一封不含敏感信息的邮件。若网页端正常而客户端异常，提交客户端名称、版本及错误代码。"
+    } ]
+  }, {
+    "id" : "positive-15",
+    "question" : "网页邮箱正常但客户端异常怎么办",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "retrievalMs" : 2.210424,
+    "retrievedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "outcome" : "ANSWERED",
+    "answer" : "若网页邮箱正常但客户端异常，请先确认账号已在企业批准的网页邮箱中成功登录；优先使用企业提供的自动配置方式设置客户端。如需手动配置，请严格依据管理员提供的配置说明核对服务器地址、加密方式（如SSL/TLS）和端口号，切勿从陌生邮件复制设置，且不可关闭证书校验。完成配置后，分别测试发送和接收一封不含敏感信息的邮件。若问题仍存在，请提交所用客户端名称（如Outlook、Foxmail、Apple Mail等）、具体版本号及出现的完整错误代码或截图，以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "582d3004-8c66-44c5-ae79-393cace26249",
+      "versionId" : "7c589194-f1a7-4f29-8720-f74d30f91533",
+      "version" : 1,
+      "title" : "企业邮箱客户端配置",
+      "page" : 1,
+      "chunkId" : "5f5d86d2-0bfb-4192-9ff2-d9cd828be717",
+      "snippet" : "企业邮箱客户端配置\n配置企业邮箱前，确认账号已开通并能够在企业批准的网页邮箱中登录。优先采用企业提供的自动配置方式。\n如需手动配置，从管理员提供的配置说明核对服务器地址、加密方式和端口，不要从陌生邮件复制设置，也不要关闭证书校验。\n发送和接收各测试一封不含敏感信息的邮件。若网页端正常而客户端异常，提交客户端名称、版本及错误代码。"
+    } ]
+  }, {
+    "id" : "positive-16",
+    "question" : "无线连接不稳定先记录什么",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "retrievalMs" : 2.805063,
+    "retrievedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65", "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "outcome" : "ANSWERED",
+    "answer" : "无线连接不稳定时，应先确认连接的是批准的办公无线网络，并记录信号强度及故障发生的具体地点。",
+    "citations" : [ {
+      "documentId" : "4ecb6297-24b9-476f-ad7a-d8edac176195",
+      "versionId" : "d0c8d91e-d4a8-4bdc-81b2-d792ef25e01d",
+      "version" : 1,
+      "title" : "无线网络连接不稳定",
+      "page" : 1,
+      "chunkId" : "d2875faf-78a6-42d4-906d-25d667490827",
+      "snippet" : "无线网络连接不稳定\n无线连接不稳定时，先确认连接的是批准的办公无线网络，记录信号强度及故障地点。\n暂停大流量下载，靠近接入点后观察连接；若有线网络正常，可将问题缩小到无线链路。不要自行架设热点桥接企业网络。\n向网络队列提交工单，说明单人或多人受影响、故障频率、设备类型及发生时间。"
+    } ]
+  }, {
+    "id" : "positive-17",
+    "question" : "无线网络异常时能自行架设热点桥接吗",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "retrievalMs" : 2.266518,
+    "retrievedChunkIds" : [ "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "outcome" : "ANSWERED",
+    "answer" : "不能自行架设热点桥接企业网络。无线连接不稳定时，应先确认是否连接到批准的办公无线网络，记录信号强度及故障地点；暂停大流量下载，靠近接入点观察改善情况；如有线网络正常，可初步定位问题在无线链路。所有网络变更和桥接行为均需经IT部门审批，擅自架设热点桥接存在安全与合规风险。请向网络队列提交工单，说明影响范围（单人/多人）、故障频率、设备类型及发生时间。",
+    "citations" : [ {
+      "documentId" : "4ecb6297-24b9-476f-ad7a-d8edac176195",
+      "versionId" : "d0c8d91e-d4a8-4bdc-81b2-d792ef25e01d",
+      "version" : 1,
+      "title" : "无线网络连接不稳定",
+      "page" : 1,
+      "chunkId" : "d2875faf-78a6-42d4-906d-25d667490827",
+      "snippet" : "无线网络连接不稳定\n无线连接不稳定时，先确认连接的是批准的办公无线网络，记录信号强度及故障地点。\n暂停大流量下载，靠近接入点后观察连接；若有线网络正常，可将问题缩小到无线链路。不要自行架设热点桥接企业网络。\n向网络队列提交工单，说明单人或多人受影响、故障频率、设备类型及发生时间。"
+    } ]
+  }, {
+    "id" : "positive-18",
+    "question" : "共享打印机无法打印怎么办",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496" ],
+    "retrievalMs" : 2.275724,
+    "retrievedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "共享打印机无法打印时，请按以下步骤排查：\n1. 确认打印机电源已开启，操作面板无报错提示（如‘缺纸’‘卡纸’‘墨盒错误’）；\n2. 检查当前电脑所选打印机名称是否正确，打印设置中的纸张规格是否匹配实际装入纸张；\n3. 打开打印队列（控制面板 > 设备和打印机 > 右键目标打印机 > 查看正在打印的内容），确认队列未被暂停，且无长时间处于‘错误’或‘假脱机’状态的任务；仅可取消您本人提交的失败任务，切勿清除他人任务；\n4. 若打印机现场显示缺纸或卡纸，请参照设备旁张贴的安全操作说明进行处理，勿强行拆卸；\n5. 若以上均正常但问题持续，请提交IT支持工单，并务必提供：打印机资产编号、具体错误信息（如弹窗提示、面板代码）、受影响的用户范围（如‘本楼层全部工位’或‘仅我一人’）；严禁在工单中上传含客户姓名、身份证号、合同内容等敏感信息的打印文件。",
+    "citations" : [ {
+      "documentId" : "20f6bc67-f2b7-44f8-aba2-2c1a0b9f9841",
+      "versionId" : "1dcc706e-9375-4609-b99d-1742e2055efd",
+      "version" : 1,
+      "title" : "共享打印机无法打印",
+      "page" : 1,
+      "chunkId" : "eb087ce0-5f88-4382-b3f5-93db5cbb1496",
+      "snippet" : "共享打印机无法打印\n共享打印机无法打印时，先确认打印机电源和面板状态，再检查当前设备选择的打印机与纸张规格。\n查看打印队列是否暂停或存在失败任务。仅取消自己的任务，避免影响其他员工；设备缺纸或卡纸时按现场安全说明处理。\n如问题持续，提交打印机资产编号、错误信息和影响范围，不要在工单中上传包含客户资料的打印内容。"
+    } ]
+  }, {
+    "id" : "positive-19",
+    "question" : "清理打印队列时可以取消其他人的任务吗",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496" ],
+    "retrievalMs" : 3.245896,
+    "retrievedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496" ],
+    "outcome" : "ANSWERED",
+    "answer" : "不可以。根据操作规范，清理打印队列时仅可取消自己的打印任务，不得取消其他人的任务，以避免影响其他员工的正常工作。",
+    "citations" : [ {
+      "documentId" : "20f6bc67-f2b7-44f8-aba2-2c1a0b9f9841",
+      "versionId" : "1dcc706e-9375-4609-b99d-1742e2055efd",
+      "version" : 1,
+      "title" : "共享打印机无法打印",
+      "page" : 1,
+      "chunkId" : "eb087ce0-5f88-4382-b3f5-93db5cbb1496",
+      "snippet" : "共享打印机无法打印\n共享打印机无法打印时，先确认打印机电源和面板状态，再检查当前设备选择的打印机与纸张规格。\n查看打印队列是否暂停或存在失败任务。仅取消自己的任务，避免影响其他员工；设备缺纸或卡纸时按现场安全说明处理。\n如问题持续，提交打印机资产编号、错误信息和影响范围，不要在工单中上传包含客户资料的打印内容。"
+    } ]
+  }, {
+    "id" : "positive-20",
+    "question" : "办公电脑运行缓慢先检查什么",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "retrievalMs" : 2.652144,
+    "retrievedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "outcome" : "ANSWERED",
+    "answer" : "办公电脑运行缓慢时，建议首先保存当前工作，然后检查系统资源占用（如CPU、内存使用率）和剩余磁盘空间；接着关闭确认不再使用的应用程序。之后，通过企业软件中心安排系统更新及启动批准的安全扫描。切勿安装来源不明的“清理软件”，也不要随意终止无法确认用途的系统进程。",
+    "citations" : [ {
+      "documentId" : "78c2bf5a-c16c-4684-a640-2aa20713a5dc",
+      "versionId" : "55ae101c-3b4a-4e82-8e80-e451b2dd0ae5",
+      "version" : 1,
+      "title" : "办公设备运行缓慢",
+      "page" : 1,
+      "chunkId" : "a6fd9522-2473-4029-aee7-69b093d65a62",
+      "snippet" : "办公设备运行缓慢\n电脑运行缓慢时，保存工作后检查系统资源占用及剩余磁盘空间，先关闭确认不再使用的应用。\n使用企业软件中心安排系统更新及批准的安全扫描。不要安装未知清理软件，也不要终止无法确认用途的系统进程。\n若重启后仍持续异常，请提交设备资产编号、操作系统版本、异常应用及发生频率。"
+    } ]
+  }, {
+    "id" : "positive-21",
+    "question" : "电脑变慢可以安装未知清理软件吗",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "retrievalMs" : 2.668246,
+    "retrievedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "outcome" : "ANSWERED",
+    "answer" : "不可以。电脑变慢时，严禁安装未知来源的清理软件。应先保存工作，检查系统资源占用和剩余磁盘空间，关闭确认不再使用的应用程序；通过企业软件中心进行系统更新和批准的安全扫描。擅自安装未知清理软件可能引入恶意代码、破坏系统稳定性或导致数据泄露。若重启后问题仍持续，请提交设备资产编号、操作系统版本、异常应用及发生频率以便IT支持排查。",
+    "citations" : [ {
+      "documentId" : "78c2bf5a-c16c-4684-a640-2aa20713a5dc",
+      "versionId" : "55ae101c-3b4a-4e82-8e80-e451b2dd0ae5",
+      "version" : 1,
+      "title" : "办公设备运行缓慢",
+      "page" : 1,
+      "chunkId" : "a6fd9522-2473-4029-aee7-69b093d65a62",
+      "snippet" : "办公设备运行缓慢\n电脑运行缓慢时，保存工作后检查系统资源占用及剩余磁盘空间，先关闭确认不再使用的应用。\n使用企业软件中心安排系统更新及批准的安全扫描。不要安装未知清理软件，也不要终止无法确认用途的系统进程。\n若重启后仍持续异常，请提交设备资产编号、操作系统版本、异常应用及发生频率。"
+    } ]
+  }, {
+    "id" : "positive-22",
+    "question" : "线上会议没有声音怎么检查",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "retrievalMs" : 2.65138,
+    "retrievedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "outcome" : "ANSWERED",
+    "answer" : "线上会议没有声音时，请按以下步骤检查：1）确认会议应用内已正确选择输入（麦克风）和输出（扬声器/耳机）设备；2）检查会议界面中麦克风和扬声器图标是否被静音（如显示红色斜杠或关闭状态），点击取消静音；3）进入操作系统设置，核实该会议应用是否已被授予麦克风和音频输出权限；4）使用会议应用内置的音频测试功能（如“测试麦克风”“播放测试音”）验证基础通路；5）若使用外接耳机、麦克风或USB声卡等设备，请尝试拔插重连，确保系统识别；6）如问题持续，请提供您的设备型号、会议应用名称及具体版本号、以及上述各步的测试结果，以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "7c6324b4-6a58-443a-aa7b-0641fea16f24",
+      "versionId" : "4ec9ef6b-0c6a-4dee-b461-7107a29c2ad8",
+      "version" : 1,
+      "title" : "会议音频与摄像头检查",
+      "page" : 1,
+      "chunkId" : "26122f3b-dca5-4143-947b-03302d1c7c7d",
+      "snippet" : "会议音频与摄像头检查\n线上会议没有声音时，确认会议应用选择了正确的输入和输出设备，并检查静音状态。\n在系统设置中检查应用的麦克风和摄像头权限，使用应用自带的测试功能。共享屏幕前关闭无关的敏感窗口。\n外接设备可重新连接一次；仍无效时提交设备型号、会议应用版本及测试结果。"
+    } ]
+  }, {
+    "id" : "positive-23",
+    "question" : "会议应用如何检查麦克风和摄像头权限",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "retrievalMs" : 2.061458,
+    "retrievedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "outcome" : "ANSWERED",
+    "answer" : "在会议应用中检查麦克风和摄像头权限，需分两步操作：\n1. **系统级权限检查**：进入操作系统设置（如Windows 设置 > 隐私与安全 > 麦克风/摄像头；macOS 系统设置 > 隐私与安全性 > 麦克风/摄像头），确认会议应用已被明确授予麦克风和摄像头访问权限；\n2. **应用内验证**：使用会议应用内置的音视频测试功能（通常位于设置、设备设置或加入会议前的预检页面）实时检测输入/输出状态、静音开关及设备选择是否正确。若外接设备异常，可尝试重新插拔；若仍无效，请提供设备型号、会议应用版本号及具体测试结果以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "7c6324b4-6a58-443a-aa7b-0641fea16f24",
+      "versionId" : "4ec9ef6b-0c6a-4dee-b461-7107a29c2ad8",
+      "version" : 1,
+      "title" : "会议音频与摄像头检查",
+      "page" : 1,
+      "chunkId" : "26122f3b-dca5-4143-947b-03302d1c7c7d",
+      "snippet" : "会议音频与摄像头检查\n线上会议没有声音时，确认会议应用选择了正确的输入和输出设备，并检查静音状态。\n在系统设置中检查应用的麦克风和摄像头权限，使用应用自带的测试功能。共享屏幕前关闭无关的敏感窗口。\n外接设备可重新连接一次；仍无效时提交设备型号、会议应用版本及测试结果。"
+    } ]
+  }, {
+    "id" : "positive-24",
+    "question" : "申请共享文件夹需要提供哪些信息",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91" ],
+    "retrievalMs" : 2.324811,
+    "retrievedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91" ],
+    "outcome" : "ANSWERED",
+    "answer" : "申请共享文件夹权限时，需提供以下四项信息：1）文件夹标识；2）所需的访问范围（只读或编辑）；3）业务用途；4）审批联系人。",
+    "citations" : [ {
+      "documentId" : "ac70bd6d-eeea-47bf-8048-1e5dc2214db2",
+      "versionId" : "c4b02186-73fd-4ce4-8fc7-81f1d894f16e",
+      "version" : 1,
+      "title" : "共享文件夹访问申请",
+      "page" : 1,
+      "chunkId" : "7403b28e-6200-447b-b92d-6173bd11dc91",
+      "snippet" : "共享文件夹访问申请\n申请共享文件夹权限时，请提供文件夹标识、所需的只读或编辑范围、业务用途和审批联系人。\n已有权限却无法访问时，先核对当前登录账号，再确认普通网络或 VPN 已连接。不要借用他人账号绕过权限控制。\n支持人员根据审批结果调整权限，并在工单公开回复中说明处理结果；内部排查信息写入内部备注。"
+    } ]
+  }, {
+    "id" : "positive-25",
+    "question" : "有权限却无法访问文件夹怎么办",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91" ],
+    "retrievalMs" : 2.822996,
+    "retrievedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "已有权限却无法访问文件夹时，请按以下步骤排查：（1）确认当前登录账号是否为已授权账号，勿使用他人账号；（2）检查网络连接状态——确保已接入企业普通网络或VPN（部分共享文件夹仅限内网或VPN访问）；（3）若网络异常，参照网络排查步骤：确认物理连接、验证IP/DNS/网关配置、访问企业门户测试连通性，区分是单设备问题还是区域网络故障。如上述均正常但仍无法访问，请提交工单并注明文件夹标识、具体错误现象（如403/超时/空白页）、复现步骤及截图。",
+    "citations" : [ {
+      "documentId" : "ac70bd6d-eeea-47bf-8048-1e5dc2214db2",
+      "versionId" : "c4b02186-73fd-4ce4-8fc7-81f1d894f16e",
+      "version" : 1,
+      "title" : "共享文件夹访问申请",
+      "page" : 1,
+      "chunkId" : "7403b28e-6200-447b-b92d-6173bd11dc91",
+      "snippet" : "共享文件夹访问申请\n申请共享文件夹权限时，请提供文件夹标识、所需的只读或编辑范围、业务用途和审批联系人。\n已有权限却无法访问时，先核对当前登录账号，再确认普通网络或 VPN 已连接。不要借用他人账号绕过权限控制。\n支持人员根据审批结果调整权限，并在工单公开回复中说明处理结果；内部排查信息写入内部备注。"
+    }, {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-26",
+    "question" : "安装软件前应该先查哪里",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "retrievalMs" : 2.145343,
+    "retrievedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "outcome" : "ANSWERED",
+    "answer" : "安装软件前，应先查询企业软件中心，优先使用已批准的软件及版本。",
+    "citations" : [ {
+      "documentId" : "310a2606-6872-4ae3-b4b9-4675ffafad53",
+      "versionId" : "44fac8b1-8f57-4e07-ba24-5b2b0ca44650",
+      "version" : 1,
+      "title" : "软件安装与许可证申请",
+      "page" : 1,
+      "chunkId" : "52b3c63e-d1a5-4252-bba4-4d74c54ecd83",
+      "snippet" : "软件安装与许可证申请\n安装办公软件前，请先查询企业软件中心，优先使用已批准的软件及版本。\n需要付费许可证时，提交软件名称、使用人数、业务用途及审批信息。不要使用破解安装包或在工单中填写许可证密钥。\n安装失败时提供安装阶段、系统版本和错误代码，支持人员核对兼容性后安排处理。"
+    } ]
+  }, {
+    "id" : "positive-27",
+    "question" : "付费软件许可证申请需要什么资料",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "retrievalMs" : 2.132612,
+    "retrievedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "outcome" : "ANSWERED",
+    "answer" : "付费软件许可证申请需要提供以下资料：软件名称、使用人数、业务用途及审批信息。请注意，不得在工单中填写许可证密钥，也不得使用破解安装包。",
+    "citations" : [ {
+      "documentId" : "310a2606-6872-4ae3-b4b9-4675ffafad53",
+      "versionId" : "44fac8b1-8f57-4e07-ba24-5b2b0ca44650",
+      "version" : 1,
+      "title" : "软件安装与许可证申请",
+      "page" : 1,
+      "chunkId" : "52b3c63e-d1a5-4252-bba4-4d74c54ecd83",
+      "snippet" : "软件安装与许可证申请\n安装办公软件前，请先查询企业软件中心，优先使用已批准的软件及版本。\n需要付费许可证时，提交软件名称、使用人数、业务用途及审批信息。不要使用破解安装包或在工单中填写许可证密钥。\n安装失败时提供安装阶段、系统版本和错误代码，支持人员核对兼容性后安排处理。"
+    } ]
+  }, {
+    "id" : "positive-28",
+    "question" : "单个内部网站打不开怎么办",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12" ],
+    "retrievalMs" : 2.20579,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "单个内部网站打不开时，请按以下步骤排查：\n1. 核对网址是否输入正确，确认未遗漏协议（如 https://）或拼写错误；\n2. 查看企业公告或IT服务门户，确认该网站是否处于计划内维护窗口；\n3. 若您通过远程办公（如居家），请确保已成功连接公司VPN；\n4. 若浏览器弹出证书警告（如‘您的连接不是私密连接’），请立即停止输入账号密码等敏感信息，并联系IT服务台；\n5. 如仍无法访问，请记录并提供以下信息以便快速定位：网站全名（含URL）、具体错误代码（如HTTP 503、ERR_CONNECTION_TIMED_OUT等）、首次发生时间、影响范围（仅您个人/本部门/跨区域）、以及您已完成的检查项（例如已确认VPN连通、其他内部网站可正常访问等）；\n6. 提交工单时，请勿在链接或描述中嵌入访问令牌、Cookie或临时凭证，以防安全风险。",
+    "citations" : [ {
+      "documentId" : "ce4d4c12-7c64-4aa9-9de2-a0125424e7ea",
+      "versionId" : "bd7e961b-3928-48a0-8476-40121184c69d",
+      "version" : 1,
+      "title" : "内部网站访问异常",
+      "page" : 1,
+      "chunkId" : "c3eb3275-2bd5-4e56-bfc0-e0498577ad12",
+      "snippet" : "内部网站访问异常\n单个内部网站无法访问时，先检查地址是否正确，并对照公告确认是否处于维护窗口。\n普通办公网络正常而远程访问失败时，检查 VPN 是否已连接。遇到证书警告时停止输入账号信息并联系服务台。\n提交网站名称、错误代码、发生时间、影响范围及已经完成的检查，避免在工单链接中携带访问令牌。"
+    } ]
+  }, {
+    "id" : "positive-29",
+    "question" : "访问内部网站遇到证书警告怎么办",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12" ],
+    "retrievalMs" : 2.290637,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12" ],
+    "outcome" : "ANSWERED",
+    "answer" : "遇到内部网站证书警告时，请立即停止输入账号密码等敏感信息，并联系IT服务台。同时请提供：网站名称、浏览器显示的具体错误代码（如NET::ERR_CERT_AUTHORITY_INVALID）、发生时间、影响的人员范围，以及您已自行完成的检查步骤（例如确认网址正确、检查是否在维护公告期内、验证VPN连接状态等）。切勿在工单中附带任何访问令牌或凭证。",
+    "citations" : [ {
+      "documentId" : "ce4d4c12-7c64-4aa9-9de2-a0125424e7ea",
+      "versionId" : "bd7e961b-3928-48a0-8476-40121184c69d",
+      "version" : 1,
+      "title" : "内部网站访问异常",
+      "page" : 1,
+      "chunkId" : "c3eb3275-2bd5-4e56-bfc0-e0498577ad12",
+      "snippet" : "内部网站访问异常\n单个内部网站无法访问时，先检查地址是否正确，并对照公告确认是否处于维护窗口。\n普通办公网络正常而远程访问失败时，检查 VPN 是否已连接。遇到证书警告时停止输入账号信息并联系服务台。\n提交网站名称、错误代码、发生时间、影响范围及已经完成的检查，避免在工单链接中携带访问令牌。"
+    } ]
+  }, {
+    "id" : "positive-30",
+    "question" : "网络故障与VPN故障分别先检查什么",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65", "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 2.35381,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "网络故障应先检查物理连接（网线或Wi-Fi）、设备是否获取有效IP地址、默认网关和DNS配置，并通过访问企业门户与外部网站区分是全局断网还是单服务异常；VPN故障则应在确认办公网络正常前提下，优先检查VPN客户端是否已成功连接，若出现证书警告须立即中止登录并联系服务台。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    }, {
+      "documentId" : "ce4d4c12-7c64-4aa9-9de2-a0125424e7ea",
+      "versionId" : "bd7e961b-3928-48a0-8476-40121184c69d",
+      "version" : 1,
+      "title" : "内部网站访问异常",
+      "page" : 1,
+      "chunkId" : "c3eb3275-2bd5-4e56-bfc0-e0498577ad12",
+      "snippet" : "内部网站访问异常\n单个内部网站无法访问时，先检查地址是否正确，并对照公告确认是否处于维护窗口。\n普通办公网络正常而远程访问失败时，检查 VPN 是否已连接。遇到证书警告时停止输入账号信息并联系服务台。\n提交网站名称、错误代码、发生时间、影响范围及已经完成的检查，避免在工单链接中携带访问令牌。"
+    } ]
+  }, {
+    "id" : "positive-31",
+    "question" : "新员工初次登录与密码安全要注意什么",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028", "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 2.596529,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "新员工初次登录时，需注意以下密码安全要点：1）初始凭据仅通过批准的安全渠道交付；2）首次登录必须立即修改初始密码；3）必须完成多因素认证（MFA）的配置与启用；4）密码应满足复杂度要求（如长度≥8位、含大小写字母、数字及特殊字符），且不得复用历史密码；5）严格遵循最小权限原则，系统仅开通其岗位必需的访问权限，避免过度授权。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-32",
+    "question" : "打印故障和软件安装故障分别提交哪些信息",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496", "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "retrievalMs" : 1.991184,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-1",
+    "question" : "今天午餐菜单是什么",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 1.176522,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-2",
+    "question" : "明天会下雨吗",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 1.5194,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-3",
+    "question" : "股票下一周会涨多少",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 1.195298,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-4",
+    "question" : "今年旅游有什么推荐",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 1.229516,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-no-acl-network",
+    "question" : "网络无法连接怎么办",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ ],
+    "authorizationRejected" : true,
+    "retrievalMs" : 1.278723,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-no-acl-password",
+    "question" : "怎么重置密码",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ ],
+    "authorizationRejected" : true,
+    "retrievalMs" : 0.844115,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-withdrawn",
+    "question" : "会议麦克风和摄像头权限怎么检查",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 1.187606,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unpublished",
+    "question" : "门禁访问凭据的临时领取地点是什么",
+    "strategy" : "LEXICAL",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 1.992536,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "positive-01",
+    "question" : "网络无法连接怎么办",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "retrievalMs" : 320.17131,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "7403b28e-6200-447b-b92d-6173bd11dc91", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "网络无法连接时，请按以下步骤排查：\n1. 确认物理连接正常（网线插好或Wi-Fi已连接）；\n2. 检查本机是否获取到有效IP地址、默认网关和DNS配置（可通过命令行执行ipconfig（Windows）或ifconfig（macOS/Linux）查看）；\n3. 分别尝试访问企业门户和一个已知可用的公网网站（如www.baidu.com），以判断是整体断网还是仅特定服务异常；\n4. 运行系统自带的网络诊断工具并记录发生时间；\n5. 不要擅自修改企业指定DNS服务器或关闭终端安全防护软件；\n6. 若仅当前设备异常，可尝试断开网络后重新连接；\n7. 若同一办公区域多人出现相同问题，请提交办公网络类工单，并附上：影响范围（如楼层/部门/人数）、连接方式（有线/WiFi/VPN）、以及网络诊断截图。\n\n注意：如能访问公网但无法打开内部网站，请参考内部网站维护公告或检查VPN连接状态；如遇证书警告，请立即停止输入账号密码并联系IT服务台。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-02",
+    "question" : "如何判断单个网站故障还是整个办公网络故障",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "retrievalMs" : 318.000397,
+    "retrievedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "判断单个网站故障还是整个办公网络故障，可按以下步骤排查：\n1. 确认物理连接正常（网线插好或Wi-Fi已连接）；\n2. 同时访问企业门户（如内部OA、邮箱等）和至少一个已知可用的外部网站（如www.baidu.com）；\n   - 若仅目标网站无法访问，而其他网站及企业门户均正常 → 很可能为该网站自身故障或DNS解析异常；\n   - 若企业门户和多个外部网站均无法访问 → 更可能为本地网络或办公网络整体故障；\n3. 检查本机网络配置：运行ipconfig（Windows）或ifconfig（macOS/Linux），确认是否获取到有效IP地址、默认网关和DNS服务器；\n4. 使用系统自带网络诊断工具（如Windows‘疑难解答’）并记录发生时间；\n5. 注意：不要擅自修改企业指定DNS或关闭终端安全防护软件。\n若同一办公区域多人出现相同问题，请提交办公网络类工单，并附上影响范围、接入方式（有线/WiFi）、诊断截图及具体异常现象。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-03",
+    "question" : "办公网络工单需要附哪些排查信息",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "retrievalMs" : 346.010621,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "7403b28e-6200-447b-b92d-6173bd11dc91", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "提交办公网络工单时，需附以下排查信息：（1）影响范围（如单台设备异常或同一办公区多人异常）；（2）连接方式（有线/无线/WiFi名称/是否通过VPN）；（3）系统网络诊断结果截图（含诊断时间）；（4）设备获取的IP地址、默认网关和DNS配置信息；（5）是否能正常访问企业门户及至少一个已知可用的外部网站，以辅助判断是全局断网还是局部服务故障。注意：勿擅自修改企业DNS设置、关闭安全防护软件，或在工单中附带访问令牌等敏感信息。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-04",
+    "question" : "VPN 连不上先检查什么",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 304.063111,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "outcome" : "ANSWERED",
+    "answer" : "VPN 连不上时，应首先检查以下几项：1）确认本地普通网络（如互联网）连接正常；2）核实所用 VPN 客户端为企业批准的正式版本；3）检查账号状态是否有效、是否已启用多因素认证（MFA），并确保 MFA 已完成验证；4）核对客户端中配置的连接地址是否正确；5）确认设备系统时间准确（误差超过5分钟可能导致证书或令牌验证失败）；6）尝试完全退出并重新启动 VPN 客户端后重试一次。若反复出现认证失败，请立即停止重复尝试，以防账号被临时锁定。提交工单时，请提供错误代码、发生时间、客户端版本号，以及是否能正常访问企业门户；严禁上传密码、一次性验证码、会话令牌或含敏感信息的日志。",
+    "citations" : [ {
+      "documentId" : "d2f48532-685c-4bb4-bcb5-cea96bf765a8",
+      "versionId" : "d755ee52-6e22-4d07-ac23-9bcf24f59edd",
+      "version" : 1,
+      "title" : "VPN 连接失败处理指南",
+      "page" : 1,
+      "chunkId" : "ae47f3bd-870f-497c-9659-b9729fe48a52",
+      "snippet" : "VPN 连接失败处理指南\nVPN 连不上时，先确认普通网络可用、VPN 客户端为企业批准的版本，再检查账号状态和多因素认证是否完成。\n核对客户端显示的连接地址和设备系统时间，重新打开客户端后重试一次。反复出现认证失败时停止重复尝试，避免账号被锁定。\n工单中提供错误代码、发生时间、客户端版本及是否能够访问企业门户。不要上传密码、一次性验证码或含会话令牌的日志。"
+    } ]
+  }, {
+    "id" : "positive-05",
+    "question" : "VPN 认证连续失败时应该怎么处理",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 318.858225,
+    "retrievedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52", "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "VPN 认证连续失败时，请立即停止重复尝试，避免触发账号锁定机制。首先确认：1）本地网络正常；2）使用企业批准的VPN客户端且版本最新；3）账号状态有效（未过期/未禁用）；4）已完成多因素认证（MFA）流程；5）客户端配置的连接地址正确、设备系统时间与标准时间偏差不超过5分钟。若仍失败，请勿反复重试，而是收集以下信息提交工单：错误代码（如'Authentication Failed'、'Invalid Credentials'等）、具体发生时间（含时区）、所用VPN客户端版本号、以及是否能正常访问企业门户（如SSO登录页）。注意：严禁在工单中上传密码、一次性验证码、会话令牌或含敏感字段的日志文件。如怀疑密码问题，可通过企业批准的自助服务入口重置密码（需完成身份核验），新密码须符合企业策略且不可复用旧密码；若无法自助重置，请提交密码重置工单，由密码管理员协助处理。",
+    "citations" : [ {
+      "documentId" : "d2f48532-685c-4bb4-bcb5-cea96bf765a8",
+      "versionId" : "d755ee52-6e22-4d07-ac23-9bcf24f59edd",
+      "version" : 1,
+      "title" : "VPN 连接失败处理指南",
+      "page" : 1,
+      "chunkId" : "ae47f3bd-870f-497c-9659-b9729fe48a52",
+      "snippet" : "VPN 连接失败处理指南\nVPN 连不上时，先确认普通网络可用、VPN 客户端为企业批准的版本，再检查账号状态和多因素认证是否完成。\n核对客户端显示的连接地址和设备系统时间，重新打开客户端后重试一次。反复出现认证失败时停止重复尝试，避免账号被锁定。\n工单中提供错误代码、发生时间、客户端版本及是否能够访问企业门户。不要上传密码、一次性验证码或含会话令牌的日志。"
+    }, {
+      "documentId" : "8899bae4-4bad-475f-afef-3714f3b91cf7",
+      "versionId" : "23e8cc27-ead3-43b4-916b-6e550ddba313",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "58c46971-8de4-4a77-991f-2f1540d2a028",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-06",
+    "question" : "VPN 工单不能上传哪些敏感信息",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 532.291205,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "positive-07",
+    "question" : "怎么重置密码",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "retrievalMs" : 278.256848,
+    "retrievedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "您可以通过企业批准的自助服务入口重置密码：选择‘重置密码’选项，完成身份核验（如多因素认证）后，设置符合企业密码策略的新密码（需唯一，不可复用其他网站密码）。若无法完成身份核验，请提交密码重置工单。注意：密码及多因素认证恢复信息严禁通过工单正文发送；建议由密码管理员协助保管。重置成功后，请退出所有旧会话，并使用新密码重新登录。如仍无法登录，请记录具体错误提示和发生时间，交由账号支持队列进一步处理。",
+    "citations" : [ {
+      "documentId" : "8899bae4-4bad-475f-afef-3714f3b91cf7",
+      "versionId" : "23e8cc27-ead3-43b4-916b-6e550ddba313",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "58c46971-8de4-4a77-991f-2f1540d2a028",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-08",
+    "question" : "密码重置完成后如何验证登录",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "retrievalMs" : 308.65918,
+    "retrievedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "密码重置完成后，请执行以下验证步骤：1）主动退出所有当前已登录的旧会话（包括网页端、客户端、API会话等）；2）使用新设置的密码重新尝试登录系统；3）若登录成功，建议立即检查账户安全状态（如最近登录记录、授权设备列表）；4）若登录失败，请准确记录错误提示信息（如‘密码错误’‘账户被锁定’‘多因素认证失败’等）及发生时间，并提交工单至账号支持队列处理。注意：新密码必须符合企业密码策略，且不可复用于其他网站。",
+    "citations" : [ {
+      "documentId" : "8899bae4-4bad-475f-afef-3714f3b91cf7",
+      "versionId" : "23e8cc27-ead3-43b4-916b-6e550ddba313",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "58c46971-8de4-4a77-991f-2f1540d2a028",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-09",
+    "question" : "设置新密码需要注意什么",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "retrievalMs" : 283.716347,
+    "retrievedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "设置新密码时需注意：1）必须通过企业批准的自助服务入口操作，并完成身份核验；2）新密码须严格符合企业密码策略（如长度、复杂度、不可包含用户名或常见词汇等）；3）禁止复用其他网站或历史密码；4）切勿在工单正文、邮件或聊天中发送新密码、多因素认证恢复信息或任何敏感凭证；5）重置成功后，务必退出所有旧会话，并使用新密码重新登录；6）如登录失败，请完整记录错误提示内容及发生时间，提交至账号支持队列进一步排查。",
+    "citations" : [ {
+      "documentId" : "8899bae4-4bad-475f-afef-3714f3b91cf7",
+      "versionId" : "23e8cc27-ead3-43b4-916b-6e550ddba313",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "58c46971-8de4-4a77-991f-2f1540d2a028",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-10",
+    "question" : "新员工申请账号需要哪些资料",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 298.92234,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "新员工申请账号需提供以下资料：入职日期、所属团队、所需访问的具体系统（不可笼统申请全部系统权限）、审批联系人。账号开通遵循最小权限原则，由账号支持人员核对审批结果后执行；初始凭据通过批准的安全渠道交付，首次登录须修改密码并完成多因素认证。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-11",
+    "question" : "账号开通应该遵循什么权限原则",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 291.259489,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "账号开通应遵循最小权限原则，即仅授予员工履行其岗位职责所必需的最低限度系统访问权限，避免笼统申请全部系统权限。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-12",
+    "question" : "员工离职后如何处理原有账号权限",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 328.785121,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "员工离职后，应另行发起账号权限停用申请，由账号支持人员核对审批结果后执行停用操作，并保留完整的审批及执行记录。停用须遵循最小权限原则，确保及时、彻底撤销所有系统访问权限。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-13",
+    "question" : "企业邮箱如何配置",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "retrievalMs" : 363.122827,
+    "retrievedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "outcome" : "ANSWERED",
+    "answer" : "企业邮箱配置前，请先确认账号已开通且可在企业批准的网页邮箱中正常登录。建议优先使用企业提供的自动配置方式（如Outlook自动发现、Mac Mail配置向导等）。若需手动配置，请严格依据企业管理员提供的官方配置说明，核对以下关键参数：接收服务器（IMAP/POP3）地址、发送服务器（SMTP）地址、对应端口号、加密方式（如SSL/TLS/STARTTLS），切勿从不明来源邮件或网页复制配置，且不可关闭客户端证书校验。配置完成后，请分别通过客户端发送和接收一封不含敏感信息的测试邮件以验证连通性与功能。如网页端正常但客户端无法收发，请提供所用客户端名称（如Outlook 2021、Thunderbird 115）、具体版本号及完整错误提示代码，以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "582d3004-8c66-44c5-ae79-393cace26249",
+      "versionId" : "7c589194-f1a7-4f29-8720-f74d30f91533",
+      "version" : 1,
+      "title" : "企业邮箱客户端配置",
+      "page" : 1,
+      "chunkId" : "5f5d86d2-0bfb-4192-9ff2-d9cd828be717",
+      "snippet" : "企业邮箱客户端配置\n配置企业邮箱前，确认账号已开通并能够在企业批准的网页邮箱中登录。优先采用企业提供的自动配置方式。\n如需手动配置，从管理员提供的配置说明核对服务器地址、加密方式和端口，不要从陌生邮件复制设置，也不要关闭证书校验。\n发送和接收各测试一封不含敏感信息的邮件。若网页端正常而客户端异常，提交客户端名称、版本及错误代码。"
+    } ]
+  }, {
+    "id" : "positive-14",
+    "question" : "手动配置邮箱时应该核对哪些参数",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "retrievalMs" : 309.090062,
+    "retrievedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "outcome" : "ANSWERED",
+    "answer" : "手动配置邮箱时，应核对以下参数：服务器地址（包括接收服务器IMAP/POP3地址和发送服务器SMTP地址）、加密方式（如SSL/TLS/STARTTLS）以及对应端口（例如IMAP+SSL常用993，SMTP+SSL常用465，IMAP+STARTTLS常用143，SMTP+STARTTLS常用587）。所有参数必须严格依据企业管理员提供的官方配置说明进行核对，不得从陌生邮件、非授权网页或第三方教程中复制设置；同时禁止关闭客户端的SSL证书校验。配置完成后，需分别通过客户端发送和接收一封不含敏感信息的测试邮件以验证连通性与功能完整性。若网页端正常而客户端异常，应记录并提交所用客户端名称、具体版本号及报错代码。",
+    "citations" : [ {
+      "documentId" : "582d3004-8c66-44c5-ae79-393cace26249",
+      "versionId" : "7c589194-f1a7-4f29-8720-f74d30f91533",
+      "version" : 1,
+      "title" : "企业邮箱客户端配置",
+      "page" : 1,
+      "chunkId" : "5f5d86d2-0bfb-4192-9ff2-d9cd828be717",
+      "snippet" : "企业邮箱客户端配置\n配置企业邮箱前，确认账号已开通并能够在企业批准的网页邮箱中登录。优先采用企业提供的自动配置方式。\n如需手动配置，从管理员提供的配置说明核对服务器地址、加密方式和端口，不要从陌生邮件复制设置，也不要关闭证书校验。\n发送和接收各测试一封不含敏感信息的邮件。若网页端正常而客户端异常，提交客户端名称、版本及错误代码。"
+    } ]
+  }, {
+    "id" : "positive-15",
+    "question" : "网页邮箱正常但客户端异常怎么办",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "retrievalMs" : 320.288017,
+    "retrievedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "outcome" : "ANSWERED",
+    "answer" : "若网页邮箱正常但客户端异常，请先确认账号已在企业批准的网页邮箱中成功登录；优先使用企业提供的自动配置方式设置客户端。如需手动配置，务必依据管理员提供的官方配置说明，逐一核对服务器地址、加密方式（如SSL/TLS）和端口号，切勿从不明来源邮件复制设置，且不可关闭证书校验。完成配置后，分别发送和接收一封不含敏感信息的测试邮件。若问题仍存在，请提交所用客户端名称（如Outlook、Foxmail）、具体版本号及出现的完整错误代码，以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "582d3004-8c66-44c5-ae79-393cace26249",
+      "versionId" : "7c589194-f1a7-4f29-8720-f74d30f91533",
+      "version" : 1,
+      "title" : "企业邮箱客户端配置",
+      "page" : 1,
+      "chunkId" : "5f5d86d2-0bfb-4192-9ff2-d9cd828be717",
+      "snippet" : "企业邮箱客户端配置\n配置企业邮箱前，确认账号已开通并能够在企业批准的网页邮箱中登录。优先采用企业提供的自动配置方式。\n如需手动配置，从管理员提供的配置说明核对服务器地址、加密方式和端口，不要从陌生邮件复制设置，也不要关闭证书校验。\n发送和接收各测试一封不含敏感信息的邮件。若网页端正常而客户端异常，提交客户端名称、版本及错误代码。"
+    } ]
+  }, {
+    "id" : "positive-16",
+    "question" : "无线连接不稳定先记录什么",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "retrievalMs" : 311.705314,
+    "retrievedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65", "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "outcome" : "ANSWERED",
+    "answer" : "无线连接不稳定时，应先确认连接的是批准的办公无线网络，并记录信号强度及故障发生的具体地点。",
+    "citations" : [ {
+      "documentId" : "4ecb6297-24b9-476f-ad7a-d8edac176195",
+      "versionId" : "d0c8d91e-d4a8-4bdc-81b2-d792ef25e01d",
+      "version" : 1,
+      "title" : "无线网络连接不稳定",
+      "page" : 1,
+      "chunkId" : "d2875faf-78a6-42d4-906d-25d667490827",
+      "snippet" : "无线网络连接不稳定\n无线连接不稳定时，先确认连接的是批准的办公无线网络，记录信号强度及故障地点。\n暂停大流量下载，靠近接入点后观察连接；若有线网络正常，可将问题缩小到无线链路。不要自行架设热点桥接企业网络。\n向网络队列提交工单，说明单人或多人受影响、故障频率、设备类型及发生时间。"
+    } ]
+  }, {
+    "id" : "positive-17",
+    "question" : "无线网络异常时能自行架设热点桥接吗",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "retrievalMs" : 324.315245,
+    "retrievedChunkIds" : [ "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "outcome" : "ANSWERED",
+    "answer" : "无线网络异常时，不可以自行架设热点桥接企业网络。根据安全规范，此类操作未经批准可能引发网络安全风险，影响内网隔离与合规性。请优先确认是否连接至批准的办公无线网络，记录信号强度与故障地点，暂停大流量下载，靠近接入点测试；如有线网络正常，可初步定位为无线链路问题。应立即向网络队列提交工单，说明影响范围（单人/多人）、故障频率、设备类型及发生时间。",
+    "citations" : [ {
+      "documentId" : "4ecb6297-24b9-476f-ad7a-d8edac176195",
+      "versionId" : "d0c8d91e-d4a8-4bdc-81b2-d792ef25e01d",
+      "version" : 1,
+      "title" : "无线网络连接不稳定",
+      "page" : 1,
+      "chunkId" : "d2875faf-78a6-42d4-906d-25d667490827",
+      "snippet" : "无线网络连接不稳定\n无线连接不稳定时，先确认连接的是批准的办公无线网络，记录信号强度及故障地点。\n暂停大流量下载，靠近接入点后观察连接；若有线网络正常，可将问题缩小到无线链路。不要自行架设热点桥接企业网络。\n向网络队列提交工单，说明单人或多人受影响、故障频率、设备类型及发生时间。"
+    } ]
+  }, {
+    "id" : "positive-18",
+    "question" : "共享打印机无法打印怎么办",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496" ],
+    "retrievalMs" : 377.489783,
+    "retrievedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "共享打印机无法打印时，先确认打印机电源和面板状态是否正常，再检查当前设备选择的打印机名称及纸张规格是否匹配。查看本地打印队列，确认是否被暂停或存在失败任务；仅可取消自己提交的任务，不可清除他人任务。若打印机缺纸、卡纸或报错，请按设备现场张贴的安全操作说明处理。如问题持续，请提交打印机资产编号、具体错误信息（如面板提示、系统弹窗内容）及影响范围（如仅本人/某部门/全楼层）。切勿在工单中上传含客户资料的打印内容。",
+    "citations" : [ {
+      "documentId" : "20f6bc67-f2b7-44f8-aba2-2c1a0b9f9841",
+      "versionId" : "1dcc706e-9375-4609-b99d-1742e2055efd",
+      "version" : 1,
+      "title" : "共享打印机无法打印",
+      "page" : 1,
+      "chunkId" : "eb087ce0-5f88-4382-b3f5-93db5cbb1496",
+      "snippet" : "共享打印机无法打印\n共享打印机无法打印时，先确认打印机电源和面板状态，再检查当前设备选择的打印机与纸张规格。\n查看打印队列是否暂停或存在失败任务。仅取消自己的任务，避免影响其他员工；设备缺纸或卡纸时按现场安全说明处理。\n如问题持续，提交打印机资产编号、错误信息和影响范围，不要在工单中上传包含客户资料的打印内容。"
+    } ]
+  }, {
+    "id" : "positive-19",
+    "question" : "清理打印队列时可以取消其他人的任务吗",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496" ],
+    "retrievalMs" : 334.216702,
+    "retrievedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496" ],
+    "outcome" : "ANSWERED",
+    "answer" : "不可以。根据操作规范，清理打印队列时应仅取消自己的打印任务，避免影响其他员工的正常工作。",
+    "citations" : [ {
+      "documentId" : "20f6bc67-f2b7-44f8-aba2-2c1a0b9f9841",
+      "versionId" : "1dcc706e-9375-4609-b99d-1742e2055efd",
+      "version" : 1,
+      "title" : "共享打印机无法打印",
+      "page" : 1,
+      "chunkId" : "eb087ce0-5f88-4382-b3f5-93db5cbb1496",
+      "snippet" : "共享打印机无法打印\n共享打印机无法打印时，先确认打印机电源和面板状态，再检查当前设备选择的打印机与纸张规格。\n查看打印队列是否暂停或存在失败任务。仅取消自己的任务，避免影响其他员工；设备缺纸或卡纸时按现场安全说明处理。\n如问题持续，提交打印机资产编号、错误信息和影响范围，不要在工单中上传包含客户资料的打印内容。"
+    } ]
+  }, {
+    "id" : "positive-20",
+    "question" : "办公电脑运行缓慢先检查什么",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "retrievalMs" : 642.349773,
+    "retrievedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "outcome" : "ANSWERED",
+    "answer" : "办公电脑运行缓慢时，应首先保存当前工作，然后检查系统资源占用（如CPU、内存使用率）和剩余磁盘空间；接着关闭确认不再使用的应用程序。之后，通过企业软件中心安排系统更新和批准的安全扫描。切勿安装来源不明的“清理类”软件，也不建议手动终止无法确认用途的系统进程。",
+    "citations" : [ {
+      "documentId" : "78c2bf5a-c16c-4684-a640-2aa20713a5dc",
+      "versionId" : "55ae101c-3b4a-4e82-8e80-e451b2dd0ae5",
+      "version" : 1,
+      "title" : "办公设备运行缓慢",
+      "page" : 1,
+      "chunkId" : "a6fd9522-2473-4029-aee7-69b093d65a62",
+      "snippet" : "办公设备运行缓慢\n电脑运行缓慢时，保存工作后检查系统资源占用及剩余磁盘空间，先关闭确认不再使用的应用。\n使用企业软件中心安排系统更新及批准的安全扫描。不要安装未知清理软件，也不要终止无法确认用途的系统进程。\n若重启后仍持续异常，请提交设备资产编号、操作系统版本、异常应用及发生频率。"
+    } ]
+  }, {
+    "id" : "positive-21",
+    "question" : "电脑变慢可以安装未知清理软件吗",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "retrievalMs" : 327.921871,
+    "retrievedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "outcome" : "ANSWERED",
+    "answer" : "不可以。电脑变慢时，严禁安装未知来源的清理软件。此类软件可能携带恶意代码、窃取数据或破坏系统稳定性。正确做法是：保存当前工作后，检查系统资源占用（如CPU、内存）和磁盘剩余空间，关闭确认不再使用的应用程序；通过企业软件中心执行官方批准的系统更新和安全扫描；切勿终止无法确认用途的系统进程。若重启后问题仍持续，请提交设备资产编号、操作系统版本、异常应用名称及发生频率以便IT支持排查。",
+    "citations" : [ {
+      "documentId" : "78c2bf5a-c16c-4684-a640-2aa20713a5dc",
+      "versionId" : "55ae101c-3b4a-4e82-8e80-e451b2dd0ae5",
+      "version" : 1,
+      "title" : "办公设备运行缓慢",
+      "page" : 1,
+      "chunkId" : "a6fd9522-2473-4029-aee7-69b093d65a62",
+      "snippet" : "办公设备运行缓慢\n电脑运行缓慢时，保存工作后检查系统资源占用及剩余磁盘空间，先关闭确认不再使用的应用。\n使用企业软件中心安排系统更新及批准的安全扫描。不要安装未知清理软件，也不要终止无法确认用途的系统进程。\n若重启后仍持续异常，请提交设备资产编号、操作系统版本、异常应用及发生频率。"
+    } ]
+  }, {
+    "id" : "positive-22",
+    "question" : "线上会议没有声音怎么检查",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "retrievalMs" : 319.593848,
+    "retrievedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "outcome" : "ANSWERED",
+    "answer" : "线上会议没有声音时，请按以下步骤检查：1）确认会议应用内已正确选择输入（麦克风）和输出（扬声器/耳机）设备；2）检查会议界面中麦克风和扬声器图标是否处于静音状态，点击取消静音；3）进入操作系统设置，核实该会议应用是否被授予麦克风和音频输出权限；4）使用会议应用内置的音频测试功能（如“测试麦克风”“播放测试音”）验证软硬件连通性；5）若使用外接耳机、麦克风或USB声卡等设备，请尝试拔插重连；6）如问题持续，请提供您的设备型号、会议应用名称及具体版本号、以及上述各步的测试结果，以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "7c6324b4-6a58-443a-aa7b-0641fea16f24",
+      "versionId" : "4ec9ef6b-0c6a-4dee-b461-7107a29c2ad8",
+      "version" : 1,
+      "title" : "会议音频与摄像头检查",
+      "page" : 1,
+      "chunkId" : "26122f3b-dca5-4143-947b-03302d1c7c7d",
+      "snippet" : "会议音频与摄像头检查\n线上会议没有声音时，确认会议应用选择了正确的输入和输出设备，并检查静音状态。\n在系统设置中检查应用的麦克风和摄像头权限，使用应用自带的测试功能。共享屏幕前关闭无关的敏感窗口。\n外接设备可重新连接一次；仍无效时提交设备型号、会议应用版本及测试结果。"
+    } ]
+  }, {
+    "id" : "positive-23",
+    "question" : "会议应用如何检查麦克风和摄像头权限",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "retrievalMs" : 314.267503,
+    "retrievedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "outcome" : "ANSWERED",
+    "answer" : "在会议应用中检查麦克风和摄像头权限，可按以下步骤操作：1）确认会议应用已正确选择输入（麦克风）和输出（音频）设备，并检查是否处于静音状态；2）进入操作系统设置（如Windows设置 > 隐私 > 麦克风/摄像头，或macOS系统设置 > 隐私与安全性 > 麦克风/摄像头），核实该会议应用已被授予麦克风和摄像头访问权限；3）使用会议应用内置的音视频测试功能（通常在设置、设备设置或加入会议前的预检页面中提供）进行实时检测；4）若使用外接设备，可尝试拔插重新连接。若问题仍存在，请记录设备型号、会议应用版本及上述测试结果以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "7c6324b4-6a58-443a-aa7b-0641fea16f24",
+      "versionId" : "4ec9ef6b-0c6a-4dee-b461-7107a29c2ad8",
+      "version" : 1,
+      "title" : "会议音频与摄像头检查",
+      "page" : 1,
+      "chunkId" : "26122f3b-dca5-4143-947b-03302d1c7c7d",
+      "snippet" : "会议音频与摄像头检查\n线上会议没有声音时，确认会议应用选择了正确的输入和输出设备，并检查静音状态。\n在系统设置中检查应用的麦克风和摄像头权限，使用应用自带的测试功能。共享屏幕前关闭无关的敏感窗口。\n外接设备可重新连接一次；仍无效时提交设备型号、会议应用版本及测试结果。"
+    } ]
+  }, {
+    "id" : "positive-24",
+    "question" : "申请共享文件夹需要提供哪些信息",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91" ],
+    "retrievalMs" : 320.615394,
+    "retrievedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91" ],
+    "outcome" : "ANSWERED",
+    "answer" : "申请共享文件夹权限时，需提供以下四项信息：1）文件夹标识；2）所需的访问范围（只读或编辑）；3）业务用途；4）审批联系人。",
+    "citations" : [ {
+      "documentId" : "ac70bd6d-eeea-47bf-8048-1e5dc2214db2",
+      "versionId" : "c4b02186-73fd-4ce4-8fc7-81f1d894f16e",
+      "version" : 1,
+      "title" : "共享文件夹访问申请",
+      "page" : 1,
+      "chunkId" : "7403b28e-6200-447b-b92d-6173bd11dc91",
+      "snippet" : "共享文件夹访问申请\n申请共享文件夹权限时，请提供文件夹标识、所需的只读或编辑范围、业务用途和审批联系人。\n已有权限却无法访问时，先核对当前登录账号，再确认普通网络或 VPN 已连接。不要借用他人账号绕过权限控制。\n支持人员根据审批结果调整权限，并在工单公开回复中说明处理结果；内部排查信息写入内部备注。"
+    } ]
+  }, {
+    "id" : "positive-25",
+    "question" : "有权限却无法访问文件夹怎么办",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91" ],
+    "retrievalMs" : 304.804248,
+    "retrievedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "已有权限却无法访问共享文件夹时，请按以下步骤排查：（1）确认当前登录账号是否为已授予权限的账号，禁止借用他人账号；（2）检查网络连接状态——确保已接入企业普通网络或VPN（二者不可同时启用），并能正常访问企业门户及其他内部服务；（3）若网络异常，参考网络故障排查流程：验证网线/无线连接、检查IP地址与DNS配置、运行系统网络诊断并保留时间记录；（4）如仅本设备异常，尝试断开后重连网络；如多人同区域异常，请提交办公网络工单，并注明影响范围、连接方式及诊断截图。权限配置本身由支持人员依据审批结果完成，工单公开回复将说明处理结论。",
+    "citations" : [ {
+      "documentId" : "ac70bd6d-eeea-47bf-8048-1e5dc2214db2",
+      "versionId" : "c4b02186-73fd-4ce4-8fc7-81f1d894f16e",
+      "version" : 1,
+      "title" : "共享文件夹访问申请",
+      "page" : 1,
+      "chunkId" : "7403b28e-6200-447b-b92d-6173bd11dc91",
+      "snippet" : "共享文件夹访问申请\n申请共享文件夹权限时，请提供文件夹标识、所需的只读或编辑范围、业务用途和审批联系人。\n已有权限却无法访问时，先核对当前登录账号，再确认普通网络或 VPN 已连接。不要借用他人账号绕过权限控制。\n支持人员根据审批结果调整权限，并在工单公开回复中说明处理结果；内部排查信息写入内部备注。"
+    }, {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-26",
+    "question" : "安装软件前应该先查哪里",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "retrievalMs" : 309.882252,
+    "retrievedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "outcome" : "ANSWERED",
+    "answer" : "安装软件前应先查询企业软件中心，优先使用已批准的软件及版本。",
+    "citations" : [ {
+      "documentId" : "310a2606-6872-4ae3-b4b9-4675ffafad53",
+      "versionId" : "44fac8b1-8f57-4e07-ba24-5b2b0ca44650",
+      "version" : 1,
+      "title" : "软件安装与许可证申请",
+      "page" : 1,
+      "chunkId" : "52b3c63e-d1a5-4252-bba4-4d74c54ecd83",
+      "snippet" : "软件安装与许可证申请\n安装办公软件前，请先查询企业软件中心，优先使用已批准的软件及版本。\n需要付费许可证时，提交软件名称、使用人数、业务用途及审批信息。不要使用破解安装包或在工单中填写许可证密钥。\n安装失败时提供安装阶段、系统版本和错误代码，支持人员核对兼容性后安排处理。"
+    } ]
+  }, {
+    "id" : "positive-27",
+    "question" : "付费软件许可证申请需要什么资料",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "retrievalMs" : 711.775111,
+    "retrievedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "outcome" : "ANSWERED",
+    "answer" : "付费软件许可证申请需要提供以下资料：软件名称、使用人数、业务用途及审批信息。请注意，不得在工单中填写许可证密钥，也不得使用破解安装包。",
+    "citations" : [ {
+      "documentId" : "310a2606-6872-4ae3-b4b9-4675ffafad53",
+      "versionId" : "44fac8b1-8f57-4e07-ba24-5b2b0ca44650",
+      "version" : 1,
+      "title" : "软件安装与许可证申请",
+      "page" : 1,
+      "chunkId" : "52b3c63e-d1a5-4252-bba4-4d74c54ecd83",
+      "snippet" : "软件安装与许可证申请\n安装办公软件前，请先查询企业软件中心，优先使用已批准的软件及版本。\n需要付费许可证时，提交软件名称、使用人数、业务用途及审批信息。不要使用破解安装包或在工单中填写许可证密钥。\n安装失败时提供安装阶段、系统版本和错误代码，支持人员核对兼容性后安排处理。"
+    } ]
+  }, {
+    "id" : "positive-28",
+    "question" : "单个内部网站打不开怎么办",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12" ],
+    "retrievalMs" : 317.184193,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "单个内部网站打不开时，请按以下步骤排查：\n1. 核对网址是否输入正确，确认未遗漏协议（如 https://）或拼写错误；\n2. 查看企业公告或IT服务门户，确认该网站是否处于计划内维护窗口；\n3. 若您通过远程办公（如居家），请确保已成功连接公司VPN；\n4. 若浏览器弹出证书警告（如‘您的连接不是私密连接’），请立即停止输入账号密码等敏感信息，并联系IT服务台；\n5. 如仍无法访问，请记录并提供以下信息以便快速定位：网站全名（含URL）、具体错误代码（如HTTP 503、ERR_CONNECTION_TIMED_OUT等）、首次发生时间、影响范围（仅您个人/本部门/跨区域）、以及您已完成的检查项（例如已确认VPN连通、其他内部网站可正常访问等）；\n6. 提交工单时，请勿在链接或描述中嵌入访问令牌、Cookie或临时凭证，以防安全风险。",
+    "citations" : [ {
+      "documentId" : "ce4d4c12-7c64-4aa9-9de2-a0125424e7ea",
+      "versionId" : "bd7e961b-3928-48a0-8476-40121184c69d",
+      "version" : 1,
+      "title" : "内部网站访问异常",
+      "page" : 1,
+      "chunkId" : "c3eb3275-2bd5-4e56-bfc0-e0498577ad12",
+      "snippet" : "内部网站访问异常\n单个内部网站无法访问时，先检查地址是否正确，并对照公告确认是否处于维护窗口。\n普通办公网络正常而远程访问失败时，检查 VPN 是否已连接。遇到证书警告时停止输入账号信息并联系服务台。\n提交网站名称、错误代码、发生时间、影响范围及已经完成的检查，避免在工单链接中携带访问令牌。"
+    } ]
+  }, {
+    "id" : "positive-29",
+    "question" : "访问内部网站遇到证书警告怎么办",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12" ],
+    "retrievalMs" : 295.046262,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12" ],
+    "outcome" : "ANSWERED",
+    "answer" : "遇到内部网站证书警告时，请立即停止输入账号密码等敏感信息，并联系IT服务台。同时请提供：网站名称、浏览器显示的具体错误代码（如NET::ERR_CERT_AUTHORITY_INVALID）、发生时间、影响的人员范围，以及您已自行完成的检查步骤（例如确认网址正确、检查是否在维护公告期内、验证VPN连接状态等）。切勿在工单中附带任何访问令牌或凭证。",
+    "citations" : [ {
+      "documentId" : "ce4d4c12-7c64-4aa9-9de2-a0125424e7ea",
+      "versionId" : "bd7e961b-3928-48a0-8476-40121184c69d",
+      "version" : 1,
+      "title" : "内部网站访问异常",
+      "page" : 1,
+      "chunkId" : "c3eb3275-2bd5-4e56-bfc0-e0498577ad12",
+      "snippet" : "内部网站访问异常\n单个内部网站无法访问时，先检查地址是否正确，并对照公告确认是否处于维护窗口。\n普通办公网络正常而远程访问失败时，检查 VPN 是否已连接。遇到证书警告时停止输入账号信息并联系服务台。\n提交网站名称、错误代码、发生时间、影响范围及已经完成的检查，避免在工单链接中携带访问令牌。"
+    } ]
+  }, {
+    "id" : "positive-30",
+    "question" : "网络故障与VPN故障分别先检查什么",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65", "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 291.077789,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "ae47f3bd-870f-497c-9659-b9729fe48a52", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "网络故障与VPN故障的排查应遵循分层隔离原则：\n\n网络故障（即完全无法联网）应先检查物理连接（网线/无线状态），再验证设备是否获取有效IP地址、默认网关和DNS配置；随后访问企业门户及外部已知可用网站，以区分是本地设备问题、局域网问题还是广域网问题。若同一办公区多人异常，需提交办公网络工单并附影响范围与诊断截图。\n\nVPN故障（即远程无法访问内部资源）应先确认普通网络已连通，再检查VPN客户端是否为企业批准版本、账号状态是否正常、多因素认证是否完成；同时核对客户端连接地址是否正确、设备系统时间是否准确，之后重启客户端重试一次。若反复认证失败，应立即停止尝试以防账号锁定，并在工单中提供错误代码、发生时间、客户端版本及企业门户访问状态。\n\n注意：两类故障均不得上传密码、验证码、会话令牌或含敏感信息的日志。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    }, {
+      "documentId" : "d2f48532-685c-4bb4-bcb5-cea96bf765a8",
+      "versionId" : "d755ee52-6e22-4d07-ac23-9bcf24f59edd",
+      "version" : 1,
+      "title" : "VPN 连接失败处理指南",
+      "page" : 1,
+      "chunkId" : "ae47f3bd-870f-497c-9659-b9729fe48a52",
+      "snippet" : "VPN 连接失败处理指南\nVPN 连不上时，先确认普通网络可用、VPN 客户端为企业批准的版本，再检查账号状态和多因素认证是否完成。\n核对客户端显示的连接地址和设备系统时间，重新打开客户端后重试一次。反复出现认证失败时停止重复尝试，避免账号被锁定。\n工单中提供错误代码、发生时间、客户端版本及是否能够访问企业门户。不要上传密码、一次性验证码或含会话令牌的日志。"
+    }, {
+      "documentId" : "ce4d4c12-7c64-4aa9-9de2-a0125424e7ea",
+      "versionId" : "bd7e961b-3928-48a0-8476-40121184c69d",
+      "version" : 1,
+      "title" : "内部网站访问异常",
+      "page" : 1,
+      "chunkId" : "c3eb3275-2bd5-4e56-bfc0-e0498577ad12",
+      "snippet" : "内部网站访问异常\n单个内部网站无法访问时，先检查地址是否正确，并对照公告确认是否处于维护窗口。\n普通办公网络正常而远程访问失败时，检查 VPN 是否已连接。遇到证书警告时停止输入账号信息并联系服务台。\n提交网站名称、错误代码、发生时间、影响范围及已经完成的检查，避免在工单链接中携带访问令牌。"
+    } ]
+  }, {
+    "id" : "positive-31",
+    "question" : "新员工初次登录与密码安全要注意什么",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028", "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 313.027518,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "新员工初次登录时，需注意以下密码安全要点：1）首次登录必须通过批准的安全渠道获取初始凭据；2）首次登录后须立即修改初始密码，设置符合强度要求的新密码（如含大小写字母、数字及特殊字符，长度不少于8位）；3）必须完成多因素认证（MFA）的绑定与启用；4）账号开通遵循最小权限原则，仅授予岗位必需的系统访问权限；5）切勿共享凭据，不得将初始密码或修改后的密码以明文形式通过邮件、即时通讯等非安全渠道传递。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-32",
+    "question" : "打印故障和软件安装故障分别提交哪些信息",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496", "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "retrievalMs" : 301.003931,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-1",
+    "question" : "今天午餐菜单是什么",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 305.00756,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-2",
+    "question" : "明天会下雨吗",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 290.410982,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-3",
+    "question" : "股票下一周会涨多少",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 295.358884,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-4",
+    "question" : "今年旅游有什么推荐",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 327.144933,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-no-acl-network",
+    "question" : "网络无法连接怎么办",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ ],
+    "authorizationRejected" : true,
+    "retrievalMs" : 0.946869,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-no-acl-password",
+    "question" : "怎么重置密码",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ ],
+    "authorizationRejected" : true,
+    "retrievalMs" : 0.622284,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-withdrawn",
+    "question" : "会议麦克风和摄像头权限怎么检查",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 258.730792,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unpublished",
+    "question" : "门禁访问凭据的临时领取地点是什么",
+    "strategy" : "VECTOR",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 345.256032,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "positive-01",
+    "question" : "网络无法连接怎么办",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "retrievalMs" : 3.677065,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "7403b28e-6200-447b-b92d-6173bd11dc91", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "网络无法连接时，请按以下步骤排查：\n1. 确认物理连接（网线插好或Wi-Fi已连接）；\n2. 检查本机是否获取到有效IP地址、默认网关和DNS配置（可通过命令行执行ipconfig（Windows）或ifconfig（macOS/Linux）查看）；\n3. 分别尝试访问企业门户和一个已知可用的公网网站（如www.baidu.com），判断是全局断网还是仅特定服务不可达；\n4. 运行系统自带网络诊断工具并记录发生时间；\n5. 切勿擅自修改企业指定DNS服务器地址，也不要临时关闭终端安全防护软件；\n6. 若仅当前设备异常，可尝试断开网络后重新连接；\n7. 若同一办公区域多人同时异常，请提交办公网络类工单，并附上影响范围（如楼层/工位号）、连接方式（有线/WiFi/VPN）及网络诊断截图。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-02",
+    "question" : "如何判断单个网站故障还是整个办公网络故障",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "retrievalMs" : 4.784129,
+    "retrievedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "可通过以下步骤判断：1）确认本机网线或Wi-Fi连接正常；2）同时访问企业门户（如内部OA系统）和至少一个已知可用的外部网站（如www.baidu.com）；若仅企业门户无法访问而外部网站正常，则大概率是单个网站/服务故障；若两者均无法访问，则更可能是本地网络或办公网络整体故障。进一步验证：检查本机是否获取到有效IP地址、默认网关和DNS配置；运行系统自带网络诊断工具并记录时间。注意：勿擅自修改企业DNS设置或关闭安全防护软件。若仅单台设备异常，可尝试断开重连；若同一办公区域多人出现相同问题，应提交办公网络类工单，并附影响范围、接入方式（有线/无线）及诊断截图。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-03",
+    "question" : "办公网络工单需要附哪些排查信息",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "retrievalMs" : 4.267446,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "7403b28e-6200-447b-b92d-6173bd11dc91", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "办公网络工单需附以下排查信息：\n1. 影响范围（如仅当前设备异常，或同一办公区多人异常）；\n2. 连接方式（有线/无线/WiFi名称/VPN状态）；\n3. 网络诊断结果截图（含IP地址、默认网关、DNS配置及系统网络诊断时间）；\n4. 访问测试情况（是否可访问企业门户、已知可用的外部网站，以区分服务级与网络级故障）；\n5. 已执行的操作（如断开重连、重启设备等），但不得擅自修改DNS或关闭安全防护。\n注意：勿在工单中携带访问令牌，勿借用他人账号排查。",
+    "citations" : [ {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-04",
+    "question" : "VPN 连不上先检查什么",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 4.548503,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "outcome" : "ANSWERED",
+    "answer" : "VPN 连不上时，应首先检查以下几项：\n1. 普通办公网络是否正常（如能访问互联网或企业门户）；\n2. 使用的 VPN 客户端是否为企业批准的最新版本；\n3. 账号状态是否正常（未过期、未禁用），且多因素认证（MFA）流程是否已完成；\n4. 客户端中配置的连接地址是否正确；\n5. 设备系统时间是否准确（误差超过5分钟可能导致证书校验失败或认证拒绝）；\n6. 尝试完全退出客户端后重新启动并连接一次。\n\n若反复出现认证失败，请立即停止重复尝试，以防账号被临时锁定。如需进一步协助，请在工单中提供：错误代码、发生时间、VPN 客户端版本号、以及是否能正常访问企业门户（如 https://portal.example.com）。切勿上传密码、一次性验证码、会话令牌或含敏感信息的日志文件。",
+    "citations" : [ {
+      "documentId" : "d2f48532-685c-4bb4-bcb5-cea96bf765a8",
+      "versionId" : "d755ee52-6e22-4d07-ac23-9bcf24f59edd",
+      "version" : 1,
+      "title" : "VPN 连接失败处理指南",
+      "page" : 1,
+      "chunkId" : "ae47f3bd-870f-497c-9659-b9729fe48a52",
+      "snippet" : "VPN 连接失败处理指南\nVPN 连不上时，先确认普通网络可用、VPN 客户端为企业批准的版本，再检查账号状态和多因素认证是否完成。\n核对客户端显示的连接地址和设备系统时间，重新打开客户端后重试一次。反复出现认证失败时停止重复尝试，避免账号被锁定。\n工单中提供错误代码、发生时间、客户端版本及是否能够访问企业门户。不要上传密码、一次性验证码或含会话令牌的日志。"
+    } ]
+  }, {
+    "id" : "positive-05",
+    "question" : "VPN 认证连续失败时应该怎么处理",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 3.952454,
+    "retrievedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52", "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "VPN 认证连续失败时，请立即停止重复尝试，以防账号被临时锁定。首先确认：① 普通网络连接正常；② 使用的是企业批准的VPN客户端版本；③ 账号状态有效（未过期、未禁用）；④ 多因素认证（MFA）已成功完成；⑤ 客户端配置的连接地址正确，且设备系统时间与标准时间偏差不超过5分钟。若仍失败，重启客户端后重试一次；如问题持续，请提交工单，并提供：错误代码、发生时间（精确到分钟）、VPN客户端版本号、以及是否能正常访问企业门户（如OA或SSO登录页）。切勿在工单中上传密码、一次性验证码、会话令牌或含敏感字段的日志文件。",
+    "citations" : [ {
+      "documentId" : "d2f48532-685c-4bb4-bcb5-cea96bf765a8",
+      "versionId" : "d755ee52-6e22-4d07-ac23-9bcf24f59edd",
+      "version" : 1,
+      "title" : "VPN 连接失败处理指南",
+      "page" : 1,
+      "chunkId" : "ae47f3bd-870f-497c-9659-b9729fe48a52",
+      "snippet" : "VPN 连接失败处理指南\nVPN 连不上时，先确认普通网络可用、VPN 客户端为企业批准的版本，再检查账号状态和多因素认证是否完成。\n核对客户端显示的连接地址和设备系统时间，重新打开客户端后重试一次。反复出现认证失败时停止重复尝试，避免账号被锁定。\n工单中提供错误代码、发生时间、客户端版本及是否能够访问企业门户。不要上传密码、一次性验证码或含会话令牌的日志。"
+    } ]
+  }, {
+    "id" : "positive-06",
+    "question" : "VPN 工单不能上传哪些敏感信息",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 3.034582,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "positive-07",
+    "question" : "怎么重置密码",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "retrievalMs" : 3.262573,
+    "retrievedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "请通过企业批准的自助服务入口重置密码：选择‘重置密码’选项，完成身份核验（如多因素认证、安全问题等）后设置新密码。新密码须符合企业密码策略（例如长度、复杂度要求），且不得复用其他网站或系统的密码。切勿在工单正文中发送密码、恢复密钥或MFA恢复信息。若无法完成自助核验，请提交密码重置工单。重置成功后，请退出所有旧会话，并使用新密码重新登录。如仍无法登录，请记录具体错误提示及发生时间，交由账号支持队列进一步排查。",
+    "citations" : [ {
+      "documentId" : "8899bae4-4bad-475f-afef-3714f3b91cf7",
+      "versionId" : "23e8cc27-ead3-43b4-916b-6e550ddba313",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "58c46971-8de4-4a77-991f-2f1540d2a028",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-08",
+    "question" : "密码重置完成后如何验证登录",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "retrievalMs" : 5.168271,
+    "retrievedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "密码重置完成后，请退出所有旧会话，然后使用新密码尝试重新登录系统。若登录失败，请完整记录错误提示信息（如具体报错文字、时间戳、所用设备及浏览器）并提交至账号支持队列处理。注意：新密码须符合企业密码策略，且不可复用其他网站密码；多因素认证恢复信息和密码本身严禁通过工单正文发送。",
+    "citations" : [ {
+      "documentId" : "8899bae4-4bad-475f-afef-3714f3b91cf7",
+      "versionId" : "23e8cc27-ead3-43b4-916b-6e550ddba313",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "58c46971-8de4-4a77-991f-2f1540d2a028",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-09",
+    "question" : "设置新密码需要注意什么",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "retrievalMs" : 4.394166,
+    "retrievedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028" ],
+    "outcome" : "ANSWERED",
+    "answer" : "设置新密码时需注意：1）必须通过企业批准的自助服务入口操作，完成身份核验后方可设置；2）新密码须严格符合企业密码策略（如长度、复杂度、不可包含用户名等），且不得复用其他网站或历史密码；3）严禁在工单正文、邮件、即时消息等非加密渠道发送密码、多因素认证恢复信息；4）重置成功后，务必退出所有旧会话，并使用新密码重新登录；5）若登录失败，请完整记录错误提示内容及发生时间，提交至账号支持队列进一步排查。",
+    "citations" : [ {
+      "documentId" : "8899bae4-4bad-475f-afef-3714f3b91cf7",
+      "versionId" : "23e8cc27-ead3-43b4-916b-6e550ddba313",
+      "version" : 1,
+      "title" : "安全重置账号密码",
+      "page" : 1,
+      "chunkId" : "58c46971-8de4-4a77-991f-2f1540d2a028",
+      "snippet" : "安全重置账号密码\n怎么重置密码？在企业批准的自助服务入口选择重置密码，完成身份核验后设置新的唯一密码；无法完成核验时提交密码重置工单。\n新密码应符合企业密码策略，不要复用其他网站密码。密码管理员可以协助保管密码，密码和多因素认证恢复信息不得通过工单正文发送。\n完成重置后退出旧会话并使用新密码重新登录；若仍失败，记录错误提示和时间交由账号支持队列处理。"
+    } ]
+  }, {
+    "id" : "positive-10",
+    "question" : "新员工申请账号需要哪些资料",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 5.268051,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "新员工申请账号需提供以下资料：入职日期、所属团队、所需访问的具体系统（不可笼统申请全部系统权限）、审批联系人。账号支持人员将依据审批结果，按最小权限原则开通账号，并通过批准的安全渠道交付初始凭据；员工首次登录须修改密码并完成多因素认证。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-11",
+    "question" : "账号开通应该遵循什么权限原则",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 5.010837,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "账号开通应遵循最小权限原则，即仅授予员工履行其岗位职责所必需的最低限度系统访问权限，避免笼统申请全部系统权限。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-12",
+    "question" : "员工离职后如何处理原有账号权限",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 4.941596,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "员工离职后，应另行发起账号权限停用申请，由账号支持人员核对审批结果后执行权限回收与账号停用，并保留完整的审批及执行记录。操作须遵循最小权限原则，确保权限及时、彻底终止。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-13",
+    "question" : "企业邮箱如何配置",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "retrievalMs" : 3.694519,
+    "retrievedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "outcome" : "ANSWERED",
+    "answer" : "企业邮箱配置前，请先确认账号已开通且可在企业批准的网页邮箱中正常登录。建议优先使用企业提供的自动配置方式（如Outlook自动发现、Mac Mail自动设置等）。若需手动配置，请严格依据企业管理员提供的官方配置说明，核对以下关键参数：接收服务器（IMAP/POP3）地址、发送服务器（SMTP）地址、对应端口号、加密方式（如SSL/TLS/STARTTLS），切勿从不明来源邮件或非官方渠道复制配置信息，且不得禁用SSL证书校验。配置完成后，请分别通过客户端发送和接收一封不含敏感信息的测试邮件以验证连通性。如网页端功能正常但客户端无法收发，请提交所用客户端名称（如Outlook 2021）、具体版本号及完整错误提示代码，以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "582d3004-8c66-44c5-ae79-393cace26249",
+      "versionId" : "7c589194-f1a7-4f29-8720-f74d30f91533",
+      "version" : 1,
+      "title" : "企业邮箱客户端配置",
+      "page" : 1,
+      "chunkId" : "5f5d86d2-0bfb-4192-9ff2-d9cd828be717",
+      "snippet" : "企业邮箱客户端配置\n配置企业邮箱前，确认账号已开通并能够在企业批准的网页邮箱中登录。优先采用企业提供的自动配置方式。\n如需手动配置，从管理员提供的配置说明核对服务器地址、加密方式和端口，不要从陌生邮件复制设置，也不要关闭证书校验。\n发送和接收各测试一封不含敏感信息的邮件。若网页端正常而客户端异常，提交客户端名称、版本及错误代码。"
+    } ]
+  }, {
+    "id" : "positive-14",
+    "question" : "手动配置邮箱时应该核对哪些参数",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "retrievalMs" : 4.762839,
+    "retrievedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "outcome" : "ANSWERED",
+    "answer" : "手动配置邮箱时，应核对以下参数：服务器地址（包括接收服务器IMAP/POP3地址和发送服务器SMTP地址）、加密方式（如SSL/TLS/STARTTLS）及对应端口（例如IMAP+SSL常用993，SMTP+SSL常用465，IMAP+STARTTLS常用143，SMTP+STARTTLS常用587）。所有参数必须严格依据企业管理员提供的官方配置说明确认，不得从陌生邮件、非授权网页或第三方教程中复制。同时，不得关闭客户端的SSL证书校验功能。配置完成后，须分别通过接收和发送各一封不含敏感信息的测试邮件验证连通性与功能完整性。",
+    "citations" : [ {
+      "documentId" : "582d3004-8c66-44c5-ae79-393cace26249",
+      "versionId" : "7c589194-f1a7-4f29-8720-f74d30f91533",
+      "version" : 1,
+      "title" : "企业邮箱客户端配置",
+      "page" : 1,
+      "chunkId" : "5f5d86d2-0bfb-4192-9ff2-d9cd828be717",
+      "snippet" : "企业邮箱客户端配置\n配置企业邮箱前，确认账号已开通并能够在企业批准的网页邮箱中登录。优先采用企业提供的自动配置方式。\n如需手动配置，从管理员提供的配置说明核对服务器地址、加密方式和端口，不要从陌生邮件复制设置，也不要关闭证书校验。\n发送和接收各测试一封不含敏感信息的邮件。若网页端正常而客户端异常，提交客户端名称、版本及错误代码。"
+    } ]
+  }, {
+    "id" : "positive-15",
+    "question" : "网页邮箱正常但客户端异常怎么办",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "retrievalMs" : 5.178716,
+    "retrievedChunkIds" : [ "5f5d86d2-0bfb-4192-9ff2-d9cd828be717" ],
+    "outcome" : "ANSWERED",
+    "answer" : "网页邮箱正常但客户端异常时，请先确认账号已在企业批准的网页邮箱中成功登录，并优先使用企业提供的自动配置方式设置客户端。若需手动配置，请严格依据管理员提供的官方配置说明，核对服务器地址、加密方式（如SSL/TLS）和端口号；切勿从陌生邮件复制配置，也不得关闭证书校验。完成配置后，分别发送和接收一封不含敏感信息的测试邮件。若问题仍存在，请提交所用客户端名称、具体版本号及出现的完整错误代码，以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "582d3004-8c66-44c5-ae79-393cace26249",
+      "versionId" : "7c589194-f1a7-4f29-8720-f74d30f91533",
+      "version" : 1,
+      "title" : "企业邮箱客户端配置",
+      "page" : 1,
+      "chunkId" : "5f5d86d2-0bfb-4192-9ff2-d9cd828be717",
+      "snippet" : "企业邮箱客户端配置\n配置企业邮箱前，确认账号已开通并能够在企业批准的网页邮箱中登录。优先采用企业提供的自动配置方式。\n如需手动配置，从管理员提供的配置说明核对服务器地址、加密方式和端口，不要从陌生邮件复制设置，也不要关闭证书校验。\n发送和接收各测试一封不含敏感信息的邮件。若网页端正常而客户端异常，提交客户端名称、版本及错误代码。"
+    } ]
+  }, {
+    "id" : "positive-16",
+    "question" : "无线连接不稳定先记录什么",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "retrievalMs" : 3.968532,
+    "retrievedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65", "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "outcome" : "ANSWERED",
+    "answer" : "无线连接不稳定时，应先确认连接的是批准的办公无线网络，并记录信号强度及故障发生的具体地点。",
+    "citations" : [ {
+      "documentId" : "4ecb6297-24b9-476f-ad7a-d8edac176195",
+      "versionId" : "d0c8d91e-d4a8-4bdc-81b2-d792ef25e01d",
+      "version" : 1,
+      "title" : "无线网络连接不稳定",
+      "page" : 1,
+      "chunkId" : "d2875faf-78a6-42d4-906d-25d667490827",
+      "snippet" : "无线网络连接不稳定\n无线连接不稳定时，先确认连接的是批准的办公无线网络，记录信号强度及故障地点。\n暂停大流量下载，靠近接入点后观察连接；若有线网络正常，可将问题缩小到无线链路。不要自行架设热点桥接企业网络。\n向网络队列提交工单，说明单人或多人受影响、故障频率、设备类型及发生时间。"
+    } ]
+  }, {
+    "id" : "positive-17",
+    "question" : "无线网络异常时能自行架设热点桥接吗",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "retrievalMs" : 4.793375,
+    "retrievedChunkIds" : [ "d2875faf-78a6-42d4-906d-25d667490827" ],
+    "outcome" : "ANSWERED",
+    "answer" : "不能自行架设热点桥接企业网络。无线连接不稳定时，应先确认是否连接批准的办公无线网络，记录信号强度与故障地点；暂停大流量下载，靠近接入点测试；若有线网络正常，则问题可能限于无线链路。所有网络调整须由IT部门统一管理，擅自桥接存在安全合规风险。请向网络队列提交工单，说明影响范围（单人/多人）、故障频率、设备类型及发生时间。",
+    "citations" : [ {
+      "documentId" : "4ecb6297-24b9-476f-ad7a-d8edac176195",
+      "versionId" : "d0c8d91e-d4a8-4bdc-81b2-d792ef25e01d",
+      "version" : 1,
+      "title" : "无线网络连接不稳定",
+      "page" : 1,
+      "chunkId" : "d2875faf-78a6-42d4-906d-25d667490827",
+      "snippet" : "无线网络连接不稳定\n无线连接不稳定时，先确认连接的是批准的办公无线网络，记录信号强度及故障地点。\n暂停大流量下载，靠近接入点后观察连接；若有线网络正常，可将问题缩小到无线链路。不要自行架设热点桥接企业网络。\n向网络队列提交工单，说明单人或多人受影响、故障频率、设备类型及发生时间。"
+    } ]
+  }, {
+    "id" : "positive-18",
+    "question" : "共享打印机无法打印怎么办",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496" ],
+    "retrievalMs" : 3.804876,
+    "retrievedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "共享打印机无法打印时，请按以下步骤排查：1）确认打印机电源已开启、面板无报错提示；2）检查当前设备所选打印机名称是否正确，纸张类型与实际装入纸张一致；3）打开打印队列（如Windows中通过'控制面板→设备和打印机'右键点击对应打印机→'查看打印队列'），确认未处于“暂停”状态，且无长时间挂起或失败的任务——仅可取消您本人提交的待打印任务；4）若打印机显示缺纸、卡纸或墨盒异常，请参照设备面板提示及现场张贴的安全操作说明处理；5）如上述操作后仍无法打印，请提交工单，提供打印机资产编号、具体错误信息（如弹窗提示、面板代码）、受影响人员范围及发生时间。注意：切勿在工单中上传含客户姓名、身份证号、合同内容等敏感信息的打印文件。",
+    "citations" : [ {
+      "documentId" : "20f6bc67-f2b7-44f8-aba2-2c1a0b9f9841",
+      "versionId" : "1dcc706e-9375-4609-b99d-1742e2055efd",
+      "version" : 1,
+      "title" : "共享打印机无法打印",
+      "page" : 1,
+      "chunkId" : "eb087ce0-5f88-4382-b3f5-93db5cbb1496",
+      "snippet" : "共享打印机无法打印\n共享打印机无法打印时，先确认打印机电源和面板状态，再检查当前设备选择的打印机与纸张规格。\n查看打印队列是否暂停或存在失败任务。仅取消自己的任务，避免影响其他员工；设备缺纸或卡纸时按现场安全说明处理。\n如问题持续，提交打印机资产编号、错误信息和影响范围，不要在工单中上传包含客户资料的打印内容。"
+    } ]
+  }, {
+    "id" : "positive-19",
+    "question" : "清理打印队列时可以取消其他人的任务吗",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496" ],
+    "retrievalMs" : 4.55856,
+    "retrievedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496" ],
+    "outcome" : "ANSWERED",
+    "answer" : "不可以。根据操作规范，清理打印队列时应仅取消自己的打印任务，避免影响其他员工的正常工作。",
+    "citations" : [ {
+      "documentId" : "20f6bc67-f2b7-44f8-aba2-2c1a0b9f9841",
+      "versionId" : "1dcc706e-9375-4609-b99d-1742e2055efd",
+      "version" : 1,
+      "title" : "共享打印机无法打印",
+      "page" : 1,
+      "chunkId" : "eb087ce0-5f88-4382-b3f5-93db5cbb1496",
+      "snippet" : "共享打印机无法打印\n共享打印机无法打印时，先确认打印机电源和面板状态，再检查当前设备选择的打印机与纸张规格。\n查看打印队列是否暂停或存在失败任务。仅取消自己的任务，避免影响其他员工；设备缺纸或卡纸时按现场安全说明处理。\n如问题持续，提交打印机资产编号、错误信息和影响范围，不要在工单中上传包含客户资料的打印内容。"
+    } ]
+  }, {
+    "id" : "positive-20",
+    "question" : "办公电脑运行缓慢先检查什么",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "retrievalMs" : 4.874906,
+    "retrievedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "outcome" : "ANSWERED",
+    "answer" : "办公电脑运行缓慢时，应首先保存当前工作，然后检查系统资源占用（如CPU、内存使用率）和剩余磁盘空间；接着关闭确认不再使用的应用程序。切勿安装来源不明的“清理软件”，也不要随意终止无法确认用途的系统进程。可使用企业软件中心安排系统更新及启动已批准的安全扫描。若重启后问题仍持续，请提交设备资产编号、操作系统版本、异常应用名称及发生频率以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "78c2bf5a-c16c-4684-a640-2aa20713a5dc",
+      "versionId" : "55ae101c-3b4a-4e82-8e80-e451b2dd0ae5",
+      "version" : 1,
+      "title" : "办公设备运行缓慢",
+      "page" : 1,
+      "chunkId" : "a6fd9522-2473-4029-aee7-69b093d65a62",
+      "snippet" : "办公设备运行缓慢\n电脑运行缓慢时，保存工作后检查系统资源占用及剩余磁盘空间，先关闭确认不再使用的应用。\n使用企业软件中心安排系统更新及批准的安全扫描。不要安装未知清理软件，也不要终止无法确认用途的系统进程。\n若重启后仍持续异常，请提交设备资产编号、操作系统版本、异常应用及发生频率。"
+    } ]
+  }, {
+    "id" : "positive-21",
+    "question" : "电脑变慢可以安装未知清理软件吗",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "retrievalMs" : 4.162295,
+    "retrievedChunkIds" : [ "a6fd9522-2473-4029-aee7-69b093d65a62" ],
+    "outcome" : "ANSWERED",
+    "answer" : "不可以。电脑变慢时，严禁安装未知来源的清理软件。应先保存工作，检查系统资源占用和剩余磁盘空间，关闭确认不再使用的应用程序；通过企业软件中心进行系统更新和批准的安全扫描。未知清理软件可能含恶意代码、导致系统不稳定或数据泄露，且未经IT部门审核，违反企业安全策略。如重启后问题仍持续，请提交设备资产编号、操作系统版本、异常应用及发生频率以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "78c2bf5a-c16c-4684-a640-2aa20713a5dc",
+      "versionId" : "55ae101c-3b4a-4e82-8e80-e451b2dd0ae5",
+      "version" : 1,
+      "title" : "办公设备运行缓慢",
+      "page" : 1,
+      "chunkId" : "a6fd9522-2473-4029-aee7-69b093d65a62",
+      "snippet" : "办公设备运行缓慢\n电脑运行缓慢时，保存工作后检查系统资源占用及剩余磁盘空间，先关闭确认不再使用的应用。\n使用企业软件中心安排系统更新及批准的安全扫描。不要安装未知清理软件，也不要终止无法确认用途的系统进程。\n若重启后仍持续异常，请提交设备资产编号、操作系统版本、异常应用及发生频率。"
+    } ]
+  }, {
+    "id" : "positive-22",
+    "question" : "线上会议没有声音怎么检查",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "retrievalMs" : 3.971585,
+    "retrievedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "outcome" : "ANSWERED",
+    "answer" : "线上会议没有声音时，请按以下步骤检查：\n1. 确认会议应用内已正确选择输入（麦克风）和输出（扬声器/耳机）设备；\n2. 检查会议应用界面是否处于静音状态（如麦克风图标带斜杠、扬声器图标关闭等）；\n3. 进入操作系统设置，核实该会议应用是否被授予麦克风和音频输出权限；\n4. 使用会议应用内置的音频测试功能（如“测试麦克风”“播放测试音”）验证基础通路；\n5. 若使用外接耳机、麦克风或USB声卡，请尝试拔插重连，排除接触不良；\n6. 如仍无效，请提供具体设备型号、会议应用名称及版本号、以及上述各步的测试结果，以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "7c6324b4-6a58-443a-aa7b-0641fea16f24",
+      "versionId" : "4ec9ef6b-0c6a-4dee-b461-7107a29c2ad8",
+      "version" : 1,
+      "title" : "会议音频与摄像头检查",
+      "page" : 1,
+      "chunkId" : "26122f3b-dca5-4143-947b-03302d1c7c7d",
+      "snippet" : "会议音频与摄像头检查\n线上会议没有声音时，确认会议应用选择了正确的输入和输出设备，并检查静音状态。\n在系统设置中检查应用的麦克风和摄像头权限，使用应用自带的测试功能。共享屏幕前关闭无关的敏感窗口。\n外接设备可重新连接一次；仍无效时提交设备型号、会议应用版本及测试结果。"
+    } ]
+  }, {
+    "id" : "positive-23",
+    "question" : "会议应用如何检查麦克风和摄像头权限",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "retrievalMs" : 4.339701,
+    "retrievedChunkIds" : [ "26122f3b-dca5-4143-947b-03302d1c7c7d" ],
+    "outcome" : "ANSWERED",
+    "answer" : "在会议应用中检查麦克风和摄像头权限，需分两步操作：（1）在操作系统设置中确认该会议应用已被授予麦克风和摄像头访问权限（例如在Windows设置→隐私→麦克风/摄像头，或macOS系统设置→隐私与安全性→麦克风/相机中查看并开启）；（2）使用会议应用内置的音视频测试功能（通常在加入会议前的设备设置页或会议控制栏的‘设置’/‘音频/视频设置’中），实时检测输入设备是否被识别、是否有信号响应。若外接设备异常，可尝试重新插拔；如仍无法使用，请提供设备型号、会议应用版本及测试结果以便进一步排查。",
+    "citations" : [ {
+      "documentId" : "7c6324b4-6a58-443a-aa7b-0641fea16f24",
+      "versionId" : "4ec9ef6b-0c6a-4dee-b461-7107a29c2ad8",
+      "version" : 1,
+      "title" : "会议音频与摄像头检查",
+      "page" : 1,
+      "chunkId" : "26122f3b-dca5-4143-947b-03302d1c7c7d",
+      "snippet" : "会议音频与摄像头检查\n线上会议没有声音时，确认会议应用选择了正确的输入和输出设备，并检查静音状态。\n在系统设置中检查应用的麦克风和摄像头权限，使用应用自带的测试功能。共享屏幕前关闭无关的敏感窗口。\n外接设备可重新连接一次；仍无效时提交设备型号、会议应用版本及测试结果。"
+    } ]
+  }, {
+    "id" : "positive-24",
+    "question" : "申请共享文件夹需要提供哪些信息",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91" ],
+    "retrievalMs" : 6.323082,
+    "retrievedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91" ],
+    "outcome" : "ANSWERED",
+    "answer" : "申请共享文件夹权限时，需提供以下四项信息：1）文件夹标识；2）所需的访问范围（只读或编辑）；3）业务用途；4）审批联系人。",
+    "citations" : [ {
+      "documentId" : "ac70bd6d-eeea-47bf-8048-1e5dc2214db2",
+      "versionId" : "c4b02186-73fd-4ce4-8fc7-81f1d894f16e",
+      "version" : 1,
+      "title" : "共享文件夹访问申请",
+      "page" : 1,
+      "chunkId" : "7403b28e-6200-447b-b92d-6173bd11dc91",
+      "snippet" : "共享文件夹访问申请\n申请共享文件夹权限时，请提供文件夹标识、所需的只读或编辑范围、业务用途和审批联系人。\n已有权限却无法访问时，先核对当前登录账号，再确认普通网络或 VPN 已连接。不要借用他人账号绕过权限控制。\n支持人员根据审批结果调整权限，并在工单公开回复中说明处理结果；内部排查信息写入内部备注。"
+    } ]
+  }, {
+    "id" : "positive-25",
+    "question" : "有权限却无法访问文件夹怎么办",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91" ],
+    "retrievalMs" : 5.152292,
+    "retrievedChunkIds" : [ "7403b28e-6200-447b-b92d-6173bd11dc91", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "已有权限却无法访问共享文件夹时，请按以下步骤排查：（1）确认当前登录账号是否为已授予权限的账号，勿使用他人账号；（2）检查网络连接状态——确保已接入公司普通网络或已成功连接企业VPN；（3）若网络异常，参考网络排查流程：验证网线/WiFi连通性，测试企业门户及外部网站访问，检查IP地址、默认网关和DNS配置是否有效，并运行系统网络诊断；（4）如仅本设备异常，尝试断开后重连网络；如办公区多人出现相同问题，请提交办公网络类工单，并附影响范围、连接方式及诊断截图。权限本身无误时，访问失败通常源于账号错用或网络未就绪。",
+    "citations" : [ {
+      "documentId" : "ac70bd6d-eeea-47bf-8048-1e5dc2214db2",
+      "versionId" : "c4b02186-73fd-4ce4-8fc7-81f1d894f16e",
+      "version" : 1,
+      "title" : "共享文件夹访问申请",
+      "page" : 1,
+      "chunkId" : "7403b28e-6200-447b-b92d-6173bd11dc91",
+      "snippet" : "共享文件夹访问申请\n申请共享文件夹权限时，请提供文件夹标识、所需的只读或编辑范围、业务用途和审批联系人。\n已有权限却无法访问时，先核对当前登录账号，再确认普通网络或 VPN 已连接。不要借用他人账号绕过权限控制。\n支持人员根据审批结果调整权限，并在工单公开回复中说明处理结果；内部排查信息写入内部备注。"
+    }, {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-26",
+    "question" : "安装软件前应该先查哪里",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "retrievalMs" : 4.910179,
+    "retrievedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "outcome" : "ANSWERED",
+    "answer" : "安装软件前，应先查询企业软件中心，优先使用已批准的软件及版本。",
+    "citations" : [ {
+      "documentId" : "310a2606-6872-4ae3-b4b9-4675ffafad53",
+      "versionId" : "44fac8b1-8f57-4e07-ba24-5b2b0ca44650",
+      "version" : 1,
+      "title" : "软件安装与许可证申请",
+      "page" : 1,
+      "chunkId" : "52b3c63e-d1a5-4252-bba4-4d74c54ecd83",
+      "snippet" : "软件安装与许可证申请\n安装办公软件前，请先查询企业软件中心，优先使用已批准的软件及版本。\n需要付费许可证时，提交软件名称、使用人数、业务用途及审批信息。不要使用破解安装包或在工单中填写许可证密钥。\n安装失败时提供安装阶段、系统版本和错误代码，支持人员核对兼容性后安排处理。"
+    } ]
+  }, {
+    "id" : "positive-27",
+    "question" : "付费软件许可证申请需要什么资料",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "retrievalMs" : 5.282648,
+    "retrievedChunkIds" : [ "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "outcome" : "ANSWERED",
+    "answer" : "申请付费软件许可证需提供以下资料：软件名称、使用人数、业务用途及审批信息。请注意：不得使用破解安装包，也不得在工单中填写许可证密钥。",
+    "citations" : [ {
+      "documentId" : "310a2606-6872-4ae3-b4b9-4675ffafad53",
+      "versionId" : "44fac8b1-8f57-4e07-ba24-5b2b0ca44650",
+      "version" : 1,
+      "title" : "软件安装与许可证申请",
+      "page" : 1,
+      "chunkId" : "52b3c63e-d1a5-4252-bba4-4d74c54ecd83",
+      "snippet" : "软件安装与许可证申请\n安装办公软件前，请先查询企业软件中心，优先使用已批准的软件及版本。\n需要付费许可证时，提交软件名称、使用人数、业务用途及审批信息。不要使用破解安装包或在工单中填写许可证密钥。\n安装失败时提供安装阶段、系统版本和错误代码，支持人员核对兼容性后安排处理。"
+    } ]
+  }, {
+    "id" : "positive-28",
+    "question" : "单个内部网站打不开怎么办",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12" ],
+    "retrievalMs" : 5.03535,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "单个内部网站打不开时，请按以下步骤排查：\n1. 核对网址是否输入正确，确认是否因系统公告中公布的维护窗口导致临时不可用；\n2. 若您使用远程办公（如居家），请检查VPN是否已成功连接；\n3. 若浏览器弹出证书警告（如‘您的连接不是私密连接’），请立即停止输入账号密码等敏感信息，并联系IT服务台；\n4. 若仍无法访问，请记录并提供以下信息以便快速定位：网站全称、具体错误代码（如HTTP 500/404/ERR_CONNECTION_TIMED_OUT等）、发生时间（精确到分钟）、影响范围（仅您个人/本部门多人/跨区域）以及您已完成的自查操作（如刷新、更换浏览器、重启网络设备等）；\n5. 提交工单时，请勿在链接或附件中包含任何访问令牌、Cookie或认证凭据，以防安全风险。\n\n注意：无需自行修改DNS设置、关闭杀毒软件或防火墙——这些操作可能违反安全策略且无助于问题解决。",
+    "citations" : [ {
+      "documentId" : "ce4d4c12-7c64-4aa9-9de2-a0125424e7ea",
+      "versionId" : "bd7e961b-3928-48a0-8476-40121184c69d",
+      "version" : 1,
+      "title" : "内部网站访问异常",
+      "page" : 1,
+      "chunkId" : "c3eb3275-2bd5-4e56-bfc0-e0498577ad12",
+      "snippet" : "内部网站访问异常\n单个内部网站无法访问时，先检查地址是否正确，并对照公告确认是否处于维护窗口。\n普通办公网络正常而远程访问失败时，检查 VPN 是否已连接。遇到证书警告时停止输入账号信息并联系服务台。\n提交网站名称、错误代码、发生时间、影响范围及已经完成的检查，避免在工单链接中携带访问令牌。"
+    } ]
+  }, {
+    "id" : "positive-29",
+    "question" : "访问内部网站遇到证书警告怎么办",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12" ],
+    "retrievalMs" : 4.300186,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12" ],
+    "outcome" : "ANSWERED",
+    "answer" : "遇到内部网站证书警告时，请立即停止输入账号密码等敏感信息，并联系IT服务台。证书警告可能意味着连接被劫持、网站配置异常或证书已过期，存在安全风险。请同时提供网站名称、浏览器显示的具体错误代码（如NET::ERR_CERT_INVALID）、发生时间、影响范围（如仅您个人/部门/全公司），以及您已确认的检查项（例如网址拼写正确、VPN已连接、非维护时段等）。切勿点击‘继续访问’或‘忽略警告’。",
+    "citations" : [ {
+      "documentId" : "ce4d4c12-7c64-4aa9-9de2-a0125424e7ea",
+      "versionId" : "bd7e961b-3928-48a0-8476-40121184c69d",
+      "version" : 1,
+      "title" : "内部网站访问异常",
+      "page" : 1,
+      "chunkId" : "c3eb3275-2bd5-4e56-bfc0-e0498577ad12",
+      "snippet" : "内部网站访问异常\n单个内部网站无法访问时，先检查地址是否正确，并对照公告确认是否处于维护窗口。\n普通办公网络正常而远程访问失败时，检查 VPN 是否已连接。遇到证书警告时停止输入账号信息并联系服务台。\n提交网站名称、错误代码、发生时间、影响范围及已经完成的检查，避免在工单链接中携带访问令牌。"
+    } ]
+  }, {
+    "id" : "positive-30",
+    "question" : "网络故障与VPN故障分别先检查什么",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "9dcfb3d6-8fdf-4430-bada-48044c91ad65", "ae47f3bd-870f-497c-9659-b9729fe48a52" ],
+    "retrievalMs" : 5.785156,
+    "retrievedChunkIds" : [ "c3eb3275-2bd5-4e56-bfc0-e0498577ad12", "ae47f3bd-870f-497c-9659-b9729fe48a52", "9dcfb3d6-8fdf-4430-bada-48044c91ad65" ],
+    "outcome" : "ANSWERED",
+    "answer" : "网络故障与VPN故障的排查应遵循分层隔离原则：\n\n网络故障（完全无法联网）先检查：\n1. 物理连接状态（网线插紧或Wi-Fi已连接）；\n2. 设备是否获取到有效IP地址、默认网关和DNS配置；\n3. 能否访问企业门户及外部已知可用网站，以区分是本地设备问题、局域网问题还是广域网问题；\n4. 运行系统自带网络诊断工具并记录发生时间。\n\nVPN故障（普通网络正常但无法访问内部资源）先检查：\n1. 普通办公网络是否已连通（即先排除底层网络问题）；\n2. VPN客户端是否为企业批准版本，且已正确安装并重启；\n3. 账号状态是否正常、多因素认证（MFA）是否已完成；\n4. 客户端中配置的连接地址是否正确，设备系统时间是否准确（偏差过大将导致证书/令牌校验失败）；\n5. 是否出现证书警告——若出现，应立即停止输入凭证并联系服务台。\n\n注意：反复认证失败可能触发账号锁定，此时应中止重试；工单中需提供错误代码、发生时间、客户端版本、影响范围及已执行的检查项，严禁上传密码、验证码或含会话令牌的日志。",
+    "citations" : [ {
+      "documentId" : "d2f48532-685c-4bb4-bcb5-cea96bf765a8",
+      "versionId" : "d755ee52-6e22-4d07-ac23-9bcf24f59edd",
+      "version" : 1,
+      "title" : "VPN 连接失败处理指南",
+      "page" : 1,
+      "chunkId" : "ae47f3bd-870f-497c-9659-b9729fe48a52",
+      "snippet" : "VPN 连接失败处理指南\nVPN 连不上时，先确认普通网络可用、VPN 客户端为企业批准的版本，再检查账号状态和多因素认证是否完成。\n核对客户端显示的连接地址和设备系统时间，重新打开客户端后重试一次。反复出现认证失败时停止重复尝试，避免账号被锁定。\n工单中提供错误代码、发生时间、客户端版本及是否能够访问企业门户。不要上传密码、一次性验证码或含会话令牌的日志。"
+    }, {
+      "documentId" : "ce4d4c12-7c64-4aa9-9de2-a0125424e7ea",
+      "versionId" : "bd7e961b-3928-48a0-8476-40121184c69d",
+      "version" : 1,
+      "title" : "内部网站访问异常",
+      "page" : 1,
+      "chunkId" : "c3eb3275-2bd5-4e56-bfc0-e0498577ad12",
+      "snippet" : "内部网站访问异常\n单个内部网站无法访问时，先检查地址是否正确，并对照公告确认是否处于维护窗口。\n普通办公网络正常而远程访问失败时，检查 VPN 是否已连接。遇到证书警告时停止输入账号信息并联系服务台。\n提交网站名称、错误代码、发生时间、影响范围及已经完成的检查，避免在工单链接中携带访问令牌。"
+    }, {
+      "documentId" : "3ba7b8d0-eefc-4e3b-8e1e-c64ed6a9fd86",
+      "versionId" : "64cf5b8b-9f4f-40f2-9e99-b90c42674d63",
+      "version" : 1,
+      "title" : "网络无法连接的排查步骤",
+      "page" : 1,
+      "chunkId" : "9dcfb3d6-8fdf-4430-bada-48044c91ad65",
+      "snippet" : "网络无法连接的排查步骤\n网络无法连接怎么办？先确认网线或无线连接正常，再分别访问企业门户和已知可用的网站，以区分单个服务故障与整体网络故障。\n查看设备是否获得有效的 IP 地址、默认网关和 DNS 配置。使用系统网络诊断并记录时间，不要擅自修改企业 DNS 或关闭安全防护。\n如果只有当前设备异常，可断开后重新连接网络；如果同一办公区多人异常，请提交办公网络工单，附上影响范围、连接方式和诊断截图。"
+    } ]
+  }, {
+    "id" : "positive-31",
+    "question" : "新员工初次登录与密码安全要注意什么",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "58c46971-8de4-4a77-991f-2f1540d2a028", "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "retrievalMs" : 5.694897,
+    "retrievedChunkIds" : [ "377b6f3e-ef21-4990-a4aa-02e184157128" ],
+    "outcome" : "ANSWERED",
+    "answer" : "新员工初次登录时，需注意以下密码安全要点：1）首次登录必须通过批准的安全渠道获取初始凭据；2）登录后须立即修改初始密码，设置符合复杂度要求（如含大小写字母、数字、特殊字符，长度≥8位）的强密码；3）必须完成多因素认证（MFA）的绑定与启用；4）严禁共享账号或密码，不得将初始密码长期使用；5）账号开通严格遵循最小权限原则，仅授予岗位必需的系统访问权限。所有操作均需保留审批与执行记录。",
+    "citations" : [ {
+      "documentId" : "a4ea4f77-e049-44d3-abc7-deaff365062a",
+      "versionId" : "04ca66c8-4151-4ee9-b22a-1db53698d9ae",
+      "version" : 1,
+      "title" : "新员工账号与权限申请",
+      "page" : 1,
+      "chunkId" : "377b6f3e-ef21-4990-a4aa-02e184157128",
+      "snippet" : "新员工账号与权限申请\n申请新员工账号时，请填写入职日期、所属团队、所需系统和审批联系人，避免笼统申请全部系统权限。\n账号支持人员核对审批结果后按照最小权限原则开通，并通过批准的安全渠道交付初始凭据。首次登录应完成密码修改及必要的多因素认证。\n需求变化或员工离职时，应另行发起权限调整或停用申请，保留审批及执行记录。"
+    } ]
+  }, {
+    "id" : "positive-32",
+    "question" : "打印故障和软件安装故障分别提交哪些信息",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ "eb087ce0-5f88-4382-b3f5-93db5cbb1496", "52b3c63e-d1a5-4252-bba4-4d74c54ecd83" ],
+    "retrievalMs" : 3.246918,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-1",
+    "question" : "今天午餐菜单是什么",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 2.910195,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-2",
+    "question" : "明天会下雨吗",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 2.418414,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-3",
+    "question" : "股票下一周会涨多少",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 3.095415,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unrelated-4",
+    "question" : "今年旅游有什么推荐",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 2.93554,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-no-acl-network",
+    "question" : "网络无法连接怎么办",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ ],
+    "authorizationRejected" : true,
+    "retrievalMs" : 1.036646,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-no-acl-password",
+    "question" : "怎么重置密码",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ ],
+    "authorizationRejected" : true,
+    "retrievalMs" : 0.969613,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-withdrawn",
+    "question" : "会议麦克风和摄像头权限怎么检查",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 2.224314,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  }, {
+    "id" : "refusal-unpublished",
+    "question" : "门禁访问凭据的临时领取地点是什么",
+    "strategy" : "HYBRID",
+    "expectedChunkIds" : [ ],
+    "retrievalMs" : 3.015997,
+    "retrievedChunkIds" : [ ],
+    "outcome" : "INSUFFICIENT_EVIDENCE",
+    "answer" : "",
+    "citations" : [ ]
+  } ],
+  "status" : "COMPLETED",
+  "sourceSha256" : {
+    "help-01" : "5cda09ed36b5a407db293fe389ccd418d5c38a265ff4a02e47ec281a89aaee7f",
+    "help-02" : "da66ee64832660bd7e29c58d74c833a2a492a845eae01a35a648abfe6e3ffcc5",
+    "help-03" : "c320469cf7d07a6bf37dcb5514c781f557fa37b4eae2156cf1779e2b66e3644b",
+    "help-04" : "e2cbaf21d14dbe7e5a18e0d4fc5174600b00c7b0b5c9db5a9e9a2fbe1c70b782",
+    "help-05" : "906be519018121eb1997e618936d37a4741c3634fe517d594d6e5bafa5b72bb2",
+    "help-06" : "a3ed151cecdca422d72b72bae5ea901f6c6cc74d91350896af702bc5cc7c7651",
+    "help-07" : "3780de331092fcb7761b9eba34f716768df6c37e411b0c84c5c89115b3eaa18a",
+    "help-08" : "b310af67a07da31243dfb056678a8862b23e8a56c10cf41255e4e64925dbfe6b",
+    "help-09" : "728bc50c6bc27596fea45fbaf7d5af5284d0e96ccf1ed2141a8db896a741eaca",
+    "help-10" : "d0705a06fd43ca45348c632a9b8079ae0678e23d3c44cc934242d049dd6c39b0",
+    "help-11" : "b821a7d06e33d66b302d0863630301b7d50280d10d9904bad74e669af1754e05",
+    "help-12" : "164acafc0dd71aa9b32ff3191f3042af81c28f4975f125a933e88f11f72275c9"
+  },
+  "strategies" : {
+    "LEXICAL" : {
+      "cases" : 40,
+      "positiveCases" : 32,
+      "refusalCases" : 8,
+      "chunkRecallAt5" : 0.90625,
+      "hitAt5" : 0.9375,
+      "candidateLabelCitationPrecision" : 0.9375,
+      "refusalFalseAnswerRate" : 0.0,
+      "providerFailures" : 0,
+      "retrievalP95Ms" : 4.091626
+    },
+    "VECTOR" : {
+      "cases" : 40,
+      "positiveCases" : 32,
+      "refusalCases" : 8,
+      "chunkRecallAt5" : 0.921875,
+      "hitAt5" : 0.9375,
+      "candidateLabelCitationPrecision" : 0.9117647058823529,
+      "refusalFalseAnswerRate" : 0.0,
+      "providerFailures" : 0,
+      "retrievalP95Ms" : 532.291205
+    },
+    "HYBRID" : {
+      "cases" : 40,
+      "positiveCases" : 32,
+      "refusalCases" : 8,
+      "chunkRecallAt5" : 0.921875,
+      "hitAt5" : 0.9375,
+      "candidateLabelCitationPrecision" : 0.9393939393939394,
+      "refusalFalseAnswerRate" : 0.0,
+      "providerFailures" : 0,
+      "retrievalP95Ms" : 5.694897
+    }
+  },
+  "qualityClaim" : "Real-provider measurements; candidate labels still require human review",
+  "calls" : {
+    "queryEmbeddingCache" : "Same query reused across VECTOR/HYBRID; corpus indexed once",
+    "inputTextChars" : 21624,
+    "maxChatCalls" : 120,
+    "maxEmbeddingInputs" : 128,
+    "embeddingInputItems" : 51,
+    "embeddingAdapterCalls" : 51,
+    "chatCalls" : 90,
+    "outputTextChars" : 22121
+  },
+  "notRun" : [ "Human relevance/groundedness review", "Provider-billed token usage and cost reconciliation", "HTTP/outbox end-to-end performance" ]
+}

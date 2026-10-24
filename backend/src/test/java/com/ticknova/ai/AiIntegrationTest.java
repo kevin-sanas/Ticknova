@@ -72,6 +72,18 @@ class AiIntegrationTest {
         assertThat(indexer.runOnce()).isTrue();assertThat(retriever.retrieve(reader,List.of(space),"网关配置")).hasSize(1);
         withdraw();assertThat(retriever.retrieve(reader,List.of(space),"网关配置")).isEmpty();
     }
+    @Test void evaluationStrategiesKeepAclAndLexicalDoesNotCallEmbedding(){
+        fixture("网关配置 通过代理访问服务");assertThat(indexer.runOnce()).isTrue();
+        clearInvocations(model);
+        assertThat(retriever.retrieve(reader,List.of(space),"网关配置",AiRetriever.Strategy.LEXICAL)).hasSize(1);
+        verify(model,never()).embed(anyList());
+        for(var strategy:AiRetriever.Strategy.values()) {
+            assertThat(retriever.retrieve(reader,List.of(space),"网关配置",strategy)).hasSize(1);
+            assertThatThrownBy(()->retriever.retrieve(other,List.of(space),"网关配置",strategy)).isInstanceOf(ApiException.class);
+        }
+        revoke(space);
+        for(var strategy:AiRetriever.Strategy.values())assertThatThrownBy(()->retriever.retrieve(reader,List.of(space),"网关配置",strategy)).isInstanceOf(ApiException.class);
+    }
     @Test void unapprovedPublishedPointerCannotEnterRecallOrGeneratedAnswer(){
         fixture("网关配置 通过代理访问服务",false);indexer.runOnce();
         assertThat(retriever.retrieve(reader,List.of(space),"网关配置")).isEmpty();

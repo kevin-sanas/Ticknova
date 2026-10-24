@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([ValidateSet('.env','.env.demo','.env.browser')][string]$FileName = '.env')
+param([ValidateSet('.env','.env.demo','.env.browser','.env.eval','.env.perf')][string]$FileName = '.env')
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $envPath = Join-Path $projectRoot $FileName
@@ -27,5 +27,8 @@ $content = @(
     'WEB_PORT=5173',
     'API_PORT=8080'
 )
+if ($FileName -eq '.env.eval') {
+    $content += @('EVAL_AI_PROVIDER=mock','AI_BASE_URL=','AI_API_KEY=','AI_MODEL=qwen-plus','EMBEDDING_MODEL=text-embedding-v4','EMBEDDING_BATCH_SIZE=10')
+}
 [System.IO.File]::WriteAllLines($envPath, $content, [System.Text.UTF8Encoding]::new($false))
 Write-Output "Generated project-local $FileName. Secrets are not printed."

@@ -29,15 +29,22 @@ public final class SpringAiModel implements AiModel {
     private final String profile;
     private final ChatClient chat;
     private final OpenAiEmbeddingModel embedding;
+    private final int embeddingBatchSize;
 
     public SpringAiModel(String baseUrl, String apiKey, String chatModel, String embeddingModel) {
         this(baseUrl, apiKey, chatModel, embeddingModel, Duration.ofSeconds(30));
     }
 
     SpringAiModel(String baseUrl, String apiKey, String chatModel, String embeddingModel, Duration timeout) {
+        this(baseUrl,apiKey,chatModel,embeddingModel,timeout,32);
+    }
+
+    SpringAiModel(String baseUrl,String apiKey,String chatModel,String embeddingModel,Duration timeout,int embeddingBatchSize) {
         if (blank(baseUrl) || blank(apiKey) || blank(chatModel) || blank(embeddingModel)
-                || timeout == null || timeout.isNegative() || timeout.isZero() || timeout.compareTo(Duration.ofSeconds(30)) > 0)
+                || timeout == null || timeout.isNegative() || timeout.isZero() || timeout.compareTo(Duration.ofSeconds(30)) > 0
+                || embeddingBatchSize<1 || embeddingBatchSize>32)
             throw configurationInvalid();
+        this.embeddingBatchSize=embeddingBatchSize;
         try {
             URI uri = URI.create(baseUrl);
             if (!("https".equals(uri.getScheme()) || "http".equals(uri.getScheme())) || uri.getHost() == null
@@ -62,14 +69,16 @@ public final class SpringAiModel implements AiModel {
     @Override public List<float[]> embed(List<String> texts) {
         var bounded = AiText.embeddingInput(texts);
         try {
-            var response = embedding.call(new EmbeddingRequest(bounded, embedding.getOptions()));
-            var results = response.getResults();
-            if (results.size() != texts.size()) throw AiText.invalid();
             float[][] ordered = new float[texts.size()][];
-            for (var result : results) {
-                int index = result.getIndex();
-                if (index < 0 || index >= ordered.length || ordered[index] != null) throw AiText.invalid();
-                AiText.vectorLiteral(result.getOutput()); ordered[index] = result.getOutput().clone();
+            for(int offset=0;offset<bounded.size();offset+=embeddingBatchSize) {
+                var batch=bounded.subList(offset,Math.min(bounded.size(),offset+embeddingBatchSize));
+                var results=embedding.call(new EmbeddingRequest(batch,embedding.getOptions())).getResults();
+                if(results.size()!=batch.size())throw AiText.invalid();
+                for(var result:results) {
+                    int index=result.getIndex();
+                    if(index<0||index>=batch.size()||ordered[offset+index]!=null)throw AiText.invalid();
+                    AiText.vectorLiteral(result.getOutput());ordered[offset+index]=result.getOutput().clone();
+                }
             }
             return List.of(ordered);
         } catch (AiModelFailure e) { throw e; }

@@ -45,6 +45,7 @@ ticknova:
     api-key: ${AI_API_KEY:}
     chat-model: ${AI_MODEL:}
     embedding-model: ${EMBEDDING_MODEL:}
+    embedding-batch-size: ${EMBEDDING_BATCH_SIZE:32}
     worker-enabled: ${AI_WORKER_ENABLED:true}
   session-pepper: ${SESSION_TOKEN_PEPPER}
   seed:

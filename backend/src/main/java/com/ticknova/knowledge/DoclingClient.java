@@ -42,7 +42,7 @@ public class DoclingClient {
             var pending=http.sendAsync(request,ignored->new BoundedBody());
             HttpResponse<byte[]> response;
             try {response=pending.get(timeout.toMillis(),TimeUnit.MILLISECONDS);} catch(TimeoutException e){pending.cancel(true);throw new IngestFailure("PARSER_TIMEOUT",true);}
-            catch(ExecutionException e){if(e.getCause() instanceof IngestFailure failure)throw failure;throw new IngestFailure("PARSER_UNAVAILABLE",true);}
+            catch(ExecutionException e){throw transportFailure(e);}
             byte[] bytes=response.body();
             if(response.statusCode()!=200) {
                 if(response.statusCode()==401||response.statusCode()==403)throw new IngestFailure("PARSER_AUTH_FAILED",false);
@@ -65,8 +65,14 @@ public class DoclingClient {
             return new Parsed(version,List.copyOf(pages));
         } catch(InterruptedException e) {Thread.currentThread().interrupt();throw new IngestFailure("PARSER_INTERRUPTED",true);}
         catch(IngestFailure e){throw e;}
-        catch(IOException e){throw new IngestFailure("PARSER_UNAVAILABLE",true);}
+        catch(IOException e){throw transportFailure(e);}
         catch(RuntimeException e){throw new IngestFailure("PARSER_RESPONSE_INVALID",false);}
+    }
+    static IngestFailure transportFailure(Throwable error) {
+        while((error instanceof ExecutionException || error instanceof CompletionException) && error.getCause()!=null)error=error.getCause();
+        if(error instanceof IngestFailure failure)return failure;
+        if(error instanceof HttpTimeoutException || error instanceof SocketTimeoutException)return new IngestFailure("PARSER_TIMEOUT",true);
+        return new IngestFailure("PARSER_UNAVAILABLE",true);
     }
     private static final class BoundedBody implements HttpResponse.BodySubscriber<byte[]> {
         private final CompletableFuture<byte[]> result=new CompletableFuture<>();

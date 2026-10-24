@@ -149,11 +149,23 @@ class InternalBoundary:
             return message
 
         self.active += 1
+        response_started = False
+
+        async def tracked_send(message):
+            nonlocal response_started
+            await send(message)
+            if message["type"] == "http.response.start":
+                response_started = True
+
         try:
             try:
                 async with asyncio.timeout(CONVERSION_TIMEOUT_SECONDS):
-                    await self.application(scope, bounded_receive, send)
+                    await self.application(scope, bounded_receive, tracked_send)
             except TimeoutError:
+                if response_started:
+                    # ASGI cannot replace an in-flight response with new headers.
+                    # Let the transport close it rather than reporting a false success.
+                    raise
                 await JSONResponse({"errorCode": "CONVERSION_TIMEOUT"}, status_code=504)(scope, receive, send)
         finally:
             self.active -= 1

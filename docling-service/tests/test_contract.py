@@ -131,6 +131,32 @@ def test_timeout_kills_worker_and_cleans_temp(client, monkeypatch, tmp_path):
     assert list(tmp_path.iterdir()) == []
 
 
+def test_timeout_after_headers_never_sends_a_second_response_start(monkeypatch):
+    import asyncio
+    import app as service
+
+    monkeypatch.setenv("DOCLING_INTERNAL_TOKEN", "test-internal-service-secret")
+    monkeypatch.setattr(service, "CONVERSION_TIMEOUT_SECONDS", 0.01)
+    sent = []
+
+    async def stalled_response(scope, receive, send):
+        await send({"type": "http.response.start", "status": 200, "headers": []})
+        await asyncio.sleep(1)
+
+    async def receive():
+        return {"type": "http.request", "body": b"", "more_body": False}
+
+    async def send(message):
+        sent.append(message)
+
+    boundary = service.InternalBoundary(stalled_response)
+    scope = {"type": "http", "path": "/internal/v1/convert", "headers": [(b"authorization", b"Bearer test-internal-service-secret")]}
+    with pytest.raises(TimeoutError):
+        asyncio.run(boundary(scope, receive, send))
+    assert [message["status"] for message in sent if message["type"] == "http.response.start"] == [200]
+    assert boundary.active == 0
+
+
 def test_empty_pdf_does_not_succeed(client):
     stream = io.BytesIO()
     writer = PdfWriter()

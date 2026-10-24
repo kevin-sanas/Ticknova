@@ -2,8 +2,10 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { randomBytes } from 'node:crypto'
+import { signInDemo, changeDemoPassword } from './Demo-Credentials.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const envPath = resolve(root, '.env')
 const base = process.env.TICKNOVA_URL || 'http://127.0.0.1'
 const origin = new URL(base)
 if (origin.protocol !== 'http:' || origin.hostname !== '127.0.0.1' || origin.pathname !== '/') throw Error('Only the isolated local Ticknova browser stack is allowed')
@@ -33,14 +35,12 @@ async function snapshot(tag) {
   await page.setViewportSize({ width: 1440, height: 960 })
 }
 try {
-  let password = env.DEMO_INITIAL_PASSWORD
-  const first = await context.request.post(`${base}/api/v1/auth/login`, { data: { username: 'editor', password } })
-  expect(first.status()).toBe(200)
-  const initial = await first.json(); secrets.push(initial.accessToken)
+  const editorSignIn = await signInDemo(context.request, base, envPath, 'editor')
+  let password = editorSignIn.password
+  const initial = editorSignIn.login; secrets.push(initial.accessToken, password)
   if (initial.user.mustChangePassword) {
     const changed = `Galaxy-${randomBytes(20).toString('hex')}!`; secrets.push(changed)
-    const response = await context.request.post(`${base}/api/v1/auth/change-password`, { headers: { Authorization: `Bearer ${initial.accessToken}` }, data: { oldPassword: password, newPassword: changed } })
-    expect(response.status()).toBe(204); password = changed
+    password = await changeDemoPassword(context.request, base, envPath, 'editor', password, initial.accessToken, changed)
   }
   await page.goto(`${base}/login`)
   await page.locator('#username').fill('editor'); await page.locator('#password').fill(password)

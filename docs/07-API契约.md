@@ -102,6 +102,7 @@ REPLY的answer、SUMMARY的summary最多10,000字符，与公开回复共用后�
 | `POST /knowledge/documents/{id}/versions/{versionId}/publish` | 空间可编辑 | 仅 READY 版本；原子切换 `published_version_id`，返回 `200` |
 | `POST /knowledge/documents/{id}/disable` | 空间可编辑 | 清空发布指针并立即退出检索 |
 | `POST /knowledge/documents/{id}/versions/{versionId}/retry` | 空间可编辑 | 仅 FAILED 版本；幂等复用或创建重试 job |
+| `POST /knowledge/documents/{id}/versions/{versionId}/index/retry` | 空间可编辑 | 仅解析就绪且索引 FAILED 的版本；原子重置为 PENDING 并审计，返回 202 与更新后的文档详情；重复或竞态返回 409 |
 | `DELETE /knowledge/documents/{id}` | 空间可编辑 | 软归档、撤回所有版本并审计；`204` |
 | `POST /ai/answers` | 登录且有空间可读权 | `202 {jobId}`；完成后轮询 job |
 | `POST /tickets/{id}/ai-drafts` | 可访问工单 | `202 {jobId}` |
@@ -194,7 +195,7 @@ REPLY的answer、SUMMARY的summary最多10,000字符，与公开回复共用后�
 | POST `/ai/jobs/{id}/cancel` | 原创建者、当前请求范围仍有效 | 204；重复中止幂等，已完成409，他人404，撤销服务器租约 |
 | GET `/tickets?unassigned=true` | 原有工单授权范围 | 原分页再筛处理人为空，可组合原筛选 |
 
-Category为`{id,spaceId,parentId,name,version}`；Draft为`{id,spaceId,title,categoryId,content,version,updatedAt,updatedBy}`。知识Summary/Detail增加categoryId；Version增加reviewState、authorId、reviewerId、reviewReason、reviewedAt和服务端计算的canRequestReview/canReview/canPublish；AI Job增加CANCELLED终态。
+Category为`{id,spaceId,parentId,name,version}`；Draft为`{id,spaceId,title,categoryId,content,version,updatedAt,updatedBy}`。知识Summary/Detail增加categoryId；Version增加reviewState、authorId、reviewerId、reviewReason、reviewedAt和服务端计算的canRequestReview/canReview/canPublish；空间编辑者还可读取 `embeddingState,embeddingErrorCode,canRetryIndex`，无编辑权时这三项分别为null/null/false；AI Job增加CANCELLED终态。
 
 RichDoc为受限Tiptap JSON：标题1–3、段落、列表、引用、代码、分隔线及基础marks；只允许http/https/mailto链接，不存可执行HTML/图片/嵌入。文章最多100,000个UTF-16字符、1MiB JSON、20,000节点、32层；文件阅读独立上限，不套用创作长度限制。生成Markdown执行配置上传大小限制，哈希对应真实文件字节；不可变rich快照保存阅读格式。
 

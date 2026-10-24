@@ -173,6 +173,26 @@ describe('knowledge management', () => {
     const writes: string[] = []; stub((url, init) => { if (init.method === 'POST') { writes.push(url); return json({ documentId: 'd1', versionId: 'v2', jobId: 'j1' }, 202) }; if (url.endsWith('/documents/d1')) return json({ ...detail, versions: [{ ...version, ingestState: 'FAILED', errorCode: 'PARSER_TIMEOUT', jobStatus: 'FAILED' }] }) })
     const { view } = await render(); await open(view); expect(view.text()).toContain('PARSER_TIMEOUT'); await click(view, '重试解析'); expect(writes).toContain('/api/v1/knowledge/documents/d1/versions/v2/retry')
   })
+  it('shows real failed index state and retries only when the server grants the capability', async () => {
+    const writes: string[] = []; let indexState = 'FAILED'
+    stub((url, init) => {
+      if (url.endsWith('/documents/d1')) return json({ ...detail, versions: [{ ...version, embeddingState: indexState, embeddingErrorCode: indexState === 'FAILED' ? 'AI_PROVIDER_UNAVAILABLE' : null, canRetryIndex: indexState === 'FAILED' }] })
+      if (url.endsWith('/versions/v2/index/retry') && init.method === 'POST') { writes.push(url); indexState = 'PENDING'; return json({}, 202) }
+    })
+    const { view } = await render(); await open(view)
+    expect(view.text()).toContain('AI_PROVIDER_UNAVAILABLE')
+    await click(view, '重试索引')
+    expect(writes).toEqual(['/api/v1/knowledge/documents/d1/versions/v2/index/retry'])
+    expect(view.text()).toContain('索引重试已提交')
+    expect(view.text()).not.toContain('AI_PROVIDER_UNAVAILABLE')
+    expect(view.findAll('button').some(button => button.text() === '重试索引')).toBe(false)
+  })
+  it('does not offer index retry when the server denies it', async () => {
+    stub(url => url.endsWith('/documents/d1') ? json({ ...detail, versions: [{ ...version, embeddingState: 'FAILED', embeddingErrorCode: 'AI_PROVIDER_UNAVAILABLE', canRetryIndex: false }] }) : undefined)
+    const { view } = await render(); await open(view)
+    expect(view.text()).toContain('AI_PROVIDER_UNAVAILABLE')
+    expect(view.findAll('button').some(button => button.text() === '重试索引')).toBe(false)
+  })
   it('publishes only READY versions and submits confirmed withdrawal and archive', async () => {
     const writes: string[] = []; stub((url, init) => { if (['POST', 'DELETE'].includes(init.method!)) { writes.push(url); return init.method === 'DELETE' ? new Response(null, { status: 204 }) : json(detail) } })
     const { view } = await render(); await open(view); await click(view, '发布此版本'); expect(writes).toContain('/api/v1/knowledge/documents/d1/versions/v2/publish')

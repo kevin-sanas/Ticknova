@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.1-pg17@sha256:3e8b3adfd27b5707128f60956f62a793c3c9326ea8cfaf0eab7adccb5d700b21
+    environment:
+      POSTGRES_DB: ticknova_restore
+      POSTGRES_USER: ticknova_restore
+      POSTGRES_PASSWORD: ${TEST_DB_PASSWORD:?Set the project test password}
+    tmpfs: [/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U ticknova_restore -d ticknova_restore"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+  api:
+    image: ticknova-api:0.1.0
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/ticknova_restore
+      DB_USER: ticknova_restore
+      DB_PASSWORD: ${TEST_DB_PASSWORD:?Set the project test password}
+      SESSION_TOKEN_PEPPER: ${SESSION_TOKEN_PEPPER:?Set the project pepper}
+      DEMO_SEED_ENABLED: "false"
+      KNOWLEDGE_WORKER_ENABLED: "false"
+      AI_WORKER_ENABLED: "false"
+      DOCLING_INTERNAL_TOKEN: ${DOCLING_INTERNAL_TOKEN:?Set the project parser token}
+      UPLOAD_ROOT: /var/lib/ticknova/uploads
+    volumes:
+      - type: bind
+        source: ${TICKNOVA_RESTORE_UPLOADS:?Point to the verified backup uploads}
+        target: /var/lib/ticknova/uploads
+        read_only: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, http://localhost:8080/actuator/health/readiness]
+      interval: 5s
+      timeout: 3s
+      start_period: 30s
+      retries: 20

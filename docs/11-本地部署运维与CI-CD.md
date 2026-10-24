@@ -1,5 +1,13 @@
 # 11｜本地部署、运维与 CI/CD
 
+## G5 本地备份与隔离恢复（2026-10-23）
+
+运行 `.\scripts\Backup-Local.ps1` 时，现有 API 若正在运行会先停写，PostgreSQL 保持运行；脚本生成 `pg_dump` 自定义格式快照并从 API 私有卷复制原件，逐一核对数据库 `storage_key` 与 SHA-256，最后写入 manifest。脚本结束会恢复 API/数据库原先的运行状态；若恢复服务失败会明确报错。备份位于项目已忽略的 `data/backups`，包含账号与文档等敏感数据，不能提交仓库。
+
+运行 `.\scripts\Test-Restore.ps1 -BackupDirectory '<项目内 data/backups 的备份目录>'` 可先验证清单及文件 hash，再在独立 Compose 项目中用 tmpfs PostgreSQL 恢复 dump、校验 Flyway 版本和全部文件引用，启动只读挂载原件的 API 检查 readiness 和可读 hash。测试容器不映射宿主端口，结束后移除临时库；**不会覆盖现有演示数据库或原件**。这是本地一致性备份和恢复演练，不等于生产热备、跨机容灾或 RPO/RTO 承诺。
+
+失败索引的重试由有空间编辑权的用户在知识版本历史中发起；审计记录旧失败码。解析超时现在区分响应头等待超时与其他传输故障；解析服务若响应头已经发送，超时会终止传输而不再次写入 504 响应头。真实模型、生产发布及整体供应链门仍需单独验收。
+
 ## Ticknova V2 本地升级（2026-10-21）
 
 启动入口仍为 `scripts/Start-Local.ps1` / `http://127.0.0.1:5173`，不重置现有密码或数据。V5/V6由API启动时Flyway增量执行；本次V4→V6原账号密码/状态、工单、文档、版本原件和发布指针核验保持一致，见 `evidence/ui-v2-demo-upgrade.json`。产品名称、页面品牌、容器、数据库与工程标识统一为Ticknova。

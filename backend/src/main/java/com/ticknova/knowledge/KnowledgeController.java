@@ -33,6 +33,8 @@ public class KnowledgeController {
     @PostMapping("/knowledge/documents/{id}/disable") public Detail disable(@PathVariable UUID id){return knowledge.disable(CurrentUser.get(),id);}
     @PostMapping("/knowledge/documents/{id}/versions/{versionId}/retry") @ResponseStatus(HttpStatus.ACCEPTED)
     public Upload retry(@PathVariable UUID id,@PathVariable UUID versionId){return knowledge.retry(CurrentUser.get(),id,versionId);}
+    @PostMapping("/knowledge/documents/{id}/versions/{versionId}/index/retry") @ResponseStatus(HttpStatus.ACCEPTED)
+    public Detail retryIndex(@PathVariable UUID id,@PathVariable UUID versionId){return knowledge.retryIndex(CurrentUser.get(),id,versionId);}
     @DeleteMapping("/knowledge/documents/{id}") @ResponseStatus(HttpStatus.NO_CONTENT) public void archive(@PathVariable UUID id){knowledge.archive(CurrentUser.get(),id);}
 
     public record CreateSpace(@NotBlank @Size(max=160) String name){}

@@ -2,8 +2,10 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { randomBytes } from 'node:crypto'
+import { signInDemo, changeDemoPassword } from './Demo-Credentials.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const envPath = resolve(root, '.env')
 const base = process.env.TICKNOVA_URL || 'http://127.0.0.1'
 const origin = new URL(base)
 if (origin.protocol !== 'http:' || origin.hostname !== '127.0.0.1' || origin.pathname !== '/') throw Error('Only the isolated local Ticknova browser stack is allowed')
@@ -39,14 +41,12 @@ async function style(selector) {
   })
 }
 try {
-  let adminPassword = env.DEMO_INITIAL_PASSWORD
-  const first = await context.request.post(`${base}/api/v1/auth/login`, { data: { username: 'admin', password: adminPassword } })
-  expect(first.status()).toBe(200)
-  const initial = await first.json(); secrets.push(initial.accessToken)
+  const adminSignIn = await signInDemo(context.request, base, envPath, 'admin')
+  let adminPassword = adminSignIn.password
+  const initial = adminSignIn.login; secrets.push(initial.accessToken, adminPassword)
   if (initial.user.mustChangePassword) {
     const changed = `Galaxy-${randomBytes(20).toString('hex')}!`; secrets.push(changed)
-    const response = await context.request.post(`${base}/api/v1/auth/change-password`, { headers: { Authorization: `Bearer ${initial.accessToken}` }, data: { oldPassword: adminPassword, newPassword: changed } })
-    expect(response.status()).toBe(204); adminPassword = changed
+    adminPassword = await changeDemoPassword(context.request, base, envPath, 'admin', adminPassword, initial.accessToken, changed)
   }
   phase = 'login controls'
   await page.goto(`${base}/login`)
@@ -125,14 +125,12 @@ try {
   await expect(page.locator('table tbody tr')).not.toHaveCount(0)
   checked('simulated request failure is visible; real retry restores server data')
   phase = 'engineer ticket page'
-  let agentPassword = env.DEMO_INITIAL_PASSWORD
-  const agentFirst = await context.request.post(`${base}/api/v1/auth/login`, { data: { username: 'agent', password: agentPassword } })
-  expect(agentFirst.status()).toBe(200)
-  const agentInitial = await agentFirst.json(); secrets.push(agentInitial.accessToken)
+  const agentSignIn = await signInDemo(context.request, base, envPath, 'agent')
+  let agentPassword = agentSignIn.password
+  const agentInitial = agentSignIn.login; secrets.push(agentInitial.accessToken, agentPassword)
   if (agentInitial.user.mustChangePassword) {
     const changed = `Galaxy-Agent-${randomBytes(20).toString('hex')}!`; secrets.push(changed)
-    const response = await context.request.post(`${base}/api/v1/auth/change-password`, { headers: { Authorization: `Bearer ${agentInitial.accessToken}` }, data: { oldPassword: agentPassword, newPassword: changed } })
-    expect(response.status()).toBe(204); agentPassword = changed
+    agentPassword = await changeDemoPassword(context.request, base, envPath, 'agent', agentPassword, agentInitial.accessToken, changed)
   }
   const agentPage = await context.newPage()
   agentPage.on('pageerror', error => errors.push(error.name))

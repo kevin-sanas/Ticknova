@@ -123,7 +123,7 @@ Galaxy 只作为局部状态与层级参考，仍使用项目现有 Vue 3、Elem
 | `KnowledgeError.vue` | 复合组件，`src/components` | Problem Details、409 和重试；`error,retry` / `retry` | 知识中心、文章编辑器、分类树等；由调用页 API 提供错误 | 403、409、网络失败、重试；无独立权限；`tests/knowledge.test.ts`、`tests/article-editor.test.ts` |
 | `KnowledgeCategories.vue` | 业务组件，`src/components` | 空间分类树；`spaceId,canEdit,modelValue,initialCategories` / `update:modelValue,denied` | `KnowledgeView`；分类列表与管理 API | 加载、空、错误、选中、编辑/删除；阅读及空间编辑 ACL；`tests/knowledge.test.ts` |
 | `ArticleEditorView.vue` | 页面，`src/views` | 自动保存草稿、解析来源预览与确认导入、生成审核版本 | `/knowledge/documents/{id}/draft`、`/versions/{versionId}/draft-source`、`/draft/versions` | 加载、空草稿、预览、保存、409、权限失败；空间编辑 ACL；`tests/article-editor.test.ts`；源超过编辑器安全预算时只可在知识中心查看解析结果 |
-| `KnowledgeView.vue` | 页面，`src/views` | 文档阅读、版本状态、空间审核待办与审核操作 | `/knowledge/review-tasks`、文档详情、审核/发布 API | 加载、空、错误、待审核、驳回；审核须另一位有效 KB_EDITOR 且有空间读/编辑 ACL；`tests/knowledge.test.ts` |
+| `KnowledgeView.vue` | 页面，`src/views` | 文档阅读、版本状态、空间审核待办、审核及失败索引重试 | `/knowledge/review-tasks`、文档详情、审核/发布/索引重试 API | 加载、空、错误、待审核、驳回、索引待处理/失败/重试；索引操作由服务端 `canRetryIndex` 限定空间编辑者；`tests/knowledge.test.ts` |
 
 本次复用上述组件并只为新入口增加局部样式，没有新增共享组件。下一次扩展建议清单时应先核查实际文件，避免按建议名称重复创建。
 

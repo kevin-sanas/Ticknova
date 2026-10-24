@@ -26,6 +26,7 @@ class AiIntegrationTest {
     @Autowired DataSource dataSource;
     @Autowired AiService service;
     @Autowired AiIndexWorker indexer;
+    @Autowired com.ticknova.knowledge.KnowledgeService knowledge;
     @Autowired AiWorker worker;
     @Autowired AiRetriever retriever;
     @Autowired AiAuthorization authorization;
@@ -171,6 +172,23 @@ class AiIntegrationTest {
         when(model.profile()).thenReturn("retry:1024");doThrow(new AiModelFailure("AI_PROVIDER_UNAVAILABLE",true)).when(model).embed(anyList());
         for(int i=0;i<5;i++){assertThat(indexer.runOnce()).isTrue();jdbc.sql("UPDATE document_version SET embedding_available_at=now() WHERE id=:id").param("id",version).update();}
         assertThat(indexer.runOnce()).isFalse();assertThat(jdbc.sql("SELECT embedding_attempts FROM document_version WHERE id=:id").param("id",version).query(Integer.class).single()).isEqualTo(5);
+    }
+    @Test void failedIndexHasAnAuditedPermissionCheckedRetryWithoutRecreatingTheVersion(){
+        fixture("网关配置");doReturn(List.of(new float[]{1})).when(model).embed(anyList());
+        assertThat(indexer.runOnce()).isTrue();
+        assertThat(jdbc.sql("SELECT embedding_state FROM document_version WHERE id=:id").param("id",version).query(String.class).single()).isEqualTo("FAILED");
+        assertThatThrownBy(()->knowledge.retryIndex(reader,document,version)).isInstanceOfSatisfying(ApiException.class,e->assertThat(e.status()).isEqualTo(403));
+        assertThatThrownBy(()->knowledge.retryIndex(other,document,version)).isInstanceOfSatisfying(ApiException.class,e->assertThat(e.status()).isEqualTo(404));
+        jdbc.sql("INSERT INTO knowledge_space_member(space_id,user_id,can_read,can_edit) VALUES(:space,:user,true,true)").param("space",space).param("user",other.id()).update();
+        var pending=knowledge.retryIndex(other,document,version);
+        assertThat(pending.versions().getFirst().embeddingState()).isEqualTo("PENDING");
+        assertThat(jdbc.sql("SELECT embedding_attempts FROM document_version WHERE id=:id").param("id",version).query(Integer.class).single()).isZero();
+        assertThat(jdbc.sql("SELECT count(*) FROM audit_event WHERE action='KNOWLEDGE_INDEX_RETRIED'").query(Long.class).single()).isEqualTo(1);
+        assertThatThrownBy(()->knowledge.retryIndex(other,document,version)).isInstanceOfSatisfying(ApiException.class,e->assertThat(e.status()).isEqualTo(409));
+        doAnswer(call->{List<String> inputs=call.getArgument(0);return inputs.stream().map(s->vector()).toList();}).when(model).embed(anyList());
+        assertThat(indexer.runOnce()).isTrue();
+        assertThat(jdbc.sql("SELECT embedding_state FROM document_version WHERE id=:id").param("id",version).query(String.class).single()).isEqualTo("READY");
+        assertThat(jdbc.sql("SELECT count(*) FROM document_version WHERE document_id=:id").param("id",document).query(Long.class).single()).isEqualTo(1);
     }
     @Test void weakGenericOverlapCannotAnswerAnUnrelatedQuestion(){
         fixture("先检查打印机电源和纸张，再安装打印驱动");indexer.runOnce();

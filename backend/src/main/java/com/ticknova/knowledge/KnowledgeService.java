@@ -180,6 +180,22 @@ public class KnowledgeService {
         UUID job=startJob(a,id); audit.record(a,"KNOWLEDGE_RETRIED","KNOWLEDGE_DOCUMENT",doc,Map.of("versionId",id.toString(),"previousJobId",v.jobId().toString(),"jobId",job.toString()));
         return new Upload(doc,id,job);
     }
+    @Transactional public Detail retryIndex(Actor a,UUID doc,UUID id) {
+        editable(a,doc);var v=version(a,doc,id);
+        if(!v.ingestState().equals("READY")||!"FAILED".equals(v.embeddingState()))
+            throw new ApiException(409,"INDEX_NOT_FAILED","只有解析就绪且索引失败的版本可以重试索引");
+        int changed=jdbc.sql("""
+            UPDATE document_version SET embedding_state='PENDING',embedding_profile=NULL,
+              embedding_attempts=0,embedding_error_code=NULL,embedding_lease=NULL,
+              embedding_locked_until=NULL,embedding_available_at=now()
+            WHERE id=:id AND document_id=:doc AND ingest_state='READY' AND embedding_state='FAILED'
+              AND (embedding_locked_until IS NULL OR embedding_locked_until<=now())
+            """).param("id",id).param("doc",doc).update();
+        if(changed!=1)throw new ApiException(409,"INDEX_STATE_CONFLICT","索引状态已变化，请刷新后重试");
+        audit.record(a,"KNOWLEDGE_INDEX_RETRIED","KNOWLEDGE_DOCUMENT",doc,
+            Map.of("versionId",id.toString(),"previousErrorCode",Objects.toString(v.embeddingErrorCode(),"UNKNOWN")));
+        return detail(a,repo.document(a,doc,false));
+    }
     @Transactional public Detail publish(Actor a,UUID doc,UUID id) {
         var d=editable(a,doc); var v=version(a,doc,id);
         if(!v.ingestState().equals("READY")||v.chunkCount()<1)throw new ApiException(409,"VERSION_NOT_READY","版本解析并分块成功后才能发布");

@@ -13,6 +13,7 @@ export interface KnowledgeVersion {
   id: string; versionNo: number; fileName: string; mimeType: string; sha256: string; ingestState: IngestState;
   publicationState: string; errorCode: string | null; createdAt: string; jobId: string | null;
   jobStatus: 'QUEUED' | 'RUNNING' | 'RETRYING' | 'COMPLETED' | 'FAILED' | null; attemptCount: number; chunkCount: number
+  embeddingState?: 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED' | null; embeddingErrorCode?: string | null; canRetryIndex?: boolean
 }
 export interface KnowledgeDetail extends KnowledgeDocument { versions: KnowledgeVersion[] }
 export interface KnowledgeUpload { documentId: string; versionId: string; jobId: string }

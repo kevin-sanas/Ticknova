@@ -3,8 +3,10 @@ import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { randomBytes } from 'node:crypto'
 import { createEditorFixture, actorRequest } from './Browser-Review.mjs'
+import { signInDemo, changeDemoPassword } from './Demo-Credentials.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
+const envPath = resolve(root, '.env')
 const { chromium } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/playwright/index.mjs')))
 const { expect: baseExpect } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/@playwright/test/index.mjs')))
 const expect = baseExpect.configure({ timeout: 45000 })
@@ -12,7 +14,6 @@ const base = process.env.TICKNOVA_URL || 'http://127.0.0.1:5173'
 const prefix = 'knowledge-recovery-2026-10-22'
 const origin = new URL(base)
 if (origin.protocol !== 'http:' || origin.hostname !== '127.0.0.1' || origin.pathname !== '/') throw Error('Ticknova local test origin required')
-const env = Object.fromEntries((await readFile(resolve(root, '.env'), 'utf8')).split(/\r?\n/).filter(line => line && !line.startsWith('#')).map(line => { const i = line.indexOf('='); return [line.slice(0, i), line.slice(i + 1)] }))
 const evidence = resolve(root, 'docs/evidence'); await mkdir(evidence, { recursive: true })
 const browser = await chromium.launch({ headless: true })
 const contexts = [], errors = [], checks = [], screenshots = [], secrets = []
@@ -40,15 +41,13 @@ async function snapshot(page, tag) {
   await page.setViewportSize({ width: 1440, height: 1050 })
 }
 try {
-  let adminPassword = env.DEMO_INITIAL_PASSWORD
   const bootstrap = await browser.newContext()
-  const first = await bootstrap.request.post(`${base}/api/v1/auth/login`, { data: { username: 'admin', password: adminPassword } })
-  expect(first.status()).toBe(200)
-  const firstResult = await first.json(); secrets.push(firstResult.accessToken)
+  const adminSignIn = await signInDemo(bootstrap.request, base, envPath, 'admin')
+  let adminPassword = adminSignIn.password
+  const firstResult = adminSignIn.login; secrets.push(firstResult.accessToken, adminPassword)
   if (firstResult.user.mustChangePassword) {
     const changed = `Browser-${randomBytes(20).toString('hex')}!`; secrets.push(changed)
-    const result = await bootstrap.request.post(`${base}/api/v1/auth/change-password`, { headers: { Authorization: `Bearer ${firstResult.accessToken}` }, data: { oldPassword: adminPassword, newPassword: changed } })
-    expect(result.status()).toBe(204); adminPassword = changed
+    adminPassword = await changeDemoPassword(bootstrap.request, base, envPath, 'admin', adminPassword, firstResult.accessToken, changed)
   }
   await bootstrap.close()
   const admin = await login('admin', adminPassword)

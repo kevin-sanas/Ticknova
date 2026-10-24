@@ -2,6 +2,7 @@ package com.ticknova.knowledge;
 
 import com.sun.net.httpserver.*;
 import java.net.*;
+import java.net.http.HttpTimeoutException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.Duration;
@@ -35,5 +36,10 @@ class DoclingClientTest {
         server.createContext("/internal/v1/convert",exchange->{exchange.getRequestBody().readAllBytes();exchange.sendResponseHeaders(200,0);try(var out=exchange.getResponseBody()){out.write('{');out.flush();try{Thread.sleep(1000);}catch(InterruptedException e){Thread.currentThread().interrupt();}}});server.start();
         long start=System.nanoTime();assertThatThrownBy(()->client(Duration.ofMillis(200)).convert(source)).isInstanceOfSatisfying(IngestFailure.class,e->assertThat(e.code()).isEqualTo("PARSER_TIMEOUT"));
         assertThat(Duration.ofNanos(System.nanoTime()-start)).isLessThan(Duration.ofSeconds(2));
+    }
+    @Test void requestHeaderTimeoutKeepsItsRetryableTimeoutCode() {
+        IngestFailure failure=DoclingClient.transportFailure(new java.util.concurrent.ExecutionException(new HttpTimeoutException("headers timed out")));
+        assertThat(failure.code()).isEqualTo("PARSER_TIMEOUT");
+        assertThat(failure.retryable()).isTrue();
     }
 }

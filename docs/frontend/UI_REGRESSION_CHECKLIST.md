@@ -1,5 +1,21 @@
 # Ticknova 前端回归检查清单
 
+## 2026-10-24 五角色、独立知识页、门户与分析回归范围
+
+本轮为页面与角色流程调整，涉及导航、知识列表/详情/编辑/审核/空间管理、门户和 ADMIN 分析；复用已有阅读、编辑、上传与错误组件，新增 DocumentActionBar 和懒加载 DailyChart。以下为需要核对的真实行为清单，**本节不标记本轮测试通过**；实际执行、失败与最终结果以第12篇为准，历史通过数量不覆盖新实现。
+
+| 检查范围 | 本轮应核对的行为 | 对应回归代码 |
+|---|---|---|
+| 五角色与职责分离 | ADMIN 仅创建空间/管成员且无隐含正文；KB_EDITOR 需 canRead+canEdit，KB_REVIEWER 需 canRead+canReview；编辑/审核互斥、作者不可自审；角色/读/ACL撤销清理后续访问 | `knowledge-routes.test.ts`、`knowledge-review.test.ts`、`knowledge.test.ts` |
+| 动作与精确版本 | 文档/版本 allowedActions 分层；审核只当前精确 READY/PENDING；按钮对应版本ID，批准后编辑者发布；审核者不看任意草稿/历史；旧发布在新稿期间保留 | 同上及后端知识集成测试 |
+| 路由与导航 | `/knowledge` 列表；独立详情 tabs；`/admin/knowledge-spaces`；`/knowledge/reviews`；旧 documentId query、versionId/chunkId 深链和返回列表/待办 | `knowledge-routes.test.ts`、`views.test.ts`、浏览器知识/审核脚本 |
+| 管理弹层与错误 | members/candidates 展示角色；读前置/编辑审核互斥校验、变更理由；未保存保护、焦点/关闭、失败保留输入、401/403/404清理与旧响应隔离 | `knowledge-routes.test.ts`、浏览器 Design/Knowledge 脚本 |
+| 门户真实数据 | publishedAt 来自发布版本，缺失有明确文案；分类数量来自可读发布文档直接分类；两列卡/窄屏单列、摘要两行；REQUESTER“我的工单”、AGENT“可访问工单” | `portal.test.ts`、`workspace-pages.test.ts`、浏览器 Demo/Design 脚本 |
+| 分析与可访问数据 | URL range=7/14/30 到 UTC 日期、刷新/历史；真实KPI与零分母、每日解决口径；ECharts SVG/ARIA/减少动态效果、Token、响应式和加载失败；HTML每日表格始终可用 | `analytics.test.ts`、`workspace-pages.test.ts`、浏览器 Design 脚本 |
+| 验证边界 | 空/加载/错误/成功、权限与会话变化、桌面和窄屏、键盘焦点；新空库五账号，非空库不自动转角色，保留密码/历史 | 第12篇记录实际覆盖，未执行不得当作通过 |
+
+> 下方2026-10-21/22的编辑者审核与旧页面调用位置为历史记录。当前审核角色为 KB_REVIEWER，规范以上方2026-10-24和第07/09篇为准。
+
 ## 阶段 A：原创数据与门户摘要（2026-10-24）
 
 L1 直接影响 `PortalView.vue` 的热门/最近文档摘要，使用局部 scoped 两行截断，保留完整标题、正文跳转及真实 API 片段；搜索结果不受截断规则影响。未改共享组件、Design Tokens、权限、模态框或导航。组件清单及四份前端规则已核对，不新增同类组件。
@@ -35,14 +51,14 @@ L2 影响：`KnowledgeView` 的版本历史、文档详情 DTO 与测试；关�
 | 自动化 | 最终 `npm test` 16 文件 185 项通过；`npm run lint`、`npm run build`（含 TypeScript）及 `git diff --check` 通过。隔离 Chromium 交互检查通过、无页面脚本错误；临时容器、网络及镜像已清理。 |
 | 未执行 | 真实演示库、其他浏览器内核、后端测试、性能和真实 AI 模型 NOT RUN；本批没有修改后端产品代码。 |
 
-## 本次变更（2026-10-22）
+## 历史变更（2026-10-22）
 
 - 范围：L2，知识文章编辑器、知识中心审核待办和版本历史。
 - 共享组件：复用 `RichDocument`、`KnowledgeError`、`RichTextEditor`；没有修改其实现。
 - 直接关联：草稿自动保存、解析版本、空间 ACL、独立审核与旧发布版本。
 - 验收路径：未发布文件解析就绪→查看原文/编辑草稿；旧空白草稿→预览→确认导入→保存→再打开；提交审核→另一位有权限编辑者在待办中通过或退回→作者查看结果。
 
-## 执行记录
+## 历史执行记录（2026-10-22）
 
 | 检查 | 结果 | 证据或备注 |
 |---|---|---|

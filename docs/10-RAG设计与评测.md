@@ -16,7 +16,7 @@
 
 `eval/service-desk-cases.json` 固定 12 篇原创帮助文档和 40 道题：32 道有证据问题（含跨文档题），8 道无证据/无权限/撤回/未发布问题。标签由开发者提供，以文档稳定键及原文锚点解析为实际 Docling 片段 ID；人工相关性和 groundedness 复核仍为 **NOT RUN**。原有 32 条 mock 回归及其断言保留。
 
-运行 `scripts/Run-RagEvaluation.ps1` 会使用独立 `ticknova-eval` 项目和 `ticknova_eval` 临时数据库，真实执行 Docling、另一位编辑审核、发布和索引。全文、向量、混合三种策略共享生产权限、发布和证据门槛；全文策略不调用查询 embedding，但比较语料仍要求同一模型已完成索引。默认产品接口仍为混合检索，没有新增公共接口或更改权限规则。
+运行 `scripts/Run-RagEvaluation.ps1` 会使用独立 `ticknova-eval` 项目和 `ticknova_eval` 临时数据库，真实执行 Docling、专职 `KB_REVIEWER` 独立审核、由 `KB_EDITOR` 发布及索引。全文、向量、混合三种策略共享生产权限、发布和证据门槛；全文策略不调用查询 embedding，但比较语料仍要求同一模型已完成索引。默认产品接口仍为混合检索，没有新增公共接口或更改权限规则。
 
 结果使用唯一时间戳写入 `docs/evidence/rag-benchmark-{mock|real}-*.json`，不覆盖历史。记录语料和原件 SHA-256、模型/profile、每题结果、调用量及失败项。`chunkRecallAt5` 是每题期望片段召回比例的平均值；`hitAt5` 是至少命中一个期望片段的问题比例，两者不混用。`candidateLabelCitationPrecision` 只代表候选标签匹配，不能当作人工事实正确性。检索 P95 仅测服务层检索，包含查询 embedding（缓存命中时除外），不包含 HTTP 排队/Outbox/整段生成延迟；mock 哈希向量不能代表语义检索质量。三种策略在同一次语料快照上比较；重新建库会生成新的片段 UUID，并列候选可能改变顺序，不承诺跨次数字完全相同。
 

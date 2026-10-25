@@ -27,13 +27,14 @@ class KnowledgeDoclingIntegrationTest {
     @BeforeEach void setup() {
         assertThat(jdbc.sql("SELECT current_database()").query(String.class).single()).isEqualTo("ticknova_test");jdbc.sql("TRUNCATE app_user CASCADE").update();
         UUID id=UUID.randomUUID();jdbc.sql("INSERT INTO app_user(id,username,display_name,password_hash,must_change_password) VALUES(:id,'editor','Editor','unused',false)").param("id",id).update();
-        jdbc.sql("INSERT INTO user_role SELECT :id,id FROM app_role WHERE code='KB_EDITOR'").param("id",id).update();
-        editor=new Actor(id,"editor","Editor",Set.of("KB_EDITOR"),false);space=knowledge.createSpace(editor,"Real Docling").id();
+        jdbc.sql("INSERT INTO user_role SELECT :id,id FROM app_role WHERE code IN ('KB_EDITOR','ADMIN')").param("id",id).update();
+        editor=new Actor(id,"editor","Editor",Set.of("KB_EDITOR","ADMIN"),false);space=knowledge.createSpace(editor,"Real Docling").id();
+        knowledge.membership(editor,space,id,true,true,"Explicit editor fixture");
         UUID reviewerId=UUID.randomUUID();
         jdbc.sql("INSERT INTO app_user(id,username,display_name,password_hash,must_change_password) VALUES(:id,'reviewer','Reviewer','unused',false)").param("id",reviewerId).update();
-        jdbc.sql("INSERT INTO user_role SELECT :id,id FROM app_role WHERE code='KB_EDITOR'").param("id",reviewerId).update();
-        reviewer=new Actor(reviewerId,"reviewer","Reviewer",Set.of("KB_EDITOR"),false);
-        knowledge.membership(editor,space,reviewerId,true,true,"Independent review fixture");
+        jdbc.sql("INSERT INTO user_role SELECT :id,id FROM app_role WHERE code='KB_REVIEWER'").param("id",reviewerId).update();
+        reviewer=new Actor(reviewerId,"reviewer","Reviewer",Set.of("KB_REVIEWER"),false);
+        knowledge.membership(editor,space,reviewerId,true,false,true,"Independent review fixture");
     }
     @Test void markdownTravelsThroughRealHttpParserAndPublication(){ingest("guide.md","text/markdown","# Guide\n\nSafe knowledge for local tests.".getBytes(StandardCharsets.UTF_8));}
     @Test void txtTravelsThroughRealHttpParserAndPublication(){ingest("guide.txt","text/plain","Safe knowledge for local tests.".getBytes(StandardCharsets.UTF_8));}

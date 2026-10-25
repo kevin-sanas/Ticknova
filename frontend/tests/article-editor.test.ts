@@ -21,7 +21,7 @@ async function render(extra?: (url: string, init: RequestInit) => Response | Pro
   const component = (await modules['../src/views/ArticleEditorView.vue']!() as { default: Component }).default
   vi.stubGlobal('fetch', (url: string, init: RequestInit) => Promise.resolve(extra?.(url, init) || new Response(JSON.stringify(url.endsWith('/draft') ? draft : []))))
   const pinia = createPinia(); const session = useSessionStore(pinia); session.accept({ accessToken: 'editor-token', expiresIn: 1800, user: { id: 'u1', username: 'editor', displayName: '编辑', roles: ['KB_EDITOR'], mustChangePassword: false } }); bindApiSession({ getToken: () => session.token, onUnauthorized: () => session.clear() })
-  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/knowledge/articles/:id/edit', component }, { path: '/knowledge', component: { template: '<p>知识</p>' } }] }); await router.push('/knowledge/articles/d1/edit'); await router.isReady()
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/knowledge/articles/:id/edit', component }, { path: '/knowledge/documents/:documentId', component: { template: '<p>独立文档详情</p>' } }, { path: '/knowledge', component: { template: '<p>知识</p>' } }] }); await router.push('/knowledge/articles/d1/edit'); await router.isReady()
   wrapper = mount({ template: '<router-view />' }, { attachTo: document.body, global: { plugins: [pinia, router, ElementPlus] } }); await flushPromises(); return { view: wrapper, session, router }
 }
 it('saves actual title changes with version and retains edits with explicit conflict recovery', async () => {
@@ -67,6 +67,20 @@ it('shows a retryable error when an empty draft cannot load its parsed source me
 })
 it('clears editor and preview immediately on session replacement', async () => {
   const { view, session } = await render(); expect(view.text()).toContain('文章正文'); session.clear(); await flushPromises(); expect(view.text()).not.toContain('文章正文'); expect(view.find('[contenteditable]').exists()).toBe(false)
+})
+it('returns to the independent document page after committing a version', async () => {
+  const { view, router } = await render((_url, init) => init.method === 'POST' ? new Response(JSON.stringify({ documentId: 'd1', versionId: 'v2', jobId: 'j2' }), { status: 202 }) : undefined)
+  await view.findAll('button').find(button => button.text() === '生成待审核版本')!.trigger('click'); await flushPromises()
+  expect(router.currentRoute.value.path).toBe('/knowledge/documents/d1'); expect(view.text()).toContain('独立文档详情')
+})
+it.each([403, 404])('purges the private editor after source preview is denied with %s', async status => {
+  const { view } = await render((url, init) => {
+    if (url.endsWith('/draft') && init.method === 'GET') return new Response(JSON.stringify(emptyDraft))
+    if (url.endsWith('/documents/d1')) return new Response(JSON.stringify({ id: 'd1', latestVersionId: 'v1', versions: [{ id: 'v1', versionNo: 1, ingestState: 'READY', chunkCount: 1 }] }))
+    if (url.endsWith('/draft-source')) return new Response(JSON.stringify({ status, title: '来源访问已撤销' }), { status })
+  })
+  await view.findAll('button').find(button => button.text() === '预览解析正文')!.trigger('click'); await flushPromises()
+  expect(view.find('#article-title').exists()).toBe(false); expect(view.find('[contenteditable]').exists()).toBe(false)
 })
 it('shows accessible editable selection controls and a safe matching preview', async () => {
   const { view } = await render(); expect(view.get('[role=toolbar]').attributes('aria-label')).toBe('文章格式'); expect(view.get('[aria-label="粗体"]').attributes('aria-pressed')).toBe('false'); await view.get('#article-preview').trigger('click'); expect(view.get('.article-preview').text()).toContain('文章正文')

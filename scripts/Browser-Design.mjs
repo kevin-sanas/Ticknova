@@ -3,7 +3,8 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { randomUUID } from 'node:crypto'
-import { actorRequest, createEditorFixture, permitReview } from './Browser-Review.mjs'
+import { actorRequest, createEditorFixture, createReviewerFixture, permitReview } from './Browser-Review.mjs'
+import { DESIGN_TOKENS, hexToCssRgb } from './Design-Tokens.mjs'
 
 // Real local services only: no response fulfillment, provider changes, or existing
 // demo password changes. Fixtures live only in the disposable browser database.
@@ -88,24 +89,34 @@ async function trap(page, surface) {
   for (let index = 0; index < Math.max(count + 2, 4); index++) { await page.keyboard.press('Tab'); ensure(await surface.evaluate(el => el.contains(document.activeElement)), 'MODAL_TAB_ESCAPED') }
   for (let index = 0; index < 3; index++) { await page.keyboard.press('Shift+Tab'); ensure(await surface.evaluate(el => el.contains(document.activeElement)), 'MODAL_SHIFT_TAB_ESCAPED') }
 }
+async function selectElOption(page, selector, label) {
+  await page.locator(selector).click()
+  const popper = page.locator('.el-select__popper:visible')
+  await expect(popper).toBeVisible()
+  await popper.getByRole('option', { name: label, exact: true }).click()
+}
 async function openDocument(actor, space, id, title) {
+  if (actor.user.roles.includes('KB_REVIEWER')) {
+    await navigate(actor,'/knowledge/reviews'); await actor.page.getByRole('button',{name:'刷新待办',exact:true}).click(); await actor.page.getByRole('button',{name:new RegExp(`^审核${title}的版本 `)}).first().click(); await expect(actor.page.locator('.knowledge-detail')).toBeVisible(); return
+  }
   await navigate(actor, '/knowledge'); await actor.page.getByRole('button', { name: '刷新空间', exact: true }).click(); await expect(actor.page.locator('#knowledge-space')).toBeEnabled()
   await actor.page.locator('#knowledge-space').selectOption(space.id); await actor.page.getByRole('button', { name: title, exact: true }).click()
-  await expect(actor.page.locator('.knowledge-detail')).toBeVisible(); await expect.poll(() => new URL(actor.page.url()).searchParams.get('documentId')).toBe(id)
+  await expect(actor.page.locator('.knowledge-detail')).toBeVisible(); await expect.poll(() => new URL(actor.page.url()).pathname).toBe(`/knowledge/documents/${id}`)
 }
 async function refresh(actor) { await actor.page.getByRole('button', { name: '刷新状态', exact: true }).click() }
 async function ready(actor, id, versionId) {
   await expect.poll(async () => (await api(actor, 'GET', `/knowledge/documents/${id}`)).versions.find(row => row.id === versionId)?.ingestState, { timeout: 120_000, intervals: [1000, 2000, 3000] }).toBe('READY')
-  await expect(actor.page.locator('.knowledge-detail')).toBeVisible(); await refresh(actor)
+  await expect(actor.page.locator('.knowledge-detail')).toBeVisible(); await refresh(actor); await actor.page.getByRole('tab',{name:'版本历史',exact:true}).click()
 }
 async function requestReview(actor) {
-  const row = actor.page.locator('.knowledge-versions > li').first()
+  const row = actor.page.locator('.version-list > li').first()
   await row.getByRole('button', { name: '提交审核', exact: true }).click(); await expect(row.getByText('待审核', { exact: true })).toBeVisible()
 }
-async function approveAndPublish(actor) {
-  const row = actor.page.locator('.knowledge-versions > li').first()
-  await row.getByRole('button', { name: '审核通过', exact: true }).click(); await expect(row.getByText('审核通过', { exact: true })).toBeVisible()
-  await row.getByRole('button', { name: '发布此版本', exact: true }).click(); await expect(row.getByText('当前发布', { exact: true })).toBeVisible()
+async function approveAndPublish(reviewer, author) {
+  const row = reviewer.page.locator('.version-list > li').first()
+  await row.getByRole('button', { name: '审核通过', exact: true }).click(); await reviewer.page.waitForURL('**/knowledge/reviews'); await expect(reviewer.page.locator('.knowledge-detail,.knowledge-reader')).toHaveCount(0)
+  await refresh(author); await author.page.getByRole('tab',{name:'版本历史',exact:true}).click()
+  await author.page.locator('.version-list > li').first().getByRole('button',{name:'发布此版本',exact:true}).click(); await expect(author.page.getByText('版本已发布。',{exact:true})).toBeVisible()
 }
 async function editDocument(actor) { await actor.page.getByRole('button', { name: '编辑文章草稿', exact: true }).click(); await expect(actor.page.getByRole('textbox', { name: '文章正文', exact: true })).toBeVisible() }
 async function commit(actor) { return responseFor(actor.page, 'POST', '/draft/versions', () => actor.page.getByRole('button', { name: '生成待审核版本', exact: true }).click(), [202]) }
@@ -130,23 +141,29 @@ try {
     const openapi = await api(admin, 'GET', '/openapi')
     ensure(['/api/v1/workspace/portal', '/api/v1/workspace/analytics', '/api/v1/knowledge/documents/{id}/draft', '/api/v1/ai/jobs/{id}/cancel'].every(path => openapi.paths?.[path]), 'CURRENT_OPENAPI_PATHS_MISSING')
     await writeFile(resolve(evidence, 'ui-v2-openapi.json'), JSON.stringify(openapi, null, 2) + '\n')
-    const authorFixture = await createEditorFixture(admin, base, secret => secrets.push(secret)), reviewerFixture = await createEditorFixture(admin, base, secret => secrets.push(secret))
+    const authorFixture = await createEditorFixture(admin, base, secret => secrets.push(secret)), reviewerFixture = await createReviewerFixture(admin, base, secret => secrets.push(secret))
     author = await login(authorFixture.username, authorFixture.password); reviewer = await login(reviewerFixture.username, reviewerFixture.password)
     concurrentAuthor = await login(authorFixture.username, authorFixture.password); expiringReviewer = await login(reviewerFixture.username, reviewerFixture.password)
     fixtures.authorId = author.user.id; fixtures.reviewerId = reviewer.user.id
     ensure(author.user.id !== reviewer.user.id && logins === 7, 'SEVEN_LOGINS_AND_INDEPENDENT_IDENTITIES_REQUIRED')
-    checked('seven UI sign-ins; synthetic editors complete first password change; existing demo credentials preserved')
+    checked('seven UI sign-ins; synthetic editor and KB_REVIEWER complete first password change; existing demo credentials preserved')
     checked('Ticknova login, workspace navigation, footer and document title across all seven sessions')
-    ensure(await requester.page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim().toLowerCase()) === '#176b5b', 'BRAND_GREEN_TOKEN')
-    ensure(await requester.page.evaluate(() => getComputedStyle(document.documentElement).backgroundColor) === 'rgb(250, 249, 246)', 'WARM_CANVAS_TOKEN')
+    const designTokens = await requester.page.evaluate(() => ({
+      primary: getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim().toLowerCase(),
+      canvas: getComputedStyle(document.documentElement).getPropertyValue('--color-canvas').trim().toLowerCase(),
+      canvasRgb: getComputedStyle(document.documentElement).backgroundColor
+    }))
+    ensure(designTokens.primary === DESIGN_TOKENS.primary, 'BRAND_GREEN_TOKEN')
+    ensure(designTokens.canvas === DESIGN_TOKENS.canvas && designTokens.canvasRgb === hexToCssRgb(DESIGN_TOKENS.canvas), 'WARM_CANVAS_TOKEN')
     await expect(requester.page).toHaveURL(`${base}/portal`); await expect(requester.page.locator('a[href^="/admin/"]')).toHaveCount(0)
     await matrix(requester.page, 'portal'); checked('requester defaults to search-first portal without administrative navigation')
   })
   await phase('real category CRUD and empty knowledge states', async () => {
-    await navigate(author, '/knowledge'); await author.page.getByRole('button', { name: '创建空间', exact: true }).click(); await author.page.locator('#knowledge-space-name').fill(`V2合成知识空间 ${stamp}`)
-    space = await responseFor(author.page, 'POST', '/knowledge/spaces', () => author.page.getByRole('button', { name: '保存空间', exact: true }).click(), [201]); fixtures.spaceId = space.id
-    await expect(author.page.locator('#knowledge-space')).toHaveValue(space.id); await permitReview(author, reviewer, base, space.id)
-    for (const actor of [requester, agent]) await api(author, 'PUT', `/knowledge/spaces/${space.id}/members/${actor.user.id}`, { canRead: true, canEdit: false, reason: 'V2合成浏览器验收授权' })
+    await navigate(admin, '/admin/knowledge-spaces'); await admin.page.getByRole('button', { name: '创建空间', exact: true }).click(); await admin.page.locator('#knowledge-space-name').fill(`V2合成知识空间 ${stamp}`)
+    space = await responseFor(admin.page, 'POST', '/knowledge/spaces', () => admin.page.getByRole('button', { name: '保存空间', exact: true }).click(), [201]); fixtures.spaceId = space.id
+    await api(admin,'PUT',`/knowledge/spaces/${space.id}/members/${author.user.id}`,{canRead:true,canEdit:true,canReview:false,reason:'V2 合成编辑授权'}); await permitReview(admin, reviewer, base, space.id)
+    await navigate(author,'/knowledge'); await author.page.getByRole('button',{name:'刷新空间',exact:true}).click(); await author.page.locator('#knowledge-space').selectOption(space.id)
+    for (const actor of [requester, agent]) await api(admin, 'PUT', `/knowledge/spaces/${space.id}/members/${actor.user.id}`, { canRead: true, canEdit: false, canReview: false, reason: 'V2合成浏览器验收授权' })
     await expect(author.page.getByText('此空间暂无文档。', { exact: true })).toBeVisible(); await snapshot(author.page, 'knowledge-empty')
     await author.page.getByRole('button', { name: '管理分类', exact: true }).click(); await author.page.locator('#category-name').fill(categoryName)
     category = await responseFor(author.page, 'POST', `/spaces/${space.id}/categories`, () => author.page.getByRole('button', { name: '保存分类', exact: true }).click(), [201])
@@ -161,7 +178,7 @@ try {
     checked('actual UI category create, rename, selection, empty state and confirmed empty-category deletion')
   })
   await phase('rich authoring toolbar preview and real debounced autosave', async () => {
-    await author.page.getByRole('button', { name: '撰写文章', exact: true }).click(); await author.page.locator('#article-create-title').fill(articleTitle)
+    await author.page.getByRole('button',{name:'新建文档',exact:true}).click(); await author.page.getByRole('button', { name: '撰写文章', exact: true }).click(); await author.page.locator('#article-create-title').fill(articleTitle)
     article = await responseFor(author.page, 'POST', `/spaces/${space.id}/articles`, () => author.page.getByRole('button', { name: '创建文章草稿', exact: true }).click(), [201]); fixtures.documentId = article.id
     const editor = author.page.getByRole('textbox', { name: '文章正文', exact: true }); await expect(editor).toBeVisible()
     await editor.fill('网关502排查'); await author.page.locator('#article-heading').selectOption('2'); await editor.press('End'); await editor.press('Enter'); await author.page.locator('#article-heading').selectOption('0')
@@ -194,13 +211,13 @@ try {
     const first = await commit(author); await ready(author, article.id, first.versionId); await requestReview(author)
     await expect(author.page.getByRole('button', { name: '审核通过', exact: true })).toHaveCount(0)
     await api(author, 'POST', `/knowledge/documents/${article.id}/versions/${first.versionId}/reviews`, { decision: 'APPROVED' }, undefined, [403])
-    await openDocument(reviewer, space, article.id, articleTitle); const row = reviewer.page.locator('.knowledge-versions > li').first(); await row.getByRole('button', { name: '审核不通过', exact: true }).click()
+    await openDocument(reviewer, space, article.id, articleTitle); const row = reviewer.page.locator('.version-list > li').first(); await row.getByRole('button', { name: '审核不通过', exact: true }).click()
     await expect(reviewer.page.getByRole('button', { name: '确认审核不通过', exact: true })).toBeDisabled(); await reviewer.page.locator('#review-reason').fill('合成审核：补充复核步骤后重新提交。')
-    await reviewer.page.getByRole('button', { name: '确认审核不通过', exact: true }).click(); await expect(row).toContainText('审核不通过'); await expect(row).toContainText('补充复核步骤'); await snapshot(reviewer.page, 'review-rejected')
+    await reviewer.page.getByRole('button', { name: '确认审核不通过', exact: true }).click(); await reviewer.page.waitForURL('**/knowledge/reviews'); await expect(reviewer.page.locator('.knowledge-detail,.knowledge-reader')).toHaveCount(0); await refresh(author); await expect(author.page.locator('.version-list')).toContainText('补充复核步骤'); await snapshot(author.page, 'review-rejected')
     await refresh(author); await editDocument(author); const editor = author.page.getByRole('textbox', { name: '文章正文', exact: true }); await editor.press('Control+End'); await editor.pressSequentially(' 复核健康检查和路由配置。')
     await expect(author.page.locator('.save-status')).toHaveText('已保存'); const next = await commit(author); ensure(next.versionId !== first.versionId, 'REJECTION_REQUIRES_NEW_VERSION')
-    await ready(author, article.id, next.versionId); await requestReview(author); await refresh(reviewer); await approveAndPublish(reviewer); publishedVersion = next.versionId
-    checked('self-review denied 403; independent KB_EDITOR rejection requires reason; distinct new version approved and published')
+    await ready(author, article.id, next.versionId); await requestReview(author); await openDocument(reviewer,space,article.id,articleTitle); await approveAndPublish(reviewer,author); publishedVersion = next.versionId
+    checked('self-review denied 403; independent KB_REVIEWER rejection requires reason; distinct new version approved and published')
     await refresh(author); await editDocument(author); await editor.press('Control+End'); await editor.pressSequentially(' 下一版仅为待审核草稿。'); await expect(author.page.locator('.save-status')).toHaveText('已保存')
     const pending = await commit(author); await ready(author, article.id, pending.versionId); await requestReview(author)
     ensure((await api(author, 'GET', `/knowledge/documents/${article.id}`)).publishedVersionId === publishedVersion, 'PUBLICATION_CHANGED_PREMATURELY')
@@ -209,10 +226,11 @@ try {
     await matrix(requester.page, 'knowledge-reader'); checked('old published source stays readable while a later version awaits review')
   })
   await phase('small Markdown real Docling upload review and reader', async () => {
+    await navigate(author,'/knowledge'); await author.page.locator('#knowledge-space').selectOption(space.id); await author.page.getByRole('button',{name:'新建文档',exact:true}).click()
     await author.page.locator('#knowledge-title').fill(`V2文件导入 ${stamp}`)
     await author.page.locator('#knowledge-file').setInputFiles({ name: 'v2-docling.md', mimeType: 'text/markdown', buffer: Buffer.from(`# 文件导入验收\n\n${sourceText}\n`, 'utf8') })
     upload = await responseFor(author.page, 'POST', `/spaces/${space.id}/documents`, () => author.page.getByRole('button', { name: '上传并解析', exact: true }).click(), [202]); fixtures.uploadDocumentId = upload.documentId
-    await ready(author, upload.documentId, upload.versionId); await requestReview(author); await openDocument(reviewer, space, upload.documentId, `V2文件导入 ${stamp}`); await approveAndPublish(reviewer)
+    await ready(author, upload.documentId, upload.versionId); await requestReview(author); await openDocument(reviewer, space, upload.documentId, `V2文件导入 ${stamp}`); await approveAndPublish(reviewer,author)
     await openDocument(requester, space, upload.documentId, `V2文件导入 ${stamp}`); await expect(requester.page.locator('.knowledge-reader')).toContainText('上游服务健康检查')
     checked('browser upload reaches actual parse/chunk pipeline, independent review, publication and authorized reader')
   })
@@ -229,16 +247,16 @@ try {
       await expect(requester.page.getByRole('status', { name: '正在搜索服务内容', exact: true })).toBeVisible()
       await expect(requester.page.locator('#portal-search-form button')).toBeDisabled(); await snapshot(requester.page, 'portal-loading')
     } finally { release(); await requester.context.unroute(pattern, delayed) }
-    await expect(requester.page.locator('.portal-results')).toBeVisible()
+    await expect(requester.page.locator('.portal-main')).toBeVisible()
     checked('loading state and disabled duplicate-submit control while an actual network request is held then released')
     await navigate(requester, '/portal'); await requester.page.locator('#portal-search').fill(articleTitle); await requester.page.locator('#portal-search-form').getByRole('button', { name: '搜索', exact: true }).click()
-    await requester.page.locator('.portal-results').getByRole('link', { name: articleTitle, exact: true }).click(); await expect.poll(() => new URL(requester.page.url()).searchParams.get('documentId')).toBe(article.id)
-    await navigate(requester, '/portal'); await requester.page.locator('.category-links').getByRole('link', { name: new RegExp(`${categoryName}修订`) }).click()
+    await requester.page.locator('.portal-main').getByRole('link', { name: articleTitle, exact: true }).click(); await expect.poll(() => new URL(requester.page.url()).pathname).toBe(`/knowledge/documents/${article.id}`)
+    await navigate(requester, '/portal'); await requester.page.locator('.category-chips').getByRole('link', { name: new RegExp(`${categoryName}修订`) }).click()
     await expect(requester.page.locator('#knowledge-space')).toHaveValue(space.id); await expect(requester.page.locator('.category-tree button[aria-current="true"]')).toHaveText(`${categoryName}修订`); ensure(new URL(requester.page.url()).searchParams.get('spaceId') === space.id, 'CATEGORY_WRONG_SPACE')
-    await navigate(requester, '/portal'); await requester.page.locator('#portal-search').fill(`no-results-${randomUUID()}`); await requester.page.locator('#portal-search-form').getByRole('button', { name: '搜索', exact: true }).click(); await expect(requester.page.locator('.portal-results .empty-state')).toBeVisible(); await snapshot(requester.page, 'portal-empty')
+    await navigate(requester, '/portal'); await requester.page.locator('#portal-search').fill(`no-results-${randomUUID()}`); await requester.page.locator('#portal-search-form').getByRole('button', { name: '搜索', exact: true }).click(); await expect(requester.page.locator('.portal-main .empty-state')).toBeVisible(); await snapshot(requester.page, 'portal-empty')
     await requester.context.setOffline(true)
     try { await requester.page.locator('#portal-search-form').getByRole('button', { name: '搜索', exact: true }).click(); await expect(requester.page.getByRole('alert')).toBeVisible(); await snapshot(requester.page, 'portal-offline') } finally { await requester.context.setOffline(false) }
-    await requester.page.getByRole('button', { name: '重试', exact: true }).click(); await expect(requester.page.getByRole('alert')).toHaveCount(0); await expect(requester.page.locator('.portal-results .empty-state')).toBeVisible()
+    await requester.page.getByRole('button', { name: '重试', exact: true }).click(); await expect(requester.page.getByRole('alert')).toHaveCount(0); await expect(requester.page.locator('.portal-main .empty-state')).toBeVisible()
     await requester.page.getByRole('button', { name: '收起导航', exact: true }).click(); await requester.page.locator('.sidebar a[href="/knowledge"]').focus(); await expect(requester.page.getByRole('tooltip', { name: '知识协同', exact: true })).toBeVisible(); await snapshot(requester.page, 'navigation-keyboard-tooltip')
     await requester.page.getByRole('button', { name: '展开导航', exact: true }).click()
     checked('real portal search/category correct-space navigation; empty/offline/error/retry and collapsed-nav keyboard tooltip')
@@ -273,11 +291,11 @@ try {
   })
   await phase('real cited answer exact source location refusal and server cancel', async () => {
     await expect.poll(async () => { const created = await api(requester, 'POST', '/ai/answers', { question: '网关502错误先检查什么？', spaceIds: [space.id] }, randomUUID()); return (await waitJob(requester, created.jobId)).result?.outcome }, { timeout: 90_000, intervals: [1000, 3000] }).toBe('ANSWERED')
-    await navigate(requester, '/assistant'); await requester.page.locator('#assistant-question').fill('网关502错误先检查什么？'); await requester.page.locator('#assistant-spaces').selectOption([space.id]); await requester.page.locator('#assistant-submit').click()
+    await navigate(requester, '/assistant'); await requester.page.locator('#assistant-question').fill('网关502错误先检查什么？'); await selectElOption(requester.page, '.assistant-space-select', space.name); await requester.page.locator('#assistant-submit').click()
     const link = requester.page.locator('.ai-citations a').first(); await expect(link).toBeVisible(); const citation = new URL(await link.getAttribute('href'), base)
-    ensure(['documentId', 'versionId', 'chunkId'].every(key => /^[a-f0-9-]{36}$/.test(citation.searchParams.get(key) || '')), 'CITATION_REQUIRES_DOCUMENT_VERSION_CHUNK')
+    ensure(/^\/knowledge\/documents\/[a-f0-9-]{36}$/.test(citation.pathname) && ['versionId', 'chunkId'].every(key => /^[a-f0-9-]{36}$/.test(citation.searchParams.get(key) || '')), 'CITATION_REQUIRES_DOCUMENT_VERSION_CHUNK')
     await matrix(requester.page, 'assistant-cited'); await link.click(); await expect(requester.page.locator('.citation-located')).toBeVisible(); await expect(requester.page.locator('.knowledge-source-chunk.cited')).toHaveAttribute('id', `knowledge-source-${citation.searchParams.get('chunkId')}`); await expect(requester.page.locator('.knowledge-source-chunk.cited')).toBeFocused(); await snapshot(requester.page, 'citation-location')
-    await navigate(requester, '/assistant'); await requester.page.locator('#assistant-question').fill('火星食堂今天午餐菜单是什么？'); await requester.page.locator('#assistant-spaces').selectOption([space.id]); await requester.page.locator('#assistant-submit').click(); await expect(requester.page.getByText('证据不足，暂时无法确认', { exact: true })).toBeVisible(); await expect(requester.page.locator('.ai-citations')).toHaveCount(0); await snapshot(requester.page, 'assistant-refusal')
+    await navigate(requester, '/assistant'); await requester.page.locator('#assistant-question').fill('火星食堂今天午餐菜单是什么？'); await selectElOption(requester.page, '.assistant-space-select', space.name); await requester.page.locator('#assistant-submit').click(); await expect(requester.page.getByText('证据不足，暂时无法确认', { exact: true })).toBeVisible(); await expect(requester.page.locator('.ai-citations')).toHaveCount(0); await snapshot(requester.page, 'assistant-refusal')
     let cancelled = false, attempts = 0
     for (; attempts < 4 && !cancelled; attempts++) {
       await requester.page.locator('#assistant-question').fill(`网关502错误先检查什么？ 合成取消验收 ${attempts}`)
@@ -298,8 +316,10 @@ try {
     await navigate(admin, '/admin/services'); const trigger = admin.page.getByRole('button', { name: /新建服务/ }); await trigger.click(); let dialog = admin.page.getByRole('dialog', { name: '新建服务', exact: true }); await trap(admin.page, dialog)
     await admin.page.locator('#catalog-code').fill(`V2_${stamp}`); await admin.page.locator('#catalog-name').fill('V2合成服务'); await matrix(admin.page, 'service-dialog'); await dialog.getByRole('button', { name: '取消', exact: true }).click()
     const confirm = admin.page.getByRole('dialog', { name: '确认离开', exact: true }); await trap(admin.page, confirm); await snapshot(admin.page, 'dirty-modal-confirm'); await confirm.getByRole('button', { name: '继续编辑', exact: true }).click(); await expect(admin.page.locator('#catalog-name')).toHaveValue('V2合成服务')
-    await dialog.getByRole('button', { name: '保存', exact: true }).click(); await expect(dialog).not.toBeVisible(); await expect(trigger).toBeFocused(); await matrix(admin.page, 'admin-services')
+    await dialog.getByRole('button', { name: '保存', exact: true }).click(); await expect(dialog).not.toBeVisible(); await expect(trigger).toBeFocused()
+    await admin.page.locator('#catalog-query').fill(`V2_${stamp}`); await responseFor(admin.page, 'GET', '/admin/services', () => admin.page.getByRole('button', { name: '查询', exact: true }).click(), [200]); await expect(admin.page.getByRole('cell', { name: `V2_${stamp}`, exact: true })).toBeVisible(); await matrix(admin.page, 'admin-services')
     await navigate(admin, '/admin/queues'); await admin.page.getByRole('button', { name: /新建队列/ }).click(); dialog = admin.page.getByRole('dialog', { name: '新建队列', exact: true }); await admin.page.locator('#catalog-code').fill(`V2_${stamp}`); await admin.page.locator('#catalog-name').fill('V2合成队列'); await dialog.getByRole('button', { name: '保存', exact: true }).click()
+    await admin.page.locator('#catalog-query').fill(`V2_${stamp}`); await responseFor(admin.page, 'GET', '/admin/queues', () => admin.page.getByRole('button', { name: '查询', exact: true }).click(), [200])
     const row = admin.page.getByRole('row').filter({ has: admin.page.getByRole('cell', { name: `V2_${stamp}`, exact: true }) }); await row.getByRole('button', { name: '管理成员', exact: true }).click(); dialog = admin.page.getByRole('dialog', { name: '队列成员 · V2合成队列', exact: true }); await trap(admin.page, dialog); await matrix(admin.page, 'queue-member-dialog')
     await admin.page.locator('#member-user').selectOption(agent.user.id); await dialog.getByRole('button', { name: '保存成员', exact: true }).click(); await expect(dialog.getByText('队列成员权限已保存。', { exact: true })).toBeVisible()
     await dialog.getByRole('button', { name: '移出', exact: true }).click(); const popover = admin.page.locator('.el-popconfirm:visible'); await expect(popover).toBeVisible(); await snapshot(admin.page, 'queue-member-popconfirm'); await popover.getByRole('button', { name: '移出', exact: true }).click(); await expect(dialog.getByText('成员已移出此队列。', { exact: true })).toBeVisible()
@@ -307,19 +327,37 @@ try {
     checked('synthetic service/queue UI creation; modal trap, dirty cancel retention, focus restoration and real member removal popconfirm')
   })
   await phase('admin analytics audit and users responsive real data', async () => {
-    await navigate(admin, '/admin/analytics'); await expect(admin.page.locator('.analytics-summary')).toBeVisible(); await matrix(admin.page, 'analytics'); await admin.page.locator('#analytics-from').fill('2000-01-01'); await admin.page.locator('#analytics-to').fill('2000-01-02'); await admin.page.getByRole('button', { name: '更新统计', exact: true }).click(); await expect(admin.page.getByText('所选时间范围没有新建工单。', { exact: true })).toBeVisible(); await snapshot(admin.page, 'analytics-empty')
-    await navigate(admin, '/admin/audit'); await expect(admin.page.getByRole('button', { name: '查看记录', exact: true }).first()).toBeVisible(); await matrix(admin.page, 'admin-audit')
+    await navigate(admin, '/admin/analytics'); await expect(admin.page.locator('[data-kpi="created"]')).toBeVisible(); await matrix(admin.page, 'analytics')
+    for (const days of [7,14,30]) {
+      const control=admin.page.locator(`[data-days="${days}"]`); let data
+      if(await control.getAttribute('aria-pressed')==='true') { await admin.page.locator('[data-days="14"]').click(); await expect(admin.page.locator('[data-kpi="created"]')).toBeVisible() }
+      data=await responseFor(admin.page,'GET','/workspace/analytics',()=>control.click(),[200]); await expect(control).toHaveAttribute('aria-pressed','true'); await expect.poll(()=>new URL(admin.page.url()).searchParams.get('range')).toBe(String(days))
+      await expect(admin.page.locator('[data-kpi="created"] strong')).toHaveText(String(data.ticketTotal))
+      const completed=data.statusCounts.filter(row=>['RESOLVED','CLOSED'].includes(row.key)).reduce((total,row)=>total+row.count,0)
+      await expect(admin.page.locator('[data-kpi="open"] strong')).toHaveText(String(data.ticketTotal-completed))
+      await expect(admin.page.locator('[data-kpi="urgent"] strong')).toHaveText(String(data.priorityCounts.find(row=>row.key==='URGENT')?.count||0))
+      await expect(admin.page.locator('[data-kpi="completion"] strong')).toHaveText(data.ticketTotal?`${Math.round(completed/data.ticketTotal*100)}%`:'—')
+      await expect(admin.page.locator('.daily-chart[role="img"]')).toBeVisible()
+      await expect(admin.page.locator('.daily-chart svg')).toBeVisible()
+      await admin.page.locator('.analytics-table summary').click(); await expect(admin.page.locator('.analytics-table tbody tr')).toHaveCount(data.daily.length)
+      for(let index=0;index<data.daily.length;index++){const row=admin.page.locator('.analytics-table tbody tr').nth(index),day=data.daily[index]; await expect(row.locator('th')).toHaveText(day.date); await expect(row.locator('td')).toHaveText([String(day.created),String(day.resolved)])}
+      if(!data.ticketTotal) await expect(admin.page.getByText('所选时间范围没有新建工单。',{exact:true})).toBeVisible()
+    }
+    await snapshot(admin.page,'analytics-real-ranges')
+    await navigate(admin, '/admin/audit'); await expect(admin.page.getByRole('button', { name: '查看记录', exact: true }).first()).toBeVisible(); await selectElOption(admin.page, '.audit-action-select', 'SERVICE_CREATED'); await responseFor(admin.page, 'GET', '/audit-events', () => admin.page.getByRole('button', { name: '查询', exact: true }).click(), [200]); await expect(admin.page.getByRole('cell', { name: 'SERVICE_CREATED', exact: true }).first()).toBeVisible(); await matrix(admin.page, 'admin-audit')
     const auditTrigger = admin.page.locator('button:visible').filter({ hasText: '查看记录' }).first(); await auditTrigger.click(); const dialog = admin.page.getByRole('dialog', { name: '审计记录详情', exact: true }); await trap(admin.page, dialog); await matrix(admin.page, 'audit-dialog'); await admin.page.keyboard.press('Escape'); await expect(auditTrigger).toBeFocused()
-    await navigate(admin, '/admin/users'); await matrix(admin.page, 'admin-users')
-    checked('actual UTC analytics plus empty range; audit detail and user directory responsive on all target widths')
+    await navigate(admin, '/admin/users'); await admin.page.locator('#user-query').fill('admin'); await selectElOption(admin.page, '.user-status-filter', '启用'); await selectElOption(admin.page, '.user-role-filter', '管理员'); await responseFor(admin.page, 'GET', '/users', () => admin.page.getByRole('button', { name: '查询', exact: true }).click(), [200]); await expect(admin.page.locator('.desktop-table .ticket-number', { hasText: 'admin' }).first()).toHaveText('admin'); await matrix(admin.page, 'admin-users'); await responseFor(admin.page, 'GET', '/users', () => admin.page.getByRole('button', { name: '重置', exact: true }).click(), [200])
+    checked('actual UTC analytics with real 7/14/30 range data; audit real-value filtering and drawer; user and catalog server filtering responsive on all target widths')
   })
   await phase('fresh ACL denial purges displayed private content', async () => {
-    await openDocument(requester, space, article.id, articleTitle); await expect(requester.page.locator('.knowledge-reader')).toBeVisible(); await api(author, 'PUT', `/knowledge/spaces/${space.id}/members/${requester.user.id}`, { canRead: false, canEdit: false, reason: 'V2合成验收撤销授权' })
+    await openDocument(requester, space, article.id, articleTitle); await expect(requester.page.locator('.knowledge-reader')).toBeVisible(); await api(admin, 'PUT', `/knowledge/spaces/${space.id}/members/${requester.user.id}`, { canRead: false, canEdit: false, canReview: false, reason: 'V2合成验收撤销授权' })
     const denied = requester.page.waitForResponse(response => response.url().endsWith(`/knowledge/documents/${article.id}`)); await refresh(requester); ensure([403, 404].includes((await denied).status()), 'REAL_FRESH_ACL_DENIAL_REQUIRED'); await expect(requester.page.locator('.knowledge-detail,.knowledge-reader,.knowledge-chunks,.knowledge-categories')).toHaveCount(0); await snapshot(requester.page, 'knowledge-access-denied')
     checked('fresh real ACL denial immediately clears document, reader, chunks and categories')
   })
   await phase('only synthetic fixture disabled and existing server session rejected', async () => {
-    ensure(reviewer.user.id === fixtures.reviewerId && /^ui_editor_/.test(reviewer.user.username), 'REFUSE_DISABLE_NON_FIXTURE')
+    ensure(reviewer.user.id === fixtures.reviewerId && /^ui_reviewer_/.test(reviewer.user.username), 'REFUSE_DISABLE_NON_FIXTURE')
+    if (new URL(expiringReviewer.page.url()).pathname !== '/knowledge/reviews') await navigate(expiringReviewer, '/knowledge/reviews')
+    await expect(expiringReviewer.page.getByRole('button', { name: '刷新待办', exact: true })).toBeVisible()
     const fixtureRow = admin.page.getByRole('row').filter({ hasText: reviewer.user.username })
     // The directory is genuinely paginated by username; do not assume fixtures
     // are on page one in an already-used local demo.
@@ -337,10 +375,11 @@ try {
     await expect(dialog.getByText('基本信息已保存。', { exact: true })).toBeVisible(); await snapshot(admin.page, 'synthetic-user-disabled')
     await dialog.getByRole('button', { name: '关闭', exact: true }).click()
     currentPage = expiringReviewer.page
-    // This editor is already on /knowledge. A same-route menu click performs no
-    // HTTP request; force a real authorized read to observe server revocation.
-    const expiredRead = expiringReviewer.page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/knowledge/spaces')
-    await expiringReviewer.page.getByRole('button', { name: '刷新空间', exact: true }).click()
+    // Exercise the reviewer's actual page rather than bypassing the UI. The
+    // disabled account must lose both its in-memory browser session and token.
+    const expiredRead = expiringReviewer.page.waitForResponse(response => new URL(response.url()).pathname === '/api/v1/knowledge/review-tasks')
+    expiredRead.catch(() => {})
+    await expiringReviewer.page.getByRole('button', { name: '刷新待办', exact: true }).click()
     ensure((await expiredRead).status() === 401, 'DISABLED_FIXTURE_REFRESH_MUST_BE_401')
     await expect(expiringReviewer.page).toHaveURL(`${base}/login`); await expect(expiringReviewer.page.locator('#password')).toHaveValue('')
     const denied = await expiringReviewer.page.request.get(`${base}/api/v1/knowledge/spaces`, { headers: { Authorization: `Bearer ${expiringReviewer.token}` } }); ensure(denied.status() === 401, 'DISABLED_FIXTURE_TOKEN_STILL_VALID'); await snapshot(expiringReviewer.page, 'session-invalidated')
@@ -350,7 +389,9 @@ try {
 } catch (error) {
   failure = { step, code: error instanceof VerificationError ? redact(error.message) : `${error.name || 'Error'}: browser assertion or operation failed (business text and call logs omitted)`, location: String(error.stack || '').split('\n').filter(line => /Browser-Design\.mjs:\d+/.test(line)).join('\n') }
   if (currentPage && !currentPage.isClosed()) { try { const file = `ui-v2-failure-${screenshots.length}.png`; await currentPage.screenshot({ path: resolve(evidence, file), fullPage: true, animations: 'disabled', timeout: 10_000 }); screenshots.push(file) } catch { /* Preserve JSON even if the browser is gone. */ } }
-  console.error(`FAIL ${redact(step)}: ${failure.code}`); process.exitCode = 1
+  console.error(`FAIL ${redact(step)}: ${failure.code}`)
+  if (failure.location) console.error(`FAIL location: ${failure.location}`)
+  process.exitCode = 1
 } finally {
   await writeFile(resolve(evidence, 'ui-v2-design-verification.json'), JSON.stringify({ recordedAt: new Date().toISOString(), base, status: failure || pageErrors.length ? 'FAILED' : 'PASS', mode: 'mock', step, checks, screenshots, fixtures, logins, observations, uncaughtPageErrors: pageErrors.length, ...(failure ? { failure } : {}), limitations: ['Automated DOM and keyboard checks supplement human screenshot inspection.', 'Synthetic fixtures retained as audit evidence; existing demo credentials unchanged.'] }, null, 2) + '\n')
   for (const context of contexts) await context.close().catch(() => {})

@@ -5,9 +5,9 @@ import java.util.*;
 
 public final class WorkspaceDtos {
     private WorkspaceDtos() {}
-    public record KnowledgeHit(UUID id,UUID spaceId,String title,String snippet,UUID categoryId,long viewCount) {}
+    public record KnowledgeHit(UUID id,UUID spaceId,String title,String snippet,UUID categoryId,long viewCount,Instant publishedAt) {}
     public record TicketHit(UUID id,long ticketNo,String title,String status,String priority,Instant updatedAt) {}
-    public record PortalCategory(UUID id,UUID spaceId,UUID parentId,String name,String spaceName) {}
+    public record PortalCategory(UUID id,UUID spaceId,UUID parentId,String name,String spaceName,long documentCount) {}
     public record Portal(String query,List<KnowledgeHit> knowledge,List<TicketHit> tickets,List<KnowledgeHit> popularDocuments,List<PortalCategory> categories) {}
     public record Count(String key,long count) {}
     public record Daily(LocalDate date,long created,long resolved) {}

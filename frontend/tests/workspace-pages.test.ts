@@ -9,9 +9,9 @@ let view:VueWrapper|undefined
 afterEach(()=>{view?.unmount();vi.unstubAllGlobals();document.body.innerHTML=''})
 async function render(name:string,roles=['REQUESTER'],start='/portal'){
  const pinia=createPinia(),session=useSessionStore(pinia);session.accept({accessToken:'fixture',expiresIn:1800,user:{id:'u',username:'user',displayName:'用户',roles,mustChangePassword:false}});bindApiSession({getToken:()=>session.token,onUnauthorized:()=>session.clear()})
- const router=createRouter({history:createMemoryHistory(),routes:[{path:'/:pathMatch(.*)*',component:{template:'<div />'}}]});await router.push(start)
  const modules=import.meta.glob('../src/views/*View.vue'),load=modules[`../src/views/${name}View.vue`];expect(load,`${name} page exists`).toBeDefined();const component=(await load!()) as {default:object}
- view=mount(component.default,{attachTo:document.body,global:{plugins:[pinia,router,ElementPlus]}});await flushPromises();return view
+ const router=createRouter({history:createMemoryHistory(),routes:[{path:start.split('?')[0]!,component:component.default},{path:'/:pathMatch(.*)*',component:{template:'<div />'}}]});await router.push(start);await router.isReady()
+ view=mount({template:'<router-view />'},{attachTo:document.body,global:{plugins:[pinia,router,ElementPlus]}});await flushPromises();return view
 }
 it('portal searches authorized real API results and offers no administrator actions',async()=>{
  const urls:string[]=[];vi.stubGlobal('fetch',(url:string)=>{urls.push(url);return Promise.resolve(new Response(JSON.stringify({query:new URL(url,'http://localhost').searchParams.get('q')||'',knowledge:[{id:'d',spaceId:'s',title:'VPN手册',snippet:'先检查连接',categoryId:null,viewCount:1}],tickets:[{id:'t',ticketNo:12,title:'网络故障',status:'NEW',priority:'NORMAL',updatedAt:'2026-10-21T00:00:00Z'}],popularDocuments:[],categories:[]})))})

@@ -41,7 +41,7 @@ class WorkspaceIntegrationTest {
         assertThat(jdbc.sql("SELECT current_database()").query(String.class).single()).isEqualTo("ticknova_test");
         jdbc.sql("TRUNCATE app_user CASCADE").update();
         jdbc.sql("UPDATE support_queue SET active=true WHERE id=:id").param("id",queue).update();
-        reader=user("portal-reader","REQUESTER");other=user("portal-other","REQUESTER");admin=user("portal-admin","ADMIN");agent=user("portal-agent","AGENT");reviewer=user("portal-reviewer","KB_EDITOR");
+        reader=user("portal-reader","REQUESTER");other=user("portal-other","REQUESTER");admin=user("portal-admin","ADMIN");agent=user("portal-agent","AGENT");reviewer=user("portal-reviewer","KB_REVIEWER");
         readerToken=session(reader);otherToken=session(other);adminToken=session(admin);agentToken=session(agent);
         jdbc.sql("INSERT INTO queue_member(queue_id,user_id) VALUES(:q,:u)").param("q",queue).param("u",agent).update();
         space=space(reader);hiddenSpace=space(other);document=document(space,reader,"Visible guide","uniquealpha public body");hiddenDocument=document(hiddenSpace,other,"Hidden secret","uniquealpha private secret");
@@ -72,6 +72,9 @@ class WorkspaceIntegrationTest {
         Reply own=call("GET","/workspace/portal",readerToken,null);assertThat(own.status).isEqualTo(200);
         assertThat(own.body.path("tickets").size()).isEqualTo(1);assertThat(own.body.path("tickets").get(0).path("id").asText()).isEqualTo(ticket.toString());
         assertThat(call("GET","/workspace/portal",adminToken,null).body.path("tickets").isEmpty()).isTrue();
+        Reply agentPortal=call("GET","/workspace/portal",agentToken,null);
+        assertThat(agentPortal.body.path("tickets").size()).isEqualTo(2);
+        assertThat(agentPortal.body.path("tickets").toString()).contains(otherTicket.toString());
         Reply all=call("GET","/tickets?unassigned=true",agentToken,null);assertThat(all.status).isEqualTo(200);assertThat(all.body.path("items").size()).isEqualTo(1);
         assertThat(all.body.path("items").get(0).path("id").asText()).isEqualTo(ticket.toString());
         assertThat(call("GET","/tickets?unassigned=true",otherToken,null).body.path("items").isEmpty()).isTrue();
@@ -100,6 +103,33 @@ class WorkspaceIntegrationTest {
         jdbc.sql("INSERT INTO knowledge_category(id,space_id,name) VALUES(:id,:s,'Visible category')").param("id",category).param("s",space).update();
         jdbc.sql("INSERT INTO knowledge_category(id,space_id,name) VALUES(:id,:s,'Hidden category')").param("id",secret).param("s",hiddenSpace).update();
         Reply p=call("GET","/workspace/portal",readerToken,null);assertThat(p.status).isEqualTo(200);assertThat(p.body.path("categories").size()).isEqualTo(1);assertThat(p.body.toString()).contains("Visible category").doesNotContain("Hidden category");
+    }
+    @Test void portalMetadataCountsOnlyReadableApprovedPublications() throws Exception {
+        UUID category=UUID.randomUUID(),hiddenCategory=UUID.randomUUID();
+        jdbc.sql("INSERT INTO knowledge_category(id,space_id,name) VALUES(:id,:s,'Published help')").param("id",category).param("s",space).update();
+        jdbc.sql("INSERT INTO knowledge_category(id,space_id,name) VALUES(:id,:s,'Private help')").param("id",hiddenCategory).param("s",hiddenSpace).update();
+        jdbc.sql("UPDATE knowledge_document SET category_id=:c WHERE id=:id").param("c",category).param("id",document).update();
+        jdbc.sql("UPDATE knowledge_document SET category_id=:c WHERE id=:id").param("c",hiddenCategory).param("id",hiddenDocument).update();
+        jdbc.sql("UPDATE document_version SET published_at='2026-10-20T12:00:00Z' WHERE document_id=:d").param("d",document).update();
+        UUID rejected=document(space,reader,"Rejected guide","not approved");
+        jdbc.sql("UPDATE knowledge_document SET category_id=:c WHERE id=:d").param("c",category).param("d",rejected).update();
+        jdbc.sql("UPDATE document_version SET review_state='REJECTED',review_reason='Fixture rejection' WHERE document_id=:d").param("d",rejected).update();
+        Reply p=call("GET","/workspace/portal?q=uniquealpha",readerToken,null);
+        assertThat(p.status).as(p.body.toString()).isEqualTo(200);
+        assertThat(p.body.path("knowledge").get(0).path("publishedAt").asText()).isEqualTo("2026-10-20T12:00:00Z");
+        assertThat(p.body.path("popularDocuments").get(0).path("publishedAt").asText()).isEqualTo("2026-10-20T12:00:00Z");
+        assertThat(p.body.path("categories").size()).isEqualTo(1);
+        assertThat(p.body.path("categories").get(0).path("documentCount").asLong(-1)).isEqualTo(1);
+        assertThat(p.body.toString()).doesNotContain("Private help","Rejected guide");
+        jdbc.sql("UPDATE knowledge_space_member SET can_read=false WHERE space_id=:s AND user_id=:u").param("s",space).param("u",reader).update();
+        Reply revoked=call("GET","/workspace/portal",readerToken,null);
+        assertThat(revoked.body.path("categories").isEmpty()).isTrue();assertThat(revoked.body.path("popularDocuments").isEmpty()).isTrue();
+    }
+    @Test void dailyResolvedCountsDistinctTicketsEvenWithRepeatedResolutionRecords() throws Exception {
+        for(int n=0;n<2;n++)jdbc.sql("INSERT INTO ticket_transition(id,request_id,ticket_id,actor_id,from_status,to_status,created_at) VALUES(:id,:r,:t,:u,'IN_PROGRESS','RESOLVED','2026-01-03T12:00:00Z')")
+            .param("id",UUID.randomUUID()).param("r",UUID.randomUUID()).param("t",ticket).param("u",agent).update();
+        Reply p=call("GET","/workspace/analytics?from=2026-01-03&to=2026-01-03",adminToken,null);
+        assertThat(p.status).isEqualTo(200);assertThat(p.body.path("daily").get(0).path("resolved").asLong()).isEqualTo(1);
     }
     @Test void analyticsIsAdminOnlyUsesInclusiveUtcDatesAndNoBusinessText() throws Exception {
         assertThat(call("GET","/workspace/analytics",readerToken,null).status).isEqualTo(403);

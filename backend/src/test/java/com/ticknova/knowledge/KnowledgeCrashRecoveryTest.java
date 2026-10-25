@@ -26,8 +26,9 @@ class KnowledgeCrashRecoveryTest {
     @Test void aKilledWorkerIsRecoveredByANewJvmAfterItsLeaseExpires() throws Exception {
         assertThat(jdbc.sql("SELECT current_database()").query(String.class).single()).isEqualTo("ticknova_test");jdbc.sql("TRUNCATE app_user CASCADE").update();
         UUID user=UUID.randomUUID();jdbc.sql("INSERT INTO app_user(id,username,display_name,password_hash,must_change_password) VALUES(:id,'crash-editor','Editor','unused',false)").param("id",user).update();
-        jdbc.sql("INSERT INTO user_role SELECT :id,id FROM app_role WHERE code='KB_EDITOR'").param("id",user).update();
-        var actor=new Actor(user,"crash-editor","Editor",Set.of("KB_EDITOR"),false);UUID space=knowledge.createSpace(actor,"Crash recovery").id();
+        jdbc.sql("INSERT INTO user_role SELECT :id,id FROM app_role WHERE code IN ('KB_EDITOR','ADMIN')").param("id",user).update();
+        var actor=new Actor(user,"crash-editor","Editor",Set.of("KB_EDITOR","ADMIN"),false);UUID space=knowledge.createSpace(actor,"Crash recovery").id();
+        knowledge.membership(actor,space,user,true,true,"Explicit editor fixture");
         var upload=knowledge.upload(actor,space,null,"Crash fixture",new MockMultipartFile("file","guide.txt","text/plain","recovery fixture".getBytes(StandardCharsets.UTF_8)));
         String hash=jdbc.sql("SELECT sha256 FROM document_version WHERE id=:id").param("id",upload.versionId()).query(String.class).single();
         AtomicBoolean permit=new AtomicBoolean(false),entered=new AtomicBoolean(false);

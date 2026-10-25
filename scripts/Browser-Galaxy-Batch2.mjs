@@ -3,6 +3,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { randomBytes } from 'node:crypto'
+import { actorRequest } from './Browser-Review.mjs'
 import { signInDemo, changeDemoPassword } from './Demo-Credentials.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
@@ -32,6 +33,9 @@ async function snapshot(tag) {
   await page.setViewportSize({ width: 1440, height: 960 })
 }
 try {
+  let managerSignIn=await signInDemo(context.request,base,envPath,'admin')
+  if(managerSignIn.login.user.mustChangePassword){const next=`Galaxy-Admin-${randomBytes(20).toString('hex')}!`; secrets.push(next); await changeDemoPassword(context.request,base,envPath,'admin',managerSignIn.password,managerSignIn.login.accessToken,next); managerSignIn=await signInDemo(context.request,base,envPath,'admin')}
+  secrets.push(managerSignIn.login.accessToken,managerSignIn.password); const manager={page,token:managerSignIn.login.accessToken,user:managerSignIn.login.user}
   const editorSignIn = await signInDemo(context.request, base, envPath, 'editor')
   let password = editorSignIn.password
   const initial = editorSignIn.login; secrets.push(initial.accessToken, password)
@@ -46,9 +50,9 @@ try {
   await page.locator('a[href="/knowledge"]').first().click()
   await page.waitForURL('**/knowledge')
   phase = 'knowledge file picker'
-  await page.getByRole('button', { name: '创建空间', exact: true }).click()
-  await page.locator('#knowledge-space-name').fill(`Galaxy 文件回归 ${Date.now()}`)
-  await page.getByRole('button', { name: '保存空间', exact: true }).click()
+  const space=await actorRequest(manager,base,'POST','/knowledge/spaces',{name:`Galaxy 文件回归 ${Date.now()}`})
+  await actorRequest(manager,base,'PUT',`/knowledge/spaces/${space.id}/members/${initial.user.id}`,{canRead:true,canEdit:true,canReview:false,reason:'Galaxy 合成文件编辑授权'})
+  await page.getByRole('button',{name:'刷新空间',exact:true}).click(); await page.locator('#knowledge-space').selectOption(space.id); await page.getByRole('button',{name:'新建文档',exact:true}).click()
   await expect(page.locator('#knowledge-upload')).toBeVisible()
   await page.locator('#knowledge-title').fill('文件控件回归手册')
   await page.locator('#knowledge-file').setInputFiles({ name: 'unsupported.exe', mimeType: 'application/octet-stream', buffer: Buffer.from('invalid') })
@@ -75,13 +79,14 @@ try {
   const response = page.waitForResponse(r => r.url().includes('/knowledge/spaces/') && r.url().endsWith('/documents') && r.request().method() === 'POST')
   await page.getByRole('button', { name: '上传并解析', exact: true }).click()
   expect((await response).status()).toBe(202)
-  await expect(page.locator('.knowledge-versions > li').first().getByText('解析就绪', { exact: true })).toBeVisible()
-  await expect(page.locator('#knowledge-version-file')).toHaveCount(1)
+  await page.getByRole('tab',{name:'版本历史',exact:true}).click(); await expect(page.locator('.version-list > li').first().getByText('解析就绪', { exact: true })).toBeVisible()
+  await page.getByRole('button',{name:'上传新版本',exact:true}).click(); await expect(page.locator('#knowledge-version-file')).toHaveCount(1)
   await page.locator('#knowledge-version-file').setInputFiles({ name: 'bad.exe', mimeType: 'application/octet-stream', buffer: Buffer.from('invalid') })
   await expect(page.locator('#knowledge-version-file-issue')).toContainText('仅支持')
-  await expect(page.getByRole('button', { name: '上传新版本并解析' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: '上传新版本文件' })).toBeDisabled()
   await snapshot('file-version')
   checked('failed upload retains the file; retry receives 202, parser reaches READY, version picker rejects invalid file')
+  await page.getByRole('button',{name:/清除已选文件 bad.exe/}).click()
 
   phase = 'assistant status'
   await page.locator('a[href="/assistant"]').first().click()

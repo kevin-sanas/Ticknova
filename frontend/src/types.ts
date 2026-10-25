@@ -1,21 +1,23 @@
 export interface User { id: string; username: string; displayName: string; roles: string[]; mustChangePassword: boolean; active?: boolean }
-export interface KnowledgeSpace { id: string; name: string; active: boolean; canRead: boolean; canEdit: boolean; canManageMembers: boolean }
-export interface KnowledgeMember { userId: string; username: string; displayName: string; canRead: boolean; canEdit: boolean }
-export interface KnowledgeCandidate { id: string; username: string; displayName: string }
+export interface KnowledgeSpace { id: string; name: string; active: boolean; canRead: boolean; canEdit: boolean; canManageMembers: boolean; canReview?: boolean }
+export interface KnowledgeMember { userId: string; username: string; displayName: string; canRead: boolean; canEdit: boolean; canReview?: boolean; roles?: string[] }
+export interface KnowledgeCandidate { id: string; username: string; displayName: string; roles?: string[] }
 export type IngestState = 'QUEUED' | 'EXTRACTING' | 'CHUNKING' | 'READY' | 'FAILED'
 export interface KnowledgeDocument {
   categoryId?: string | null;
   id: string; spaceId: string; title: string; publicationState: string; latestVersionId: string | null;
   publishedVersionId: string | null; latestIngestState: IngestState | null; versionCount: number; createdAt: string; canEdit: boolean
 }
+export type KnowledgeAction = 'EDIT_DRAFT' | 'UPLOAD_VERSION' | 'SUBMIT_REVIEW' | 'APPROVE' | 'REJECT' | 'PUBLISH' | 'DISABLE' | 'RETRY_PARSE' | 'RETRY_INDEX' | 'ARCHIVE'
 export interface KnowledgeVersion {
+  allowedActions?: KnowledgeAction[];
   reviewState: 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED'; authorId: string; reviewerId: string | null; reviewReason: string | null; reviewedAt: string | null; canRequestReview: boolean; canReview: boolean; canPublish: boolean; hasEligibleReviewer: boolean;
   id: string; versionNo: number; fileName: string; mimeType: string; sha256: string; ingestState: IngestState;
   publicationState: string; errorCode: string | null; createdAt: string; jobId: string | null;
   jobStatus: 'QUEUED' | 'RUNNING' | 'RETRYING' | 'COMPLETED' | 'FAILED' | null; attemptCount: number; chunkCount: number
   embeddingState?: 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED' | null; embeddingErrorCode?: string | null; canRetryIndex?: boolean
 }
-export interface KnowledgeDetail extends KnowledgeDocument { versions: KnowledgeVersion[] }
+export interface KnowledgeDetail extends KnowledgeDocument { allowedActions?: KnowledgeAction[]; versions: KnowledgeVersion[] }
 export interface KnowledgeUpload { documentId: string; versionId: string; jobId: string }
 export interface KnowledgeChunk { id: string; chunkIndex: number; pageNo: number | null; headingPath: string | null; content: string }
 export type AiKind = 'ANSWER' | 'REPLY' | 'SUMMARY' | 'CLASSIFICATION'
@@ -51,9 +53,10 @@ export interface TicketDetail {
   capabilities: { canReadInternal: boolean; canCommentPublic: boolean; canCommentInternal: boolean; canAssign: boolean; canEdit: boolean };
   allowedTransitions: string[];
 }
-export interface AuditEvent { id: string; actorId: string; actorName?: string; action: string; subjectType: string; subjectId: string; traceId: string; metadata: unknown; createdAt: string }
+export interface AuditEvent { id: string; actorId: string | null; actorName?: string | null; action: string; subjectType: string; subjectId: string | null; traceId: string | null; metadata: unknown; createdAt: string }
+export interface AuditFilterOptions { actions: string[]; actors: Array<{ value: string; label: string }> }
 export const statuses: Record<string, string> = { NEW: '新建', TRIAGED: '已分诊', IN_PROGRESS: '处理中', WAITING_CUSTOMER: '等待申请人', WAITING_THIRD_PARTY: '等待第三方', RESOLVED: '已解决', CLOSED: '已关闭' }
 export const priorities: Record<string, string> = { LOW: '低', NORMAL: '普通', HIGH: '高', URGENT: '紧急' }
-export const roles: Record<string, string> = { REQUESTER: '申请人', AGENT: '工程师', KB_EDITOR: '知识编辑', ADMIN: '管理员' }
+export const roles: Record<string, string> = { REQUESTER: '申请人', AGENT: '工程师', KB_EDITOR: '知识编辑', KB_REVIEWER: '知识审核', ADMIN: '管理员' }
 export function formatTime(value: string) { const date = new Date(value); return Number.isNaN(date.getTime()) ? value : new Intl.DateTimeFormat('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).format(date) }
 export function fullTime(value: string) { return new Date(value).toLocaleString('zh-CN', { hour12: false }) }

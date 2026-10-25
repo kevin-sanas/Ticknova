@@ -25,13 +25,13 @@ public class WorkspaceService {
         )
         """;
     private static final String HIT_SELECT="""
-        SELECT d.id,d.space_id,d.title,d.category_id,
+        SELECT d.id,d.space_id,d.title,d.category_id,d.published_at,
           COALESCE((SELECT left(c.content,240) FROM knowledge_chunk c WHERE c.document_version_id=d.version_id
             ORDER BY CASE WHEN c.content ILIKE :pattern ESCAPE '\\' THEN 0 ELSE 1 END,c.chunk_index,c.id LIMIT 1),'') AS snippet,
           (SELECT count(*) FROM knowledge_document_view w WHERE w.document_id=d.id) AS view_count
         FROM visible d
         """;
-    private static final org.springframework.jdbc.core.RowMapper<KnowledgeHit> HIT=(r,n)->new KnowledgeHit(r.getObject("id",UUID.class),r.getObject("space_id",UUID.class),r.getString("title"),r.getString("snippet"),r.getObject("category_id",UUID.class),r.getLong("view_count"));
+    private static final org.springframework.jdbc.core.RowMapper<KnowledgeHit> HIT=(r,n)->new KnowledgeHit(r.getObject("id",UUID.class),r.getObject("space_id",UUID.class),r.getString("title"),r.getString("snippet"),r.getObject("category_id",UUID.class),r.getLong("view_count"),Optional.ofNullable(r.getTimestamp("published_at")).map(java.sql.Timestamp::toInstant).orElse(null));
 
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
     public Portal portal(Actor supplied,String input){
@@ -56,13 +56,14 @@ public class WorkspaceService {
             """).param("user",actor.id()).param("own",actor.hasRole("REQUESTER")||actor.hasRole("AGENT")).param("agent",actor.hasRole("AGENT"))
             .param("empty",query.isEmpty()).param("pattern",pattern).param("query",query)
             .query((r,n)->new TicketHit(r.getObject("id",UUID.class),r.getLong("ticket_no"),r.getString("title"),r.getString("status"),r.getString("priority"),r.getTimestamp("updated_at").toInstant())).list();
-        var categories=jdbc.sql("""
-            SELECT c.id,c.space_id,c.parent_id,c.name,s.name AS space_name
+        var categories=jdbc.sql(VISIBLE+"""
+            SELECT c.id,c.space_id,c.parent_id,c.name,s.name AS space_name,
+              (SELECT count(*) FROM visible d WHERE d.category_id=c.id AND d.space_id=c.space_id) AS document_count
             FROM knowledge_category c JOIN knowledge_space s ON s.id=c.space_id AND s.active
             JOIN knowledge_space_member m ON m.space_id=s.id AND m.user_id=:user AND m.can_read
             JOIN app_user u ON u.id=m.user_id AND u.active AND NOT u.must_change_password
             ORDER BY s.name,s.id,c.name,c.id
-            """).param("user",actor.id()).query((r,n)->new PortalCategory(r.getObject("id",UUID.class),r.getObject("space_id",UUID.class),r.getObject("parent_id",UUID.class),r.getString("name"),r.getString("space_name"))).list();
+            """).param("user",actor.id()).query((r,n)->new PortalCategory(r.getObject("id",UUID.class),r.getObject("space_id",UUID.class),r.getObject("parent_id",UUID.class),r.getString("name"),r.getString("space_name"),r.getLong("document_count"))).list();
         return new Portal(query,knowledge,tickets,popular,categories);
     }
 

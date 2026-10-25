@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import ElementPlus, { ElDialog } from 'element-plus'
 import { createPinia } from 'pinia'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import { bindApiSession } from '../src/api'
 import { useSessionStore } from '../src/stores/session'
 import CatalogView from '../src/views/CatalogView.vue'
@@ -20,7 +21,9 @@ async function render() {
   const session = useSessionStore(pinia)
   session.accept({ accessToken: 'admin-token', expiresIn: 1800, user: { id: 'admin', username: 'admin', displayName: '管理员', roles: ['ADMIN'], mustChangePassword: false } })
   bindApiSession({ getToken: () => session.token, onUnauthorized: () => session.clear() })
-  wrapper = mount(CatalogView, { props: { kind: 'queues' }, attachTo: document.body, global: { plugins: [pinia, ElementPlus] } })
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/admin/queues', component: CatalogView, props: { kind: 'queues' } }] })
+  await router.push('/admin/queues'); await router.isReady()
+  wrapper = mount({ template: '<router-view />' }, { attachTo: document.body, global: { plugins: [pinia, ElementPlus, router] } })
   await flushPromises()
   return wrapper
 }
@@ -42,7 +45,7 @@ describe('queue member request ownership', () => {
     const mutations: string[] = []
     vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
       if (init.method === 'PUT' || init.method === 'DELETE') { mutations.push(url); return Promise.resolve(new Response(null, { status: 204 })) }
-      if (url === '/api/v1/queues') return Promise.resolve(json(queues))
+      if (url.includes('/api/v1/admin/queues?')) return Promise.resolve(json({ items: queues, total: queues.length, page: 0, size: 20 }))
       if (url.includes('/users?')) return Promise.resolve(json({ items: [], total: 0, page: 0, size: 100 }))
       if (url.endsWith('/qa/members')) return new Promise<Response>(resolve => { releaseA = resolve })
       if (url.endsWith('/qb/members')) { bReads++; return bReads === 1 ? new Promise<Response>(resolve => { releaseB = resolve }) : Promise.resolve(json([memberB])) }
@@ -69,7 +72,7 @@ describe('queue member request ownership', () => {
   it('clears already-loaded rows when another queue opens and keeps writes disabled until that queue loads', async () => {
     let releaseB!: (response: Response) => void
     vi.stubGlobal('fetch', (url: string) => {
-      if (url === '/api/v1/queues') return Promise.resolve(json(queues))
+      if (url.includes('/api/v1/admin/queues?')) return Promise.resolve(json({ items: queues, total: queues.length, page: 0, size: 20 }))
       if (url.includes('/users?')) return Promise.resolve(json({ items: [], total: 0, page: 0, size: 100 }))
       if (url.endsWith('/qa/members')) return Promise.resolve(json([memberA]))
       if (url.endsWith('/qb/members')) return new Promise<Response>(resolve => { releaseB = resolve })
@@ -91,7 +94,7 @@ describe('queue member request ownership', () => {
     let releaseSave!: (response: Response) => void
     vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
       if (init.method === 'PUT') return new Promise<Response>(resolve => { releaseSave = resolve })
-      if (url === '/api/v1/queues') return Promise.resolve(json(queues))
+      if (url.includes('/api/v1/admin/queues?')) return Promise.resolve(json({ items: queues, total: queues.length, page: 0, size: 20 }))
       if (url.includes('/users?')) return Promise.resolve(json({ items: [], total: 0, page: 0, size: 100 }))
       return Promise.resolve(json([memberB]))
     })

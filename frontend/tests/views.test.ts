@@ -28,9 +28,10 @@ async function render(component: Component, user: User = requester, path = '/tic
   const session = useSessionStore(pinia)
   session.accept({ accessToken: 'memory-only', expiresIn: 1800, user })
   bindApiSession({ getToken: () => session.token, onUnauthorized: () => session.clear() })
-  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:pathMatch(.*)*', component: { template: '<div>目标页面</div>' } }] })
-  await router.push(path)
-  const wrapper = mount(component, { global: { plugins: [pinia, router, ElementPlus] } })
+  const routePath = component === TicketDetailView ? '/tickets/:id' : path.split('?')[0]!
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: routePath, component }, { path: '/:pathMatch(.*)*', component: { template: '<div>目标页面</div>' } }] })
+  await router.push(path); await router.isReady()
+  const wrapper = mount({ template: '<router-view />' }, { global: { plugins: [pinia, router, ElementPlus] } })
   wrappers.push(wrapper)
   await flushPromises()
   return { wrapper, router, session }

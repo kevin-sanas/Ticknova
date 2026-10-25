@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.*;
 public class UserAdminController {
     private final UserAdminService users;
     public UserAdminController(UserAdminService users) { this.users=users; }
-    @GetMapping("/users") public PageResult<UserAdminService.UserView> list(@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size) { return users.list(CurrentUser.get(),page,size); }
+    @GetMapping("/users") public PageResult<UserAdminService.UserView> list(@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size,
+                                                                            @RequestParam(required=false) String q,@RequestParam(required=false) Boolean active,
+                                                                            @RequestParam(required=false) String role) { return users.list(CurrentUser.get(),page,size,q,active,role); }
     @PostMapping("/users") @ResponseStatus(HttpStatus.CREATED)
     public UserAdminService.UserView create(@Valid @RequestBody CreateUser body) { return users.create(CurrentUser.get(),body.username(),body.displayName(),body.password(),body.roles()); }
     @PatchMapping("/users/{id}") public UserAdminService.UserView patch(@PathVariable UUID id,@Valid @RequestBody PatchUser body) { return users.patch(CurrentUser.get(),id,body.displayName(),body.active()); }

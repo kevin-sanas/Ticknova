@@ -3,6 +3,7 @@ package com.ticknova.catalog;
 import com.ticknova.audit.AuditService;
 import com.ticknova.shared.Actor;
 import com.ticknova.shared.ApiException;
+import com.ticknova.shared.PageResult;
 import java.util.*;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Service;
@@ -63,6 +64,19 @@ public class CatalogService {
             SELECT q.id,q.code,q.name,q.active,m.can_process FROM support_queue q JOIN queue_member m ON m.queue_id=q.id
              WHERE m.user_id=:user AND q.active ORDER BY q.code
             """).param("user",actor.id()).query((rs,n)->new QueueView(rs.getObject("id",UUID.class),rs.getString("code"),rs.getString("name"),rs.getBoolean("active"),rs.getBoolean("can_process"))).list();
+    }
+
+    public PageResult<QueueView> adminQueues(Actor actor,int page,int size,String query,Boolean active) {
+        actor.requireRole("ADMIN");PageResult.validate(page,size);
+        var filter=adminFilter(query,active);var params=filter.params();
+        long total=jdbc.sql("SELECT count(*) FROM support_queue q"+filter.sql()).params(params).query(Long.class).single();
+        params.put("user",actor.id());params.put("size",size);params.put("offset",(long)page*size);
+        var items=jdbc.sql("""
+            SELECT q.id,q.code,q.name,q.active,COALESCE(m.can_process,false) AND q.active AS can_process
+              FROM support_queue q LEFT JOIN queue_member m ON m.queue_id=q.id AND m.user_id=:user
+            """+filter.sql()+" ORDER BY q.code,q.id LIMIT :size OFFSET :offset").params(params)
+            .query((rs,n)->new QueueView(rs.getObject("id",UUID.class),rs.getString("code"),rs.getString("name"),rs.getBoolean("active"),actor.hasRole("AGENT")&&rs.getBoolean("can_process"))).list();
+        return new PageResult<>(items,total,page,size);
     }
 
     @Transactional
@@ -132,6 +146,16 @@ public class CatalogService {
             .param("all",includeInactive).query((rs,n)->new ServiceView(rs.getObject("id",UUID.class),rs.getString("code"),rs.getString("name"),rs.getBoolean("active"))).list();
     }
 
+    public PageResult<ServiceView> adminServices(Actor actor,int page,int size,String query,Boolean active) {
+        actor.requireRole("ADMIN");PageResult.validate(page,size);
+        var filter=adminFilter(query,active);var params=filter.params();
+        long total=jdbc.sql("SELECT count(*) FROM service_catalog q"+filter.sql()).params(params).query(Long.class).single();
+        params.put("size",size);params.put("offset",(long)page*size);
+        var items=jdbc.sql("SELECT q.id,q.code,q.name,q.active FROM service_catalog q"+filter.sql()+" ORDER BY q.code,q.id LIMIT :size OFFSET :offset").params(params)
+            .query((rs,n)->new ServiceView(rs.getObject("id",UUID.class),rs.getString("code"),rs.getString("name"),rs.getBoolean("active"))).list();
+        return new PageResult<>(items,total,page,size);
+    }
+
     @Transactional
     public ServiceView createService(Actor actor,String code,String name,boolean active) {
         actor.requireRole("ADMIN"); validateConfig(code,name,60);
@@ -162,6 +186,19 @@ public class CatalogService {
         if (code==null || !code.matches("[A-Z][A-Z0-9_-]{0,"+(maxCode-1)+"}") || name==null || name.isBlank() || name.trim().length()>160)
             throw new ApiException(400,"INVALID_CONFIGURATION","编码或名称格式无效");
     }
+
+    private static AdminFilter adminFilter(String query,Boolean active) {
+        String normalized=query==null?"":query.trim().toLowerCase(Locale.ROOT);
+        if(normalized.length()>160)throw new ApiException(400,"INVALID_CATALOG_QUERY","目录搜索词最多 160 个字符");
+        StringBuilder sql=new StringBuilder(" WHERE 1=1");Map<String,Object> params=new HashMap<>();
+        if(!normalized.isEmpty()){
+            sql.append(" AND (lower(q.code) LIKE :query ESCAPE '\\' OR lower(q.name) LIKE :query ESCAPE '\\')");
+            params.put("query","%"+normalized.replace("\\","\\\\").replace("%","\\%").replace("_","\\_")+"%");
+        }
+        if(active!=null){sql.append(" AND q.active=:active");params.put("active",active);}
+        return new AdminFilter(sql.toString(),params);
+    }
+    private record AdminFilter(String sql,Map<String,Object> params) {}
 
     public record QueueView(UUID id,String code,String name,boolean active,boolean canProcess) {}
     public record MemberView(UUID userId,String username,String displayName,boolean active,boolean canProcess) {}

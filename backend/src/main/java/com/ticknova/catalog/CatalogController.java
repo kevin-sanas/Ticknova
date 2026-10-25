@@ -1,6 +1,7 @@
 package com.ticknova.catalog;
 
 import com.ticknova.shared.CurrentUser;
+import com.ticknova.shared.PageResult;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 import java.util.*;
@@ -13,6 +14,7 @@ public class CatalogController {
     private final CatalogService catalog;
     public CatalogController(CatalogService catalog) { this.catalog=catalog; }
     @GetMapping("/queues") public List<CatalogService.QueueView> queues() { return catalog.queues(CurrentUser.get()); }
+    @GetMapping("/admin/queues") public PageResult<CatalogService.QueueView> adminQueues(@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size,@RequestParam(required=false) String q,@RequestParam(required=false) Boolean active) { return catalog.adminQueues(CurrentUser.get(),page,size,q,active); }
     @PostMapping("/queues") @ResponseStatus(HttpStatus.CREATED)
     public CatalogService.QueueView createQueue(@Valid @RequestBody Configuration body) { return catalog.createQueue(CurrentUser.get(),body.code(),body.name(),body.active()==null || body.active()); }
     @PatchMapping("/queues/{id}") public CatalogService.QueueView patchQueue(@PathVariable UUID id,@Valid @RequestBody PatchConfiguration body) { return catalog.patchQueue(CurrentUser.get(),id,body.code(),body.name(),body.active()); }
@@ -22,6 +24,7 @@ public class CatalogController {
     @DeleteMapping("/queues/{id}/members/{userId}") @ResponseStatus(HttpStatus.NO_CONTENT)
     public void removeMembership(@PathVariable UUID id,@PathVariable UUID userId) { catalog.removeMembership(CurrentUser.get(),id,userId); }
     @GetMapping("/services") public List<CatalogService.ServiceView> services(@RequestParam(defaultValue="false") boolean includeInactive) { return catalog.services(CurrentUser.get(),includeInactive); }
+    @GetMapping("/admin/services") public PageResult<CatalogService.ServiceView> adminServices(@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size,@RequestParam(required=false) String q,@RequestParam(required=false) Boolean active) { return catalog.adminServices(CurrentUser.get(),page,size,q,active); }
     @PostMapping("/services") @ResponseStatus(HttpStatus.CREATED)
     public CatalogService.ServiceView createService(@Valid @RequestBody Configuration body) { return catalog.createService(CurrentUser.get(),body.code(),body.name(),body.active()==null || body.active()); }
     @PatchMapping("/services/{id}") public CatalogService.ServiceView patchService(@PathVariable UUID id,@Valid @RequestBody PatchConfiguration body) { return catalog.patchService(CurrentUser.get(),id,body.code(),body.name(),body.active()); }

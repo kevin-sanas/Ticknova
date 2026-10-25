@@ -14,13 +14,24 @@ const bare = computed(() => route.path === '/login' || route.path === '/change-p
 const admin = computed(() => session.user?.roles.includes('ADMIN'))
 const userRoleNames = computed(() => session.user?.roles.map(role => roleNames[role] || role).join(' · '))
 const nav = computed(() => [
-  { path: '/portal', label: '员工服务门户', icon: 'search' },
-  ...(hasTicketModule(session.user) ? [{ path: '/tickets', label: '工单工作台', icon: 'inbox' }] : []),
-  { path: '/knowledge', label: '知识协同', icon: 'book' },
-  ...(session.user?.roles.includes('KB_EDITOR') ? [{ path: '/knowledge/reviews', label: '审核待办', icon: 'history' }] : []),
-  { path: '/assistant', label: '知识助手', icon: 'ai' },
-  ...(admin.value ? [{ path: '/admin/analytics', label: '运营分析', icon: 'chart' }, { path: '/admin/users', label: '用户与角色', icon: 'users' }, { path: '/admin/queues', label: '队列管理', icon: 'grid' }, { path: '/admin/services', label: '服务目录', icon: 'grid' }, { path: '/admin/audit', label: '审计记录', icon: 'history' }] : []),
-])
+  { label: '工作台', items: [
+    { path: '/portal', label: '员工服务门户', icon: 'search' },
+    ...(hasTicketModule(session.user) ? [{ path: '/tickets', label: '工单工作台', icon: 'inbox' }] : []),
+  ] },
+  { label: '知识', items: [
+    { path: '/knowledge', label: '知识协同', icon: 'book' },
+    ...(session.user?.roles.includes('KB_REVIEWER') ? [{ path: '/knowledge/reviews', label: '审核待办', icon: 'history' }] : []),
+    { path: '/assistant', label: '知识助手', icon: 'ai' },
+  ] },
+  { label: '管理', items: admin.value ? [
+    { path: '/admin/knowledge-spaces', label: '知识空间', icon: 'book' },
+    { path: '/admin/analytics', label: '运营分析', icon: 'chart' },
+    { path: '/admin/users', label: '用户与角色', icon: 'users' },
+    { path: '/admin/queues', label: '队列管理', icon: 'grid' },
+    { path: '/admin/services', label: '服务目录', icon: 'grid' },
+    { path: '/admin/audit', label: '审计记录', icon: 'history' },
+  ] : [] },
+].filter(group => group.items.length))
 watch(() => session.token, (token) => { if (!token && route.path !== '/login') void router.replace('/login') })
 watch(() => route.path, () => { mobileNav.value = false })
 const timer = window.setInterval(() => { if (session.token && session.expiresAt <= Date.now()) session.clear('登录已过期，请重新登录。') }, 1000)
@@ -42,11 +53,10 @@ async function logout() {
     <div v-else class="workspace" :class="{ 'nav-collapsed': collapsed }">
       <aside class="sidebar" aria-label="工作空间导航">
         <router-link class="brand" to="/"><span class="brand-mark" aria-hidden="true">t</span><span v-if="!collapsed">Ticknova<small>让服务与知识相连</small></span></router-link>
-        <div v-if="!collapsed" class="nav-caption">工作空间</div>
-        <AppNavigation :items="nav" :collapsed="collapsed" />
+        <AppNavigation :groups="nav" :collapsed="collapsed" />
         <div class="sidebar-footer"><button class="icon-button" :aria-label="collapsed ? '展开导航' : '收起导航'" :aria-expanded="!collapsed" @click="collapsed = !collapsed">{{ collapsed ? '→' : '←' }}</button><span v-if="!collapsed">清晰记录，高效协作</span></div>
       </aside>
-      <el-drawer v-model="mobileNav" title="工作空间" direction="ltr" size="min(288px, 88vw)" class="navigation-drawer"><router-link class="brand" to="/" @click="mobileNav = false"><span class="brand-mark" aria-hidden="true">t</span><span>Ticknova</span></router-link><AppNavigation :items="nav" @navigate="mobileNav = false" /></el-drawer>
+      <el-drawer v-model="mobileNav" title="工作空间" direction="ltr" size="min(288px, 88vw)" class="navigation-drawer"><router-link class="brand" to="/" @click="mobileNav = false"><span class="brand-mark" aria-hidden="true">t</span><span>Ticknova</span></router-link><AppNavigation :groups="nav" @navigate="mobileNav = false" /></el-drawer>
       <div class="workspace-body">
         <header class="topbar">
           <div class="topbar-title"><button class="icon-button mobile-menu" aria-label="打开导航" :aria-expanded="mobileNav" @click="mobileNav = !mobileNav">☰</button><router-link to="/portal" class="breadcrumb-home">服务空间</router-link><span aria-hidden="true">/</span><span>{{ route.meta.title }}</span></div>

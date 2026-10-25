@@ -12,6 +12,8 @@ export const router = createRouter({
     { path: '/tickets', component: () => import('./views/TicketsView.vue'), meta: { title: '工单工作台' } },
     { path: '/tickets/new', component: () => import('./views/NewTicketView.vue'), meta: { title: '新建工单' } },
     { path: '/tickets/:id', component: () => import('./views/TicketDetailView.vue'), meta: { title: '工单详情' } },
+    { path: '/knowledge/documents/:documentId', component: () => import('./views/KnowledgeDocumentView.vue'), meta: { title: '知识文档' } },
+    { path: '/admin/knowledge-spaces', component: () => import('./views/KnowledgeSpaceAdminView.vue'), meta: { title: '知识空间' } },
     { path: '/knowledge', component: () => import('./views/KnowledgeView.vue'), meta: { title: '知识管理' } },
     { path: '/knowledge/reviews', component: () => import('./views/KnowledgeReviewView.vue'), meta: { title: '审核待办' } },
     { path: '/assistant', component: () => import('./views/AssistantView.vue'), meta: { title: '知识助手' } },
@@ -33,6 +35,7 @@ router.beforeEach((to) => {
   if (to.path === '/login') return destinationFor(session.user)
   if (session.user.mustChangePassword && to.path !== '/change-password') return '/change-password'
   if (!mayVisit(session.user, to.path)) return '/forbidden'
+  if (to.path === '/knowledge' && typeof to.query.documentId === 'string' && to.query.documentId) return { path: `/knowledge/documents/${encodeURIComponent(to.query.documentId)}`, query: { versionId: to.query.versionId, chunkId: to.query.chunkId, fromReview: to.query.fromReview, tab: to.query.tab } }
   return true
 })
 router.afterEach((to) => { document.title = `${to.meta.title || '工作台'} · Ticknova` })

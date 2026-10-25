@@ -45,19 +45,24 @@ const actors = {}, queueIds = {}, serviceIds = {}, categoryIds = {}
 try {
   actors.admin = await login('admin')
   const users = await call(actors.admin, 'GET', '/users?size=100')
-  if (users.total !== 4 || users.items.some(user => !['admin','agent','requester','editor'].includes(user.username))) throw Error('Demo database is not empty; no business data changed')
-  await call(actors.admin, 'POST', '/users', { username: 'reviewer', displayName: '知识审核者', password: settings.DEMO_INITIAL_PASSWORD, roles: ['KB_EDITOR'] })
+  const initialRoles={admin:'ADMIN',agent:'AGENT',requester:'REQUESTER',editor:'KB_EDITOR',reviewer:'KB_REVIEWER'}
+  if (users.total !== 5 || users.items.some(user => !Object.hasOwn(initialRoles,user.username) || !user.active || user.roles.length!==1 || user.roles[0]!==initialRoles[user.username])) throw Error('Demo database is not empty; no business data changed')
   for (const username of ['agent','requester','editor','reviewer']) actors[username] = await login(username)
+  const config=await call(actors.admin,'GET','/ai/config')
+  if(config.mode!=='mock'||config.externalProvider) throw Error('Demo seed requires local mock AI; no business data changed')
   const currentQueues = await call(actors.admin, 'GET', '/queues')
+  const currentServices = await call(actors.admin, 'GET', '/services')
+  const currentSpaces = await call(actors.admin,'GET','/knowledge/spaces')
+  const requesterTickets=await call(actors.requester,'GET','/tickets?size=1'),agentTickets=await call(actors.agent,'GET','/tickets?size=1')
+  if(currentSpaces.length || requesterTickets.total || agentTickets.total || currentQueues.length!==1 || currentQueues[0].code!=='GENERAL' || currentServices.length!==1 || currentServices[0].code!=='GENERAL') throw Error('Demo database has business data; no business data changed')
   for (const [code, name] of queues) {
     const queue = currentQueues.find(row => row.code === code) || await call(actors.admin, 'POST', '/queues', { code, name })
     queueIds[code] = queue.id
     await call(actors.admin, 'PUT', `/queues/${queue.id}/members/${actors.agent.user.id}`, { canProcess: true })
   }
-  const currentServices = await call(actors.admin, 'GET', '/services')
   for (const [code, name] of services) serviceIds[code] = (currentServices.find(row => row.code === code) || await call(actors.admin, 'POST', '/services', { code, name })).id
-  const space = await call(actors.editor, 'POST', '/knowledge/spaces', { name: '员工帮助中心' }, true)
-  for (const username of ['admin','agent','requester','reviewer']) await call(actors.editor, 'PUT', `/knowledge/spaces/${space.id}/members/${actors[username].user.id}`, { canRead: true, canEdit: username === 'reviewer', reason: '初始化原创演示知识的阅读与独立审核权限' })
+  const space = await call(actors.admin, 'POST', '/knowledge/spaces', { name: '员工帮助中心' }, true)
+  for (const username of ['editor','agent','requester','reviewer']) await call(actors.admin, 'PUT', `/knowledge/spaces/${space.id}/members/${actors[username].user.id}`, { canRead: true, canEdit: username === 'editor', canReview: username === 'reviewer', reason: '初始化原创演示知识的阅读与编辑审核分离权限' })
   for (const category of new Set(documents.map(row => row[0]))) categoryIds[category] = (await call(actors.editor, 'POST', `/knowledge/spaces/${space.id}/categories`, { name: category })).id
   for (const document of documents) {
     const draft = await call(actors.editor, 'POST', `/knowledge/spaces/${space.id}/articles`, { title: document[1], categoryId: categoryIds[document[0]], content: richContent(document) }, true)

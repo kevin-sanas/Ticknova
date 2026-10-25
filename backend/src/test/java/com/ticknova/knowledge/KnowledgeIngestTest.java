@@ -28,9 +28,10 @@ class KnowledgeIngestTest {
         assertThat(jdbc.sql("SELECT current_database()").query(String.class).single()).isEqualTo("ticknova_test");
         jdbc.sql("TRUNCATE app_user CASCADE").update();
         UUID id=UUID.randomUUID(); jdbc.sql("INSERT INTO app_user(id,username,display_name,password_hash,must_change_password) VALUES(:id,'editor','Editor','unused',false)").param("id",id).update();
-        jdbc.sql("INSERT INTO user_role SELECT :id,id FROM app_role WHERE code='KB_EDITOR'").param("id",id).update();
-        actor=new Actor(id,"editor","Editor",Set.of("KB_EDITOR"),false);
+        jdbc.sql("INSERT INTO user_role SELECT :id,id FROM app_role WHERE code IN ('KB_EDITOR','ADMIN')").param("id",id).update();
+        actor=new Actor(id,"editor","Editor",Set.of("KB_EDITOR","ADMIN"),false);
         var space=knowledge.createSpace(actor,"Pipeline test");
+        knowledge.membership(actor,space.id(),id,true,true,"Explicit editor fixture");
         upload=knowledge.upload(actor,space.id(),null,"Guide",new MockMultipartFile("file","guide.txt","text/plain","safe source".getBytes(java.nio.charset.StandardCharsets.UTF_8)));
         when(parser.convert(any())).thenReturn(parsed());
     }

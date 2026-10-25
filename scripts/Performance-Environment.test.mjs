@@ -4,8 +4,21 @@ import { createServer } from 'node:http'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import { resolve } from 'node:path'
+import { readFile } from 'node:fs/promises'
 
 const execute = promisify(execFile)
+
+test('performance database guard requires the exact five seeded identity-role pairs', async () => {
+  const source = await readFile(resolve('scripts/Run-Performance.ps1'), 'utf8')
+  assert.match(source, /count\(\*\) FROM app_user\)=5/)
+  assert.match(source, /count\(\*\) FROM user_role\)=5/)
+  for (const [username, role] of [
+    ['admin', 'ADMIN'], ['agent', 'AGENT'], ['editor', 'KB_EDITOR'],
+    ['requester', 'REQUESTER'], ['reviewer', 'KB_REVIEWER']
+  ]) assert.match(source, new RegExp(`\\('${username}','${role}'\\)`))
+  assert.doesNotMatch(source, /count\(\*\) FROM app_user\)=4/)
+})
+
 for (const marker of ['demo', 'browser-test', '']) {
   test(`performance preparation rejects ${marker || 'unmarked'} server before credentials or writes`, async () => {
     let writes = 0

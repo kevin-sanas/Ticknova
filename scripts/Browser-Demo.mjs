@@ -10,16 +10,16 @@ async function login(username) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1050 }, locale: 'zh-CN', timezoneId: 'Asia/Shanghai' }); contexts.push(context)
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.name))
   await page.goto(`${base}/login`); await page.locator('#username').fill(username); await page.locator('#password').fill(env[`DEMO_BROWSER_${username.toUpperCase()}_PASSWORD`])
-  await page.getByRole('button', { name: /登录工作台/ }).click(); await page.waitForURL(url => !['/login','/change-password'].includes(url.pathname))
+  const response=page.waitForResponse(r=>r.url().endsWith('/auth/login')&&r.request().method()==='POST'); await page.getByRole('button', { name: /登录工作台/ }).click(); const signed=await(await response).json(); expect(signed.user.roles).toEqual([({admin:'ADMIN',agent:'AGENT',requester:'REQUESTER',editor:'KB_EDITOR',reviewer:'KB_REVIEWER'})[username]]); await page.waitForURL(url => !['/login','/change-password'].includes(url.pathname))
   return page
 }
 async function navigate(page, path) { await page.locator(`a[href="${path}"]:visible`).first().click(); await page.waitForURL(url => url.pathname === path) }
 try {
-  const reader = await login('requester'); await expect(reader.locator('.portal-main .document-result')).not.toHaveCount(0)
+  const reader = await login('requester'); await expect(reader.locator('.portal-main .document-card')).not.toHaveCount(0)
   for (const width of [1920,1440,1366,1280,768,390]) {
     await reader.setViewportSize({ width, height: width === 390 ? 844 : 1050 })
     expect(await reader.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
-    const snippets = await reader.locator('.portal-main .document-result p').evaluateAll(rows => rows.map(row => ({ height: row.getBoundingClientRect().height, line: parseFloat(getComputedStyle(row).lineHeight), clamp: getComputedStyle(row).webkitLineClamp })))
+    const snippets = await reader.locator('.portal-main .document-snippet').evaluateAll(rows => rows.map(row => ({ height: row.getBoundingClientRect().height, line: parseFloat(getComputedStyle(row).lineHeight), clamp: getComputedStyle(row).webkitLineClamp })))
     expect(snippets.length).toBeGreaterThan(0)
     for (const snippet of snippets) { expect(snippet.clamp).toBe('2'); expect(snippet.height).toBeLessThanOrEqual(snippet.line * 2 + 1) }
     await reader.screenshot({ path: resolve(evidence,`demo-portal-${width}.png`), fullPage: true, animations: 'disabled' })
@@ -31,7 +31,7 @@ try {
     const accepted = reader.waitForResponse(response => response.url().endsWith('/ai/answers') && response.request().method() === 'POST')
     await reader.locator('#assistant-submit').click(); expect((await accepted).status()).toBe(202)
     await expect(reader.getByRole('button',{name:'采纳建议',exact:true})).toBeVisible()
-    await expect(reader.locator('.ai-citations a').first()).toBeVisible()
+    await expect(reader.locator('.ai-citations a').first()).toBeVisible(); await expect(reader.locator('.ai-citations a').first()).toHaveAttribute('href', /^\/knowledge\/documents\/[a-f0-9-]{36}\?/)
     await expect(reader.locator('.ai-citations')).toContainText(title)
     await expect(reader.getByText(/本地.*演示|mock/i).first()).toBeVisible()
     console.log(`PASS original demo knowledge returns a cited mock answer: ${question}`)

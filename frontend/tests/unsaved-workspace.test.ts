@@ -53,7 +53,7 @@ it('protects an unsent public reply but lets an expired session leave immediatel
  session.clear();await router.push('/login');await flushPromises();expect(router.currentRoute.value.path).toBe('/login')
 })
 it.each(['catalog','users'])('asks before closing the dirty %s dialog and allows untouched close',async kind=>{
- vi.stubGlobal('fetch',(url:string)=>Promise.resolve(json(url.includes('/users?')?{items:[],total:0,page:0,size:20}:url.endsWith('/roles')?['REQUESTER']:[])))
+ vi.stubGlobal('fetch',(url:string)=>Promise.resolve(json(url.includes('/admin/services?')?{items:[],total:0,page:0,size:20}:url.includes('/users?')?{items:[],total:0,page:0,size:20}:url.endsWith('/roles')?['REQUESTER']:[])))
  await render(kind==='catalog'?CatalogView:UsersView,'/admin',kind==='catalog'?{kind:'services'}:{})
  await choose(kind==='catalog'?'＋ 新建服务':'＋ 创建用户')
  const input=document.querySelector<HTMLInputElement>(kind==='catalog'?'#catalog-name':'#user-name')!;input.value='未保存的名称';input.dispatchEvent(new Event('input',{bubbles:true}))
@@ -137,7 +137,7 @@ it.each([201,400])('locks status fields during a deferred transition and retains
 })
 it.each([['catalog',201],['catalog',400],['users',201],['users',400]] as const)('locks %s creation fields during a deferred write and retains failures (%s)',async(kind,status)=>{
  let release!:(value:Response)=>void
- vi.stubGlobal('fetch',(url:string,init:RequestInit)=>init?.method==='POST'?new Promise<Response>(resolve=>{release=resolve}):Promise.resolve(json(url.includes('/users?')?{items:[],total:0,page:0,size:20}:url.endsWith('/roles')?['REQUESTER','AGENT']:[])))
+ vi.stubGlobal('fetch',(url:string,init:RequestInit)=>init?.method==='POST'?new Promise<Response>(resolve=>{release=resolve}):Promise.resolve(json(url.includes('/admin/services?')?{items:[],total:0,page:0,size:20}:url.includes('/users?')?{items:[],total:0,page:0,size:20}:url.endsWith('/roles')?['REQUESTER','AGENT']:[])))
  const {view}=await render(kind==='catalog'?CatalogView:UsersView,'/admin',kind==='catalog'?{kind:'services'}:{})
  await choose(kind==='catalog'?'＋ 新建服务':'＋ 创建用户')
  const ids=kind==='catalog'?['catalog-code','catalog-name']:['new-username','user-name','initial-password']

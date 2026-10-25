@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
-import { api } from '../api'
+import { api, queryString } from '../api'
 import { useOperation } from '../composables/operation'
 import { useUnsavedChanges } from '../composables/unsaved'
 import { useSessionStore } from '../stores/session'
@@ -9,6 +9,7 @@ import type { Page, User } from '../types'
 import { roles } from '../types'
 import ErrorNotice from '../components/ErrorNotice.vue'
 const read = useOperation(); const write = useOperation(); const result = ref<Page<User>>({ items: [], total: 0, page: 0, size: 20 }); const page = ref(1)
+const query = ref(''); const status = ref(''); const roleFilter = ref(''); const applied = ref({ q: '', active: '', role: '' })
 const availableRoles = ref<string[]>([]); const dialog = ref(false); const selected = ref<User | null>(null); const message = ref('')
 const form = reactive({ username: '', displayName: '', password: '', roles: [] as string[], active: true })
 const session = useSessionStore()
@@ -16,9 +17,11 @@ const dialogFocus = useDialogFocus()
 const snapshot = () => ({ ...form, roles: [...form.roles].sort() })
 const saved = ref(snapshot())
 const { confirmDiscard } = useUnsavedChanges(() => session.authenticated && dialog.value && JSON.stringify(snapshot()) !== JSON.stringify(saved.value))
-async function load() { await read.run(async () => { const [users, roleData] = await Promise.all([api.get<Page<User>>(`/users?page=${page.value - 1}&size=20`), api.get<string[]>('/roles')]); result.value = users; availableRoles.value = roleData }) }
+async function load() { await read.run(async () => { const [users, roleData] = await Promise.all([api.get<Page<User>>(`/users?${queryString({ page: page.value - 1, size: 20, ...applied.value })}`), api.get<string[]>('/roles')]); result.value = users; availableRoles.value = roleData }) }
 onMounted(load)
-async function changePage(next: number) { page.value = next; await load() }
+async function search() { if (read.pending.value) return; page.value = 1; applied.value = { q: query.value.trim(), active: status.value, role: roleFilter.value }; await load() }
+async function reset() { if (read.pending.value) return; query.value = ''; status.value = ''; roleFilter.value = ''; await search() }
+async function changePage(next: number) { if (read.pending.value) return; page.value = next; await load() }
 function open(user?: User, event?: Event) { if (write.pending.value) return; dialogFocus.capture(event); selected.value = user || null; Object.assign(form, { username: user?.username || '', displayName: user?.displayName || '', password: '', roles: [...user?.roles || []], active: user?.active ?? true }); saved.value = snapshot(); write.error.value = null; message.value = ''; dialog.value = true }
 async function create() { if (write.pending.value) return; if (!form.roles.length) { message.value = '请至少选择一个角色。'; return }; await write.run(async () => { await api.post('/users', { username: form.username.trim(), displayName: form.displayName.trim(), password: form.password, roles: form.roles }); form.password = ''; dialog.value = false; await load() }) }
 async function saveProfile() { if (write.pending.value || !selected.value) return; const profile = { displayName: form.displayName.trim(), active: form.active }; const originalName = form.displayName; await write.run(async () => { const user = await api.patch<User>(`/users/${selected.value!.id}`, profile); selected.value = user; saved.value = { ...saved.value, displayName: originalName, active: profile.active }; message.value = '基本信息已保存。'; await load() }) }
@@ -30,11 +33,12 @@ async function closeDialog() { await beforeClose(() => { dialog.value = false })
   <div class="page-heading"><div><h1>用户与角色</h1><p class="muted">管理账号状态与显式角色，按需分配工作权限。</p></div><div class="heading-actions"><el-button type="primary" @click="open(undefined, $event)">＋ 创建用户</el-button></div></div>
   <ErrorNotice :error="read.error.value" reload @reload="load" />
   <section class="panel" :aria-busy="read.pending.value"><div class="panel-header"><h2>用户列表 <span class="small muted">{{ result.total }} 人</span></h2><el-button text :loading="read.pending.value" @click="load">刷新</el-button></div>
+    <form id="user-filter-form" class="filter-form management-filter-form" @submit.prevent="search"><div class="field grow"><label for="user-query">搜索用户</label><input id="user-query" v-model="query" type="search" maxlength="120" placeholder="用户名或显示名称" /></div><div class="field"><label for="user-status">账号状态</label><el-select id="user-status" v-model="status" class="user-status-filter" placeholder="全部状态"><el-option label="全部状态" value="" /><el-option label="启用" value="true" /><el-option label="停用" value="false" /></el-select></div><div class="field"><label for="user-role">角色</label><el-select id="user-role" v-model="roleFilter" class="user-role-filter" clearable placeholder="全部角色"><el-option v-for="role in availableRoles" :key="role" :label="roles[role] || role" :value="role" /></el-select></div><div class="filter-actions"><el-button type="primary" native-type="submit" :loading="read.pending.value">查询</el-button><el-button :disabled="read.pending.value" @click="reset">重置</el-button></div></form>
     <div v-if="read.pending.value" class="loading-panel" role="status">正在加载用户…</div>
     <template v-else><div class="table-wrap desktop-table"><table><thead><tr><th scope="col">用户</th><th scope="col">角色</th><th scope="col">账号状态</th><th scope="col">密码状态</th><th scope="col">操作</th></tr></thead><tbody><tr v-for="user in result.items" :key="user.id"><td><strong>{{ user.displayName }}</strong><span class="ticket-number">{{ user.username }}</span></td><td><div class="tag-list"><span v-for="role in user.roles" :key="role" class="tag">{{ roles[role] || role }}</span></div></td><td><span class="badge" :class="user.active ? 'resolved' : 'closed'">{{ user.active ? '启用' : '停用' }}</span></td><td>{{ user.mustChangePassword ? '待首次修改' : '已设置' }}</td><td><el-button text type="primary" @click="open(user, $event)">管理</el-button></td></tr></tbody></table></div>
       <div class="mobile-cards"><article v-for="user in result.items" :key="user.id" class="ticket-card"><div class="panel-header"><div><strong>{{ user.displayName }}</strong><span class="ticket-number">{{ user.username }}</span></div><span class="badge" :class="user.active ? 'resolved' : 'closed'">{{ user.active ? '启用' : '停用' }}</span></div><div class="tag-list"><span v-for="role in user.roles" :key="role" class="tag">{{ roles[role] || role }}</span></div><el-button text type="primary" style="margin-top:10px" @click="open(user, $event)">管理用户</el-button></article></div>
-      <div v-if="!result.items.length && !read.error.value" class="empty-state">暂无用户。</div></template>
-    <div class="pagination"><span>共 {{ result.total }} 人</span><el-pagination :current-page="page" :page-size="20" :total="result.total" :pager-count="5" layout="prev, pager, next" @current-change="changePage" /></div>
+      <div v-if="!result.items.length && !read.error.value" class="empty-state">{{ applied.q || applied.active || applied.role ? '没有符合条件的用户。' : '暂无用户。' }}</div></template>
+    <div class="pagination"><span>共 {{ result.total }} 人</span><el-pagination :current-page="page" :page-size="20" :total="result.total" :pager-count="5" :disabled="read.pending.value" layout="prev, pager, next" @current-change="changePage" /></div>
   </section>
   <el-dialog v-model="dialog" :title="selected ? `管理用户 · ${selected.username}` : '创建用户'" width="520px" :close-on-click-modal="false" :before-close="beforeClose" @closed="dialogFocus.restore">
     <div class="dialog-form"><ErrorNotice :error="write.error.value" /><p v-if="message" class="info-notice" role="status">{{ message }}</p>
@@ -50,3 +54,7 @@ async function closeDialog() { await beforeClose(() => { dialog.value = false })
     </div>
   </el-dialog>
 </template>
+<style scoped>
+.management-filter-form { margin-bottom: var(--space-5); }
+.user-status-filter, .user-role-filter { width: 100%; }
+</style>

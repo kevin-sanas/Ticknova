@@ -8,7 +8,7 @@ import KnowledgeError from './KnowledgeError.vue'
 
 const emit = defineEmits<{ open: [task: KnowledgeReviewTask] }>()
 const session = useSessionStore()
-const allowed = computed(() => session.authenticated && !!session.user?.roles.includes('KB_EDITOR'))
+const allowed = computed(() => session.authenticated && !!session.user?.roles.includes('KB_REVIEWER'))
 const tasks = ref<KnowledgeReviewTask[]>([])
 const total = ref(0)
 const page = ref(0)
@@ -42,7 +42,7 @@ async function load() {
   }
 }
 async function changePage(delta: number) { if (pending.value) return; page.value += delta; await load() }
-watch(() => session.token, () => { cancel(); page.value = 0; if (allowed.value) void load() }, { flush: 'sync' })
+watch([() => session.token, () => session.user?.id, allowed], () => { cancel(); page.value = 0; if (allowed.value) void load() }, { flush: 'sync' })
 onBeforeUnmount(cancel)
 void load()
 </script>
@@ -50,7 +50,7 @@ void load()
 <template>
   <div class="knowledge-review-tasks" :aria-busy="pending">
     <div class="panel-header"><div><h3>待我审核 <span class="small muted">{{ total }} 项</span></h3><p class="muted small">打开版本核对正文，再选择审核通过或退回修改；审核通过后还需发布。</p></div><el-button aria-label="刷新待办" :loading="pending" @click="load">刷新待办</el-button></div>
-    <div v-if="!allowed" class="empty-state">当前账号没有知识审核权限。需要知识编辑者角色及对应空间的阅读、编辑权限。</div>
+    <div v-if="!allowed" class="empty-state">当前账号没有知识审核权限。需要知识审核者角色及对应空间的阅读、审核权限。</div>
     <template v-else>
       <KnowledgeError :error="error" retry @retry="load" />
       <p v-if="pending" class="loading-panel" role="status">正在加载审核待办…</p>

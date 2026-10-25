@@ -1,5 +1,13 @@
 # 06｜数据模型、ERD 与 SQL
 
+## 2026-10-24：V7 角色与空间审核权限
+
+`V7__knowledge_reviewer_role.sql` 扩展 `app_role.code` 约束并插入 `KB_REVIEWER`，当前五角色为 `ADMIN/AGENT/REQUESTER/KB_EDITOR/KB_REVIEWER`。`knowledge_space_member.can_review boolean NOT NULL DEFAULT false` 保存审核 ACL，新增约束 `NOT can_review OR can_read` 与 `NOT (can_edit AND can_review)`；原编辑必须可读约束继续保留。角色和 ACL 在服务端同时生效，数据库 ACL 本身不替代角色校验。
+
+V7 不按用户名转换现有账号角色，不覆盖密码、历史版本、审核记录或现有 ACL。旧库需要由管理员通过受控配置明确授予审核角色及空间 `canRead+canReview`，并撤销同空间编辑 ACL。新空库 DemoSeed 生成五个独立角色账号；已存在用户时跳过，不将旧库冒充新种子库。
+
+API 中 Space 增加有效 `canReview`；Member 增加 `roles,canReview`，Candidate 增加 `roles`；Membership 输入为 `{canRead,canEdit,canReview,reason}`。文档和版本的 `allowedActions` 是动态响应字段，不作为表字段持久化。门户 `publishedAt` 读取当前发布版本的真实 `published_at`，分类 `documentCount` 按当前 ACL 下的有效发布文档直接所属分类计数，不累计子树。
+
 ## Ticknova V2：V5/V6 增量
 
 结构唯一来源仍是根目录Flyway迁移。V5增加空间隔离的knowledge_category、CAS knowledge_draft、文档category_id及版本审核字段、不可变authored_title/category和rich_content/rich_fingerprint。旧已发布版本以review_grandfathered保留APPROVED，不伪造审核人；新版本默认DRAFT，审核人不得为版本作者。原件SHA、存储键、作者及rich快照由数据库触发器保护。
@@ -54,7 +62,7 @@ CREATE TABLE app_user (
 CREATE TABLE app_role (
   id uuid PRIMARY KEY,
   code varchar(40) NOT NULL UNIQUE
-    CHECK (code IN ('ADMIN','AGENT','KB_EDITOR','REQUESTER'))
+    CHECK (code IN ('ADMIN','AGENT','KB_EDITOR','KB_REVIEWER','REQUESTER'))
 );
 CREATE TABLE user_role (
   user_id uuid NOT NULL REFERENCES app_user(id),
@@ -150,7 +158,9 @@ CREATE TABLE knowledge_space_member (
   user_id uuid NOT NULL REFERENCES app_user(id),
   can_read boolean NOT NULL DEFAULT true,
   can_edit boolean NOT NULL DEFAULT false,
-  PRIMARY KEY(space_id,user_id), CHECK (NOT can_edit OR can_read)
+  can_review boolean NOT NULL DEFAULT false,
+  PRIMARY KEY(space_id,user_id), CHECK (NOT can_edit OR can_read),
+  CHECK (NOT can_review OR can_read), CHECK (NOT (can_edit AND can_review))
 );
 CREATE TABLE knowledge_document (
   id uuid PRIMARY KEY,

@@ -2,7 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import ElementPlus, { ElMessageBox } from 'element-plus'
+import ElementPlus, { ElMessageBox, ElSelect } from 'element-plus'
 import type { Component } from 'vue'
 import { bindApiSession } from '../src/api'
 import { useSessionStore } from '../src/stores/session'
@@ -23,7 +23,7 @@ async function render(component: Component, props = {}) {
   await router.push('/admin'); view = mount({ template: '<router-view />' }, { attachTo: document.body, global: { plugins: [pinia, router, ElementPlus], stubs: { transition: false } } }); await flushPromises()
 }
 it.each(['catalog', 'users'])('restores the real %s opener after cancelling a nested dirty confirmation then saving', async kind => {
-  vi.stubGlobal('fetch', (url: string) => Promise.resolve(json(url.includes('/users?') ? { items: [], total: 0, page: 0, size: 20 } : url.endsWith('/roles') ? ['REQUESTER'] : [])))
+  vi.stubGlobal('fetch', (url: string) => Promise.resolve(json(url.includes('/admin/services?') ? { items: [], total: 0, page: 0, size: 20 } : url.includes('/users?') ? { items: [], total: 0, page: 0, size: 20 } : url.endsWith('/roles') ? ['REQUESTER'] : [])))
   await render(kind === 'catalog' ? CatalogView : UsersView, kind === 'catalog' ? { kind: 'services' } : {})
   const opener = button(kind === 'catalog' ? '＋ 新建服务' : '＋ 创建用户')
   // Pointer activation can leave focus on the preceding control; restore the
@@ -45,13 +45,38 @@ it.each(['catalog', 'users'])('restores the real %s opener after cancelling a ne
 })
 it.each(['members', 'audit'])('restores the %s opener after a real dialog close', async kind => {
   const event = { id: 'a1', action: 'TICKET_CREATED', actorName: '用户', subjectType: 'TICKET', subjectId: 't1', traceId: 'trace', createdAt: '2026-10-21T00:00:00Z', metadata: {} }
-  vi.stubGlobal('fetch', (url: string) => Promise.resolve(json(url.includes('/audit-events?') ? { items: [event], total: 1, page: 0, size: 20 } : url.includes('/users?') ? { items: [], total: 0, page: 0, size: 100 } : url.endsWith('/queues') ? [{ id: 'q1', code: 'GENERAL', name: '通用队列', active: true }] : [])))
+  vi.stubGlobal('fetch', (url: string) => Promise.resolve(json(url.endsWith('/audit-events/filters') ? { actions: ['TICKET_CREATED'], actors: [{ value: 'u1', label: '用户' }] } : url.includes('/audit-events?') ? { items: [event], total: 1, page: 0, size: 20 } : url.includes('/users?') ? { items: [], total: 0, page: 0, size: 100 } : url.includes('/admin/queues?') ? { items: [{ id: 'q1', code: 'GENERAL', name: '通用队列', active: true }], total: 1, page: 0, size: 20 } : [])))
   await render(kind === 'members' ? CatalogView : AuditView, kind === 'members' ? { kind: 'queues' } : {})
   const opener = button(kind === 'members' ? '管理成员' : '查看记录'); opener.focus(); opener.click(); await flushPromises()
-  const dialog = Array.from(document.querySelectorAll<HTMLElement>('.el-dialog')).find(visible)!
-  const close = dialog.querySelector<HTMLButtonElement>('.el-dialog__headerbtn')!; close.focus(); close.click(); await flushPromises()
+  const dialog = Array.from(document.querySelectorAll<HTMLElement>(kind === 'audit' ? '.el-drawer' : '.el-dialog')).find(visible)!
+  const close = dialog.querySelector<HTMLButtonElement>(kind === 'audit' ? '.el-drawer__close-btn' : '.el-dialog__headerbtn')!; close.focus(); close.click(); await flushPromises()
   await vi.waitFor(() => expect((dialog.closest('.el-overlay') as HTMLElement).style.display).toBe('none'))
   await vi.waitFor(() => expect(document.activeElement).toBe(opener))
+})
+it('filters audit rows with actual action, actor and inclusive local date choices', async () => {
+  const calls: string[] = []
+  vi.stubGlobal('fetch', (url: string) => {
+    calls.push(url)
+    if (url.endsWith('/audit-events/filters')) return Promise.resolve(json({ actions: ['AUTH_LOGIN'], actors: [{ value: 'u1', label: '管理员' }] }))
+    return Promise.resolve(json({ items: [], total: 0, page: 0, size: 20 }))
+  })
+  await render(AuditView)
+  const [action, actor] = view!.findAllComponents(ElSelect)
+  expect(action!.classes()).toContain('audit-action-select')
+  expect(actor!.classes()).toContain('audit-actor-select')
+  await action!.vm.$emit('update:modelValue', 'AUTH_LOGIN')
+  await actor!.vm.$emit('update:modelValue', 'u1')
+  await view!.get('#audit-from').setValue('2026-10-01')
+  await view!.get('#audit-to').setValue('2026-10-02')
+  await view!.get('.filter-form').trigger('submit')
+  await flushPromises()
+  const request = new URL(calls.filter(url => url.includes('/audit-events?')).at(-1)!, 'http://ticknova.local')
+  expect(request.searchParams.get('action')).toBe('AUTH_LOGIN')
+  expect(request.searchParams.get('actor')).toBe('u1')
+  const from = new Date(request.searchParams.get('from')!).getTime()
+  const to = new Date(request.searchParams.get('to')!).getTime()
+  expect(Number.isFinite(from)).toBe(true)
+  expect(to - from).toBe(2 * 24 * 60 * 60 * 1000)
 })
 it.each(['remove', 'grant'])('keeps member dialog focus and Escape after a real %s refresh', async kind => {
   let memberExists = true; let canProcess = false; let deleteBeforePopupClosed = false
@@ -59,7 +84,7 @@ it.each(['remove', 'grant'])('keeps member dialog focus and Escape after a real 
   vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
     if (init?.method === 'DELETE') { const popup = document.querySelector('.el-popconfirm'); deleteBeforePopupClosed = !!popup && visible(popup); memberExists = false; return Promise.resolve(new Response(null, { status: 204 })) }
     if (init?.method === 'PUT') { canProcess = true; return Promise.resolve(new Response(null, { status: 204 })) }
-    return Promise.resolve(json(url.endsWith('/queues') ? [{ id: 'q1', code: 'GENERAL', name: '通用队列', active: true }] : url.includes('/users?') ? { items: [], total: 0, page: 0, size: 100 } : memberExists ? [member()] : []))
+    return Promise.resolve(json(url.includes('/admin/queues?') ? { items: [{ id: 'q1', code: 'GENERAL', name: '通用队列', active: true }], total: 1, page: 0, size: 20 } : url.includes('/users?') ? { items: [], total: 0, page: 0, size: 100 } : memberExists ? [member()] : []))
   })
   await render(CatalogView, { kind: 'queues' })
   const opener = button('管理成员'); opener.focus(); opener.click(); await flushPromises()
@@ -84,7 +109,7 @@ it.each(['remove', 'grant'])('reports %s completion only after the member refres
   vi.stubGlobal('fetch', (url: string, init: RequestInit) => {
     if (['DELETE', 'PUT'].includes(String(init?.method))) { wrote = true; return Promise.resolve(new Response(null, { status: 204 })) }
     if (url.endsWith('/q1/members') && wrote) return new Promise<Response>(resolve => { release = resolve })
-    return Promise.resolve(json(url.endsWith('/queues') ? [{ id: 'q1', code: 'GENERAL', name: '通用队列', active: true }] : url.includes('/users?') ? { items: [], total: 0, page: 0, size: 100 } : [member]))
+    return Promise.resolve(json(url.includes('/admin/queues?') ? { items: [{ id: 'q1', code: 'GENERAL', name: '通用队列', active: true }], total: 1, page: 0, size: 20 } : url.includes('/users?') ? { items: [], total: 0, page: 0, size: 100 } : [member]))
   })
   await render(CatalogView, { kind: 'queues' }); const opener = button('管理成员'); opener.focus(); opener.click(); await flushPromises()
   const dialog = Array.from(document.querySelectorAll<HTMLElement>('.el-dialog')).find(visible)!

@@ -2,7 +2,7 @@ import { browserEnvironment } from './Browser-Environment.mjs'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import {createEditorFixture,permitReview,approveVersion} from './Browser-Review.mjs'
+import {createEditorFixture,createReviewerFixture,permitReview,approveVersion} from './Browser-Review.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const { base, envPath, env, evidence } = await browserEnvironment(root)
@@ -41,18 +41,20 @@ async function assistant(actor, question, space) {
 }
 try {
   const admin = await login('admin'), reader = await login('requester'), agent = await login('agent')
-  const reviewerFixture=await createEditorFixture(admin,base,secret=>secrets.push(secret)),reviewer=await login(reviewerFixture.username,reviewerFixture.password)
+  const editorFixture=await createEditorFixture(admin,base,secret=>secrets.push(secret)),editor=await login(editorFixture.username,editorFixture.password)
+  const reviewerFixture=await createReviewerFixture(admin,base,secret=>secrets.push(secret)),reviewer=await login(reviewerFixture.username,reviewerFixture.password)
   const config = await api(admin, 'GET', '/ai/config'); expect(config.mode).toBe('mock')
   step = 'create synthetic published knowledge source'
   const suffix = Date.now(), title = `G4虚构网关手册 ${suffix}`, question = '网关502错误先检查什么？'
   const space = await api(admin, 'POST', '/knowledge/spaces', { name: `G4验收 ${suffix}` }, crypto.randomUUID())
+  await api(admin, 'PUT', `/knowledge/spaces/${space.id}/members/${editor.user.id}`, { canRead: true, canEdit: true, canReview: false, reason: 'G4 合成知识编辑授权' })
   await permitReview(admin,reviewer,base,space.id)
-  for (const member of [reader, agent]) await api(admin, 'PUT', `/knowledge/spaces/${space.id}/members/${member.user.id}`, { canRead: true, canEdit: false, reason: '虚构G4浏览器验收' })
-  const uploadedResponse = await admin.page.request.post(`${base}/api/v1/knowledge/spaces/${space.id}/documents`, { headers: { Authorization: `Bearer ${admin.token}`, 'Idempotency-Key': crypto.randomUUID() }, multipart: { title, file: { name: 'g4-gateway.md', mimeType: 'text/markdown', buffer: Buffer.from('# 网关502排查\n网关出现502错误时，先检查上游服务健康检查结果，再对照请求时间查看upstream连接日志。核对测试服务地址和端口，修复后重新访问验证。') } } })
+  for (const member of [reader, agent]) await api(admin, 'PUT', `/knowledge/spaces/${space.id}/members/${member.user.id}`, { canRead: true, canEdit: false, canReview: false, reason: '虚构G4浏览器验收' })
+  const uploadedResponse = await editor.page.request.post(`${base}/api/v1/knowledge/spaces/${space.id}/documents`, { headers: { Authorization: `Bearer ${editor.token}`, 'Idempotency-Key': crypto.randomUUID() }, multipart: { title, file: { name: 'g4-gateway.md', mimeType: 'text/markdown', buffer: Buffer.from('# 网关502排查\n网关出现502错误时，先检查上游服务健康检查结果，再对照请求时间查看upstream连接日志。核对测试服务地址和端口，修复后重新访问验证。') } } })
   expect(uploadedResponse.status()).toBe(202); const uploaded = await uploadedResponse.json()
-  await expect.poll(async () => (await api(admin, 'GET', `/knowledge/documents/${uploaded.documentId}`)).versions.find(version => version.id === uploaded.versionId)?.ingestState, { timeout: 60_000 }).toBe('READY')
-  await approveVersion(admin,reviewer,base,uploaded.documentId,uploaded.versionId)
-  await api(admin, 'POST', `/knowledge/documents/${uploaded.documentId}/versions/${uploaded.versionId}/publish`)
+  await expect.poll(async () => (await api(editor, 'GET', `/knowledge/documents/${uploaded.documentId}`)).versions.find(version => version.id === uploaded.versionId)?.ingestState, { timeout: 60_000 }).toBe('READY')
+  await approveVersion(editor,reviewer,base,uploaded.documentId,uploaded.versionId)
+  await api(editor, 'POST', `/knowledge/documents/${uploaded.documentId}/versions/${uploaded.versionId}/publish`)
   // A tiny real pipeline fixture should index promptly; each poll is a distinct request, never a replay of an old refusal.
   await expect.poll(async () => { const created = await api(reader, 'POST', '/ai/answers', { question, spaceIds: [space.id] }, crypto.randomUUID()); return (await job(reader, created.jobId)).result?.outcome }, { timeout: 45_000, intervals: [1000, 2000] }).toBe('ANSWERED')
   checked('published Docling source is indexed and retrieved through the actual async AI API')
@@ -82,7 +84,7 @@ try {
   await expect(agent.page.getByText('公开回复已发送。', { exact: true })).toBeVisible()
   checked('only the existing manual send action creates a public ticket reply')
   step = 'withdrawal invalidates an already rendered answer'
-  await api(admin, 'POST', `/knowledge/documents/${uploaded.documentId}/disable`)
+  await api(editor, 'POST', `/knowledge/documents/${uploaded.documentId}/disable`)
   await reader.page.getByRole('button', { name: '拒绝建议', exact: true }).click()
   await expect(reader.page.getByText(title, { exact: true })).toHaveCount(0)
   checked('feedback reauthorization clears the cached answer and citations after withdrawal')
@@ -90,7 +92,7 @@ try {
   await reader.page.locator('#assistant-question').fill('今天食堂午餐菜单是什么？'); await reader.page.locator('#assistant-submit').click()
   await expect(reader.page.getByText(/无可信来源|证据不足|无法从知识库确认|没有足够/).first()).toBeVisible()
   checked('unrelated knowledge question produces explicit refusal without fabricated citations')
-  await api(admin, 'DELETE', `/knowledge/documents/${uploaded.documentId}`)
+  await api(editor, 'DELETE', `/knowledge/documents/${uploaded.documentId}`)
   expect(errors).toEqual([])
   await writeFile(resolve(evidence, `${evidenceTag}-browser-verification.json`), JSON.stringify({ date: new Date().toISOString(), base, status: 'PASS', mode: 'mock', checks, uncaughtPageErrors: errors.length, fixtureTicketId: ticket.id }, null, 2) + '\n')
 } catch (error) {

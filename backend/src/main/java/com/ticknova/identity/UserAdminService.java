@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserAdminService {
-    private static final Set<String> ROLES=Set.of("ADMIN","AGENT","REQUESTER","KB_EDITOR");
+    private static final Set<String> ROLES=Set.of("ADMIN","AGENT","REQUESTER","KB_EDITOR","KB_REVIEWER");
     private static final String USER_SELECT="""
         SELECT u.id,u.username,u.display_name,u.active,u.must_change_password,u.created_at,
           COALESCE((SELECT array_agg(r.code ORDER BY r.code) FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=u.id),ARRAY[]::varchar[]) role_codes
@@ -25,10 +25,28 @@ public class UserAdminService {
     public List<String> roles(Actor actor) { actor.requireRole("ADMIN"); return ROLES.stream().sorted().toList(); }
 
     public PageResult<UserView> list(Actor actor,int page,int size) {
+        return list(actor,page,size,null,null,null);
+    }
+
+    public PageResult<UserView> list(Actor actor,int page,int size,String query,Boolean active,String role) {
         actor.requireRole("ADMIN"); PageResult.validate(page,size);
-        long total=jdbc.sql("SELECT count(*) FROM app_user").query(Long.class).single();
-        var items=jdbc.sql(USER_SELECT+" ORDER BY u.username,u.id LIMIT :size OFFSET :offset")
-            .param("size",size).param("offset",(long)page*size).query((rs,n)->new UserView(rs.getObject("id",UUID.class),rs.getString("username"),rs.getString("display_name"),rs.getBoolean("active"),rs.getBoolean("must_change_password"),Set.copyOf(Arrays.asList((String[])rs.getArray("role_codes").getArray())),rs.getTimestamp("created_at").toInstant())).list();
+        String normalized=query==null?"":query.trim().toLowerCase(Locale.ROOT);
+        String normalizedRole=role==null?"":role.trim();
+        if(normalized.length()>120)throw new ApiException(400,"INVALID_USER_QUERY","用户搜索词最多 120 个字符");
+        if(!normalizedRole.isEmpty()&&!ROLES.contains(normalizedRole))throw new ApiException(400,"INVALID_ROLES","角色筛选无效");
+        StringBuilder filter=new StringBuilder(" WHERE 1=1");Map<String,Object> params=new HashMap<>();
+        if(!normalized.isEmpty()){
+            filter.append(" AND (lower(u.username) LIKE :query ESCAPE '\\' OR lower(u.display_name) LIKE :query ESCAPE '\\')");
+            params.put("query","%"+escapeLike(normalized)+"%");
+        }
+        if(active!=null){filter.append(" AND u.active=:active");params.put("active",active);}
+        if(!normalizedRole.isEmpty()){
+            filter.append(" AND EXISTS(SELECT 1 FROM user_role fur JOIN app_role fr ON fr.id=fur.role_id WHERE fur.user_id=u.id AND fr.code=:role)");params.put("role",normalizedRole);
+        }
+        long total=jdbc.sql("SELECT count(*) FROM app_user u"+filter).params(params).query(Long.class).single();
+        params.put("size",size);params.put("offset",(long)page*size);
+        var items=jdbc.sql(USER_SELECT+filter+" ORDER BY u.username,u.id LIMIT :size OFFSET :offset")
+            .params(params).query((rs,n)->new UserView(rs.getObject("id",UUID.class),rs.getString("username"),rs.getString("display_name"),rs.getBoolean("active"),rs.getBoolean("must_change_password"),Set.copyOf(Arrays.asList((String[])rs.getArray("role_codes").getArray())),rs.getTimestamp("created_at").toInstant())).list();
         return new PageResult<>(items,total,page,size);
     }
 
@@ -97,5 +115,6 @@ public class UserAdminService {
     private static void validateName(String name) {
         if (name==null || name.isBlank() || name.trim().length()>120) throw new ApiException(400,"INVALID_DISPLAY_NAME","显示名称须为 1–120 个字符");
     }
+    private static String escapeLike(String value) { return value.replace("\\","\\\\").replace("%","\\%").replace("_","\\_"); }
     public record UserView(UUID id,String username,String displayName,boolean active,boolean mustChangePassword,Set<String> roles,Instant createdAt) {}
 }

@@ -27,7 +27,8 @@ try {
     docker @compose up --no-build -d --wait postgres docling api web
     if($LASTEXITCODE -ne 0){throw 'Performance stack did not become healthy'}
     $database=(& docker @compose exec -T postgres psql -U ticknova_test -d ticknova_perf -At -c 'SELECT current_database()').Trim()
-    $fresh=(& docker @compose exec -T postgres psql -U ticknova_test -d ticknova_perf -At -c 'SELECT (SELECT count(*) FROM app_user)=4 AND NOT EXISTS(SELECT 1 FROM ticket) AND NOT EXISTS(SELECT 1 FROM knowledge_space)').Trim()
+    $freshSql="SELECT (SELECT count(*) FROM app_user)=5 AND (SELECT count(*) FROM user_role)=5 AND NOT EXISTS(SELECT 1 FROM (VALUES ('admin','ADMIN'),('agent','AGENT'),('editor','KB_EDITOR'),('requester','REQUESTER'),('reviewer','KB_REVIEWER')) AS expected(username,role_code) WHERE NOT EXISTS(SELECT 1 FROM app_user u JOIN user_role ur ON ur.user_id=u.id JOIN app_role r ON r.id=ur.role_id WHERE u.username=expected.username AND u.active AND r.code=expected.role_code)) AND NOT EXISTS(SELECT 1 FROM ticket) AND NOT EXISTS(SELECT 1 FROM knowledge_space)"
+    $fresh=(& docker @compose exec -T postgres psql -U ticknova_test -d ticknova_perf -At -c $freshSql).Trim()
     if($LASTEXITCODE -ne 0 -or $database -ne 'ticknova_perf' -or $fresh -ne 't'){throw 'Refusing writes: fresh performance database identity mismatch'}
     $web=(& docker @compose ps -q web).Trim()
     docker run --rm --network "container:$web" -v "${projectRoot}:/workspace" -w /workspace $nodeImage node scripts/Seed-Demo.mjs http://127.0.0.1 /workspace/.env.perf verified-empty-ticknova-perf

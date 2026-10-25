@@ -56,9 +56,9 @@ class RagBenchmarkIT {
         report.put("generationPolicy","source-specifics-v1");report.put("timingCaveat","Query embedding cache is reused; diagnostic timings do not compare strategy latency fairly");
         var model=new BudgetModel(provider);var retriever=new AiRetriever(jdbc,model,authorization);
         try {
-            Actor editor=actor("benchmark-editor","KB_EDITOR"),reviewer=actor("benchmark-reviewer","KB_EDITOR"),reader=actor("benchmark-reader","REQUESTER"),outsider=actor("benchmark-outsider","REQUESTER");
-            UUID space=knowledge.createSpace(editor,"原创评测知识",UUID.randomUUID().toString()).id();
-            knowledge.membership(editor,space,reviewer.id(),true,true,"独立评测审核成员");knowledge.membership(editor,space,reader.id(),true,false,"评测阅读权限");
+            Actor admin=actor("benchmark-admin","ADMIN"),editor=actor("benchmark-editor","KB_EDITOR"),reviewer=actor("benchmark-reviewer","KB_REVIEWER"),reader=actor("benchmark-reader","REQUESTER"),outsider=actor("benchmark-outsider","REQUESTER");
+            UUID space=knowledge.createSpace(admin,"原创评测知识",UUID.randomUUID().toString()).id();
+            knowledge.membership(admin,space,editor.id(),true,true,"显式评测编辑成员");knowledge.membership(admin,space,reviewer.id(),true,false,true,"独立评测审核成员");knowledge.membership(admin,space,reader.id(),true,false,"评测阅读权限");
             for(JsonNode doc:dataset.path("documents"))documents.put(doc.path("key").asText(),create(editor,reviewer,space,doc.path("title").asText(),doc.path("paragraphs"),true));
             create(editor,reviewer,space,"未发布门禁领取说明",json.valueToTree(List.of("门禁访问凭据的临时领取地点为演示服务台A窗口。")),false);
             var indexer=new AiIndexWorker(jdbc,transactions,model,false,Integer.parseInt(System.getenv().getOrDefault("EMBEDDING_BATCH_SIZE","32")));

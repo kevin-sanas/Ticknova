@@ -84,19 +84,20 @@ async function commit() {
     const version = draft.value.version
     await api.post<KnowledgeUpload>(`/knowledge/documents/${id}/draft/versions`, { version }, { signal, key: commitKey.for({ id, version }) })
     if (!current()) return
-    message.value = '新版本已提交解析；就绪后需由另一位编辑审核通过才能发布。'; await router.push({ path: '/knowledge', query: { documentId: id } })
+    message.value = '新版本已提交解析；就绪后需由专职审核者审核通过才能发布。'; await router.push({ path: `/knowledge/documents/${id}` })
   }
   catch (failure) { if (current()) error.value = failure instanceof ApiError ? failure : new ApiError(0, { status: 0, title: '提交版本失败，请重试。' }) }
   finally { if (own === generation) committing.value = false }
 }
 watch(() => state.value.error, failure => { if (failure instanceof ApiError && [401, 403, 404].includes(failure.status)) { clear(); error.value = failure } }, { flush: 'sync' })
+watch(sourceError, failure => { if (failure && [401, 403, 404].includes(failure.status)) { clear(); error.value = failure } }, { flush: 'sync' })
 watch(() => error.value, failure => { if (failure && [401, 403, 404].includes(failure.status)) clear() }, { flush: 'sync' })
-watch([() => route.params.id, () => session.token], () => { clear(); if (session.authenticated) void load() }, { flush: 'sync' })
+watch([() => route.params.id, () => session.token, () => session.user?.id, () => session.user?.roles.join(',')], () => { clear(); if (session.authenticated) void load() }, { flush: 'sync' })
 onBeforeUnmount(() => { clear(); saver.dispose() }); void load()
 </script>
 <template>
   <div class="article-editor-page">
-    <div class="page-heading"><div><h1>编辑知识文章</h1><p class="muted">草稿自动保存；新版本由另一位编辑审核后发布。</p></div><el-button @click="router.push({ path: '/knowledge', query: draft ? { documentId: draft.id } : {} })">返回知识中心</el-button></div>
+    <div class="page-heading"><div><h1>编辑知识文章</h1><p class="muted">草稿自动保存；新版本由专职审核者审核后发布。</p></div><el-button @click="router.push({ path: draft ? `/knowledge/documents/${draft.id}` : '/knowledge' })">返回知识中心</el-button></div>
     <KnowledgeError :error="error" retry @retry="reload" /><p v-if="loading" class="loading-panel" role="status">正在加载授权草稿…</p>
     <template v-if="session.authenticated && draft">
       <KnowledgeError v-if="!sourceVersion" :error="sourceError" retry @retry="reload" />

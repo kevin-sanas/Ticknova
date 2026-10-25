@@ -26,7 +26,9 @@ describe('session and routing', () => {
     expect(destinationFor({ ...user, roles: ['ADMIN'] })).toBe('/admin/users')
     expect(mayVisit({ ...user, roles: ['ADMIN'] }, '/tickets')).toBe(false)
     expect(mayVisit({ ...user, roles: ['ADMIN'] }, '/knowledge/reviews')).toBe(false)
-    expect(mayVisit({ ...user, roles: ['KB_EDITOR'] }, '/knowledge/reviews')).toBe(true)
+    expect(mayVisit({ ...user, roles: ['KB_EDITOR'] }, '/knowledge/reviews')).toBe(false)
+    expect(mayVisit({ ...user, roles: ['KB_REVIEWER'] }, '/knowledge/reviews')).toBe(true)
+    expect(destinationFor({ ...user, roles: ['KB_REVIEWER'] })).toBe('/knowledge/reviews')
   })
   it('clears user and bearer when logged out or expired', () => {
     const session = useSessionStore()

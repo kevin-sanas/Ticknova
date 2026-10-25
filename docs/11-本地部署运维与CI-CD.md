@@ -6,7 +6,7 @@
 
 平台证据边界：Windows完整启动及Linux容器内Shell语法/配置生成测试分别记录第12篇；原生Linux/macOS从零启动尚未实跑。Linux执行者需能访问Docker，并对仓库目录有写权限；不要求宿主Java/Node/Python，也不配置WSL或全局Docker镜像。两个种子入口不支持同时运行；中断留下的锁须先确认没有活动初始化再人工处理。
 
-知识审核入口：作者提交版本后，另一位具有该空间读/编辑权限的有效KB_EDITOR从“审核待办”查看确切版本，通过或填写原因退回。作者根据结果修订/重提；通过后由授权编辑者发布。只有ADMIN角色不能自审或绕过内容ACL。新版本未发布前仍提供旧已发布版本。
+知识审核入口：作者以 `KB_EDITOR+canRead+canEdit` 提交版本后，另一位具有该空间 `canRead+canReview` 的有效 `KB_REVIEWER` 从“审核待办”查看当前精确版本，通过或填写原因退回。编辑与审核 ACL 互斥且作者不能自审；作者根据结果修订/重提，通过后由授权编辑者发布。ADMIN 只管理空间与成员，不绕过内容 ACL。新版本未发布前仍提供旧已发布版本。
 
 基础压测运行 `./scripts/Run-Performance.ps1`，固定k6 1.0.0镜像，仅创建 `ticknova-perf` / `ticknova_perf` tmpfs，禁止演示站点，且强制mock。准备12篇原创已索引知识和1,000张工单，随后50并发列表5分钟、50并发创建500张、2并发异步问答30次。列表/创建P95门限500ms，创建和完成数量必须完整，HTTP及业务检查失败不能标为PASS。异步完成耗时包含排队、检索、mock生成和客户端轮询；**不是纯检索P95或真实provider性能**。
 
@@ -31,7 +31,7 @@
 
 `scripts/Start-Local.ps1` 现在使用 `.env.demo`、`compose.yaml + compose.demo.yaml` 和 `ticknova-demo` 项目，数据库为 `ticknova_demo`，卷为 `ticknova-demo_postgres_data` / `ticknova-demo_uploads`；默认只使用 mock。旧 `ticknova` 应用容器停止，原 `.env`、`ticknova_postgres_data` 和 `ticknova_uploads` 保留。下面各历史章节中的 `.env` / `ticknova` 指旧入口，不应混用于新演示库。
 
-`scripts/Seed-Demo.ps1` 校验数据库身份、空业务库及原始四账号，再通过现有登录/首次改密、目录、工单、知识创作、Docling、独立审核、发布和索引接口准备原创样例。密码只写 `.env.demo`；完成后记录 `DEMO_CONTENT_SEEDED` 事件。已完成的种子重复执行不写业务或审计；非空且无完成事件时保留数据并报错，避免把中断的初始化误报为成功。当前种子为五个账号、四队列、八服务、十二篇知识、二十四张工单，全部为虚构演示内容。
+`scripts/Seed-Demo.ps1` 校验数据库身份及 admin/agent/requester/editor/reviewer 五个固定单角色账号，再通过现有登录/首次改密、目录、工单、知识创作、Docling、专职审核、发布和索引接口准备原创样例。密码只写 `.env.demo`；完成后记录 `DEMO_CONTENT_SEEDED` 事件。已完成的种子重复执行不写业务或审计；非空且无完成事件时保留数据并报错，避免把中断的初始化误报为成功。当前种子为五个账号、四队列、八服务、十二篇知识、二十四张工单，全部为虚构演示内容。
 
 `scripts/Test-Browser.ps1` 自建 `ticknova-browser` 项目、`ticknova_browser` tmpfs 库和一次性 `.env.browser`，全入口先验证 Nginx 的 `browser-test` 标记，禁止连接演示入口。它使用独立于后端 `ticknova-test` 的容器和网络；每个浏览器套件之间重启专用 API 清空内存登录配额，保持产品登录限流配置不变。结束后清理测试栈和凭据；截图/JSON 只进入系统临时目录，默认清理，人工检查使用 `-KeepArtifacts` 后及时删除。`-Scope Demo` 在测试库运行同一原创样例，不向演示库写浏览器合成夹具。
 

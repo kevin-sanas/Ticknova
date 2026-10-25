@@ -5,6 +5,28 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.*;
 
 class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
+    @Test void allowedActionsReflectParseReviewPublicationAndIndexLeaseStates() throws Exception {
+        String space=createSpace();
+        Reply first=upload("/knowledge/spaces/"+space+"/documents",editorToken,"actions.txt","text/plain","actions");
+        String doc=first.body().path("documentId").asText(),version=first.body().path("versionId").asText(),base="/knowledge/documents/"+doc;
+        Reply queued=call("GET",base,editorToken,null);
+        assertThat(queued.body().path("allowedActions").toString()).contains("EDIT_DRAFT","UPLOAD_VERSION","ARCHIVE").doesNotContain("SUBMIT_REVIEW","APPROVE","PUBLISH","RETRY_PARSE","RETRY_INDEX","DISABLE");
+        jdbc.sql("UPDATE document_version SET ingest_state='FAILED' WHERE id=CAST(:id AS uuid)").param("id",version).update();
+        assertThat(call("GET",base,editorToken,null).body().path("versions").get(0).path("allowedActions").toString()).contains("RETRY_PARSE");
+        ready(version,"actions");
+        Reply readyDetail=call("GET",base,editorToken,null);
+        assertThat(readyDetail.body().path("allowedActions").toString()).contains("EDIT_DRAFT","UPLOAD_VERSION","ARCHIVE").doesNotContain("SUBMIT_REVIEW","APPROVE","REJECT","PUBLISH","RETRY_PARSE","RETRY_INDEX");
+        assertThatThrownBy(()->knowledge.publish(new com.ticknova.shared.Actor(editor,"editor","Editor",Set.of("KB_EDITOR"),false),UUID.fromString(doc),UUID.fromString(version)))
+            .isInstanceOf(com.ticknova.shared.ApiException.class).hasMessageContaining("专职知识审核者审核通过");
+        jdbc.sql("UPDATE document_version SET embedding_state='FAILED',embedding_locked_until=now()+interval '1 hour' WHERE id=CAST(:id AS uuid)").param("id",version).update();
+        assertThat(call("GET",base,editorToken,null).body().path("versions").get(0).path("allowedActions").toString()).contains("SUBMIT_REVIEW").doesNotContain("RETRY_INDEX");
+        assertThat(call("POST",base+"/versions/"+version+"/index/retry",editorToken,null).status()).isEqualTo(409);
+        jdbc.sql("UPDATE document_version SET embedding_locked_until=NULL WHERE id=CAST(:id AS uuid)").param("id",version).update();
+        assertThat(call("GET",base,editorToken,null).body().path("versions").get(0).path("allowedActions").toString()).contains("RETRY_INDEX");
+        approve(space,doc,version);
+        assertThat(call("GET",base,editorToken,null).body().path("versions").get(0).path("allowedActions").toString()).contains("PUBLISH").doesNotContain("APPROVE","SUBMIT_REVIEW");
+        assertThat(call("POST",base+"/versions/"+version+"/publish",editorToken,null).body().path("allowedActions").toString()).contains("DISABLE");
+    }
     Map<String,Object> content(String text) {return Map.of("type","doc","content",List.of(Map.of("type","paragraph","content",List.of(Map.of("type","text","text",text)))));}
     Map<String,Object> article(String title,UUID category,String text,Integer version) {
         var body=new HashMap<String,Object>();body.put("title",title);body.put("categoryId",category);body.put("content",content(text));if(version!=null)body.put("version",version);return body;
@@ -43,7 +65,7 @@ class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
         assertThat(imported.status()).isEqualTo(200);
         assertThat(call("GET",base+"/draft",editorToken,null).body().path("content").toString()).contains("alpha beta gamma");
     }
-    @Test void reviewTasksAreOnlyVisibleToAnotherCurrentSpaceEditor() throws Exception {
+    @Test void reviewTasksAreOnlyVisibleToDedicatedCurrentReviewer() throws Exception {
         String space=createSpace();
         Reply upload=upload("/knowledge/spaces/"+space+"/documents",editorToken,"review.txt","text/plain","review body");
         String doc=upload.body().path("documentId").asText(),version=upload.body().path("versionId").asText();ready(version,"review body");
@@ -51,21 +73,21 @@ class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
         Reply requested=call("POST","/knowledge/documents/"+doc+"/versions/"+version+"/review-requests",editorToken,null);
         assertThat(requested.status()).isEqualTo(200);
         assertThat(requested.body().path("versions").get(0).path("hasEligibleReviewer").asBoolean()).isFalse();
-        grant(space,other,true,true);
+        grantReview(space,reviewer,true,true);
         assertThat(call("GET","/knowledge/documents/"+doc,editorToken,null).body().path("versions").get(0).path("hasEligibleReviewer").asBoolean()).isTrue();
-        assertThat(call("GET",tasks,editorToken,null).body().path("total").asLong()).isZero();
+        assertThat(call("GET",tasks,editorToken,null).status()).isEqualTo(403);
         assertThat(call("GET",tasks,adminToken,null).status()).isEqualTo(403);
         assertThat(call("GET",tasks,readerToken,null).status()).isEqualTo(403);
-        Reply assigned=call("GET",tasks,otherToken,null);
+        Reply assigned=call("GET",tasks,reviewerToken,null);
         assertThat(assigned.status()).isEqualTo(200);
         assertThat(assigned.body().path("total").asLong()).isEqualTo(1);
         assertThat(assigned.body().path("items").get(0).path("documentId").asText()).isEqualTo(doc);
-        grant(space,other,true,false);
+        grantReview(space,reviewer,true,false);
         assertThat(call("GET","/knowledge/documents/"+doc,editorToken,null).body().path("versions").get(0).path("hasEligibleReviewer").asBoolean()).isFalse();
-        assertThat(call("GET",tasks,otherToken,null).body().path("total").asLong()).isZero();
-        grant(space,other,true,true);
-        jdbc.sql("DELETE FROM user_role WHERE user_id=:id AND role_id=(SELECT id FROM app_role WHERE code='KB_EDITOR')").param("id",other).update();
-        assertThat(call("GET",tasks,otherToken,null).status()).isEqualTo(403);
+        assertThat(call("GET",tasks,reviewerToken,null).body().path("total").asLong()).isZero();
+        grantReview(space,reviewer,true,true);
+        assertThat(call("PUT","/users/"+reviewer+"/roles",adminToken,Map.of("roles",List.of("REQUESTER"))).status()).isEqualTo(204);
+        assertThat(call("GET",tasks,reviewerToken,null).status()).isEqualTo(403);
     }
     @Test void categoriesAreSpaceScopedVersionedAndCannotCycleOrDeleteOccupiedBranches() throws Exception {
         String space=createSpace();grant(space,reader,true,false);
@@ -78,8 +100,8 @@ class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
         assertThat(call("DELETE","/knowledge/categories/"+id,editorToken,Map.of("version",first.body().path("version").asInt())).status()).isEqualTo(409);
         assertThat(call("GET","/knowledge/spaces/"+space+"/categories",adminToken,null).status()).isEqualTo(404);
     }
-    @Test void draftConflictAndReviewRequireIndependentCurrentEditorAndKeepPublishedMetadata() throws Exception {
-        String space=createSpace();grant(space,reader,true,false);grant(space,other,true,true);
+    @Test void draftConflictAndReviewRequireIndependentCurrentReviewerAndKeepPublishedMetadata() throws Exception {
+        String space=createSpace();grant(space,reader,true,false);grantReview(space,reviewer,true,true);
         String key=UUID.randomUUID().toString();var body=article("Original title",null,"original body",null);
         Reply first=callKey("POST","/knowledge/spaces/"+space+"/articles",editorToken,body,key);
         assertThat(first.status()).as(first.body().toString()).isEqualTo(201);String doc=first.body().path("id").asText();int revision=first.body().path("version").asInt();
@@ -91,7 +113,7 @@ class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
         assertThat(call("POST",base+"/publish",editorToken,null).status()).isEqualTo(409);
         assertThat(call("POST",base+"/review-requests",editorToken,null).status()).isEqualTo(200);
         assertThat(call("POST",base+"/reviews",editorToken,Map.of("decision","APPROVED")).status()).isEqualTo(403);
-        assertThat(call("POST",base+"/reviews",otherToken,Map.of("decision","APPROVED")).status()).isEqualTo(200);
+        assertThat(call("POST",base+"/reviews",reviewerToken,Map.of("decision","APPROVED")).status()).isEqualTo(200);
         assertThat(call("POST",base+"/publish",editorToken,null).status()).isEqualTo(200);
         assertThat(call("PUT","/knowledge/documents/"+doc+"/draft",editorToken,article("Private next title",null,"private next body",revision)).status()).isEqualTo(200);
         assertThat(call("PUT","/knowledge/documents/"+doc+"/draft",editorToken,article("Stale",null,"stale",revision)).status()).isEqualTo(409);
@@ -101,12 +123,12 @@ class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
         assertThat(jdbc.sql("SELECT count(*) FROM knowledge_draft WHERE document_id=CAST(:id AS uuid)").param("id",doc).query(Long.class).single()).isEqualTo(1);
     }
     @Test void rejectedVersionCannotPublishAndRevokedReviewerCannotApprove() throws Exception {
-        String space=createSpace();grant(space,other,true,true);
+        String space=createSpace();grantReview(space,reviewer,true,true);
         Reply upload=upload("/knowledge/spaces/"+space+"/documents",editorToken,"review.txt","text/plain","review body");String doc=upload.body().path("documentId").asText(),version=upload.body().path("versionId").asText();ready(version,"review body");
         String base="/knowledge/documents/"+doc+"/versions/"+version;
         assertThat(call("POST",base+"/review-requests",editorToken,null).status()).isEqualTo(200);
-        assertThat(call("POST",base+"/reviews",otherToken,Map.of("decision","REJECTED")).status()).isEqualTo(400);
-        assertThat(call("POST",base+"/reviews",otherToken,Map.of("decision","REJECTED","reason","Needs corrections")).status()).isEqualTo(200);
+        assertThat(call("POST",base+"/reviews",reviewerToken,Map.of("decision","REJECTED")).status()).isEqualTo(400);
+        assertThat(call("POST",base+"/reviews",reviewerToken,Map.of("decision","REJECTED","reason","Needs corrections")).status()).isEqualTo(200);
         assertThat(call("POST",base+"/publish",editorToken,null).status()).isEqualTo(409);
         assertThat(call("POST",base+"/review-requests",editorToken,null).status()).isEqualTo(409);
     }
@@ -137,14 +159,14 @@ class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
         assertThat(call("DELETE","/knowledge/categories/"+parent,editorToken,Map.of("version",1)).status()).isEqualTo(409);
     }
     @Test void adminRoleCannotSubstituteForIndependentReviewerRoleOrRevokedSpaceAccess() throws Exception {
-        String space=createSpace();grant(space,other,true,true);grant(space,admin,true,true);
+        String space=createSpace();grantReview(space,reviewer,true,true);grant(space,admin,true,false);
         Reply upload=upload("/knowledge/spaces/"+space+"/documents",editorToken,"review.txt","text/plain","independent review");
         String doc=upload.body().path("documentId").asText(),version=upload.body().path("versionId").asText();ready(version,"independent review");
         String base="/knowledge/documents/"+doc+"/versions/"+version;
         assertThat(call("POST",base+"/review-requests",editorToken,null).status()).isEqualTo(200);
         assertThat(call("POST",base+"/reviews",adminToken,Map.of("decision","APPROVED")).status()).isEqualTo(403);
-        grant(space,other,false,false);
-        assertThat(call("POST",base+"/reviews",otherToken,Map.of("decision","APPROVED")).status()).isEqualTo(404);
+        grantReview(space,reviewer,false,false);
+        assertThat(call("POST",base+"/reviews",reviewerToken,Map.of("decision","APPROVED")).status()).isEqualTo(404);
         assertThat(call("POST",base+"/publish",editorToken,null).status()).isEqualTo(409);
         assertThat(jdbc.sql("SELECT review_state FROM document_version WHERE id=CAST(:id AS uuid)").param("id",version).query(String.class).single()).isEqualTo("PENDING");
     }
@@ -213,7 +235,7 @@ class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
         assertThat(call("GET","/knowledge/documents/"+doc+"/draft",editorToken,null).body()).isEqualTo(draft.body());
     }
     @Test void capturedAdminActorCannotManageAnotherEditorsSpaceAfterAdminRoleRevocation() throws Exception {
-        String space=createSpace();grant(space,admin,true,true);
+        String space=createSpace();grant(space,admin,true,false);
         jdbc.sql("INSERT INTO user_role SELECT :id,id FROM app_role WHERE code='KB_EDITOR'").param("id",admin).update();
         var captured=new com.ticknova.shared.Actor(admin,"admin","Admin",Set.of("ADMIN","KB_EDITOR"),false);
         jdbc.sql("DELETE FROM user_role WHERE user_id=:id AND role_id=(SELECT id FROM app_role WHERE code='ADMIN')").param("id",admin).update();
@@ -243,14 +265,14 @@ class KnowledgeAuthoringIntegrationTest extends KnowledgeIntegrationTest {
         assertThat(jdbc.sql("SELECT count(*) FROM document_version WHERE document_id=CAST(:id AS uuid)").param("id",doc).query(Long.class).single()).isEqualTo(2);
     }
     @Test void revertingFileUploadToHistoricalPendingSnapshotCanCompleteIndependentReview() throws Exception {
-        String space=createSpace();grant(space,other,true,true);
+        String space=createSpace();grantReview(space,reviewer,true,true);
         Reply first=upload("/knowledge/spaces/"+space+"/documents",editorToken,"guide.txt","text/plain","file A");String doc=first.body().path("documentId").asText(),v1=first.body().path("versionId").asText();ready(v1,"file A");
         String request="/knowledge/documents/"+doc+"/versions/"+v1+"/review-requests";assertThat(call("POST",request,editorToken,null).status()).isEqualTo(200);
         Reply second=upload("/knowledge/documents/"+doc+"/versions",editorToken,"guide.txt","text/plain","file B");String v2=second.body().path("versionId").asText();assertThat(v2).isNotEqualTo(v1);
         Reply reverted=upload("/knowledge/documents/"+doc+"/versions",editorToken,"guide.txt","text/plain","file A");assertThat(reverted.body().path("versionId").asText()).isEqualTo(v1);
         assertThat(call("GET","/knowledge/documents/"+doc,editorToken,null).body().path("latestVersionId").asText()).isEqualTo(v1);
         assertThat(call("POST",request,editorToken,null).status()).isEqualTo(200);
-        assertThat(call("POST","/knowledge/documents/"+doc+"/versions/"+v1+"/reviews",otherToken,Map.of("decision","APPROVED")).status()).isEqualTo(200);
+        assertThat(call("POST","/knowledge/documents/"+doc+"/versions/"+v1+"/reviews",reviewerToken,Map.of("decision","APPROVED")).status()).isEqualTo(200);
         assertThat(call("POST","/knowledge/documents/"+doc+"/versions/"+v1+"/publish",editorToken,null).status()).isEqualTo(200);
     }
 }

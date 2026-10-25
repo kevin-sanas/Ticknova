@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-const props = defineProps<{ items: { path: string; label: string; icon: string }[]; collapsed?: boolean }>()
+interface NavigationItem { path: string; label: string; icon: string }
+const props = defineProps<{ groups?: { label: string; items: NavigationItem[] }[]; items?: NavigationItem[]; collapsed?: boolean }>()
+const navigationGroups = computed(() => (props.groups || [{ label: '', items: props.items || [] }]).filter(group => group.items.length))
+const allItems = computed(() => navigationGroups.value.flatMap(group => group.items))
 defineEmits<{ navigate: [] }>()
 const route = useRoute()
 function active(path: string) {
-  const matches = props.items.filter(item => route.path === item.path || route.path.startsWith(`${item.path}/`))
+  const matches = allItems.value.filter(item => route.path === item.path || route.path.startsWith(`${item.path}/`))
   return matches.sort((a, b) => b.path.length - a.path.length)[0]?.path === path
 }
 const narrowViewport = ref(false)
@@ -31,11 +34,19 @@ const paths: Record<string, string> = {
 </script>
 <template>
   <nav aria-label="主导航">
-    <el-tooltip v-for="item in items" :key="item.path" :content="item.label" placement="right" popper-class="navigation-tooltip" :show-after="150" :disabled="!collapsed || narrowViewport" :trigger="['hover', 'focus']">
+    <div v-for="group in navigationGroups" :key="group.label" class="navigation-group" role="group" :aria-label="group.label || undefined">
+    <p v-if="group.label && !collapsed" class="nav-group-title">{{ group.label }}</p>
+    <el-tooltip v-for="item in group.items" :key="item.path" :content="item.label" placement="right" popper-class="navigation-tooltip" :show-after="150" :disabled="!collapsed || narrowViewport" :trigger="['hover', 'focus']">
       <router-link :to="item.path" :class="{ active: active(item.path) }" :aria-current="active(item.path) ? 'page' : undefined" :aria-label="collapsed ? item.label : undefined" @click="$emit('navigate')">
         <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path :d="paths[item.icon] || paths.grid" /></svg>
         <span :class="{ 'sr-only': collapsed }">{{ item.label }}</span>
       </router-link>
     </el-tooltip>
+    </div>
   </nav>
 </template>
+<style scoped>
+.navigation-group { display: grid; gap: var(--space-1); min-width: 0; }
+.navigation-group + .navigation-group { margin-top: var(--space-4); }
+.nav-group-title { margin: 0; padding: var(--space-2) var(--space-3); color: var(--color-text-secondary); font-size: var(--text-xs); font-weight: 600; }
+</style>

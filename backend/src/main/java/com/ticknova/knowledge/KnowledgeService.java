@@ -24,7 +24,7 @@ public class KnowledgeService {
     public List<Space> spaces(Actor a) { return repo.spaces(a); }
     @Transactional public Space createSpace(Actor a,String name) {return createSpace(a,name,null);}
     @Transactional public Space createSpace(Actor a,String name,String key) {
-        requireCurrentEditor(a); if(name==null||name.isBlank()||name.length()>160)throw new ApiException(400,"INVALID_SPACE_NAME","空间名称需要1至160字符");
+        requireCurrentRole(a,"ADMIN"); if(name==null||name.isBlank()||name.length()>160)throw new ApiException(400,"INVALID_SPACE_NAME","空间名称需要1至160字符");
         if(key!=null)return idempotency.execute(a,"KNOWLEDGE_SPACE_CREATE",key,new SpaceRequest(name.trim()),201,
             requestId->{var space=persistSpace(a,name);return new IdempotencyService.Created<>(space.id(),space);},id->repo.space(a,id,false));
         return persistSpace(a,name);
@@ -33,34 +33,37 @@ public class KnowledgeService {
     private Space persistSpace(Actor a,String name) {
         UUID id=UUID.randomUUID();
         jdbc.sql("INSERT INTO knowledge_space(id,name,created_by) VALUES(:id,:name,:actor)").param("id",id).param("name",name.trim()).param("actor",a.id()).update();
-        jdbc.sql("INSERT INTO knowledge_space_member(space_id,user_id,can_read,can_edit) VALUES(:id,:user,true,true)").param("id",id).param("user",a.id()).update();
         audit.record(a,"KNOWLEDGE_SPACE_CREATED","KNOWLEDGE_SPACE",id,Map.of()); return repo.space(a,id,false);
     }
     private Space manager(Actor a,UUID space,boolean lock) {
-        if(lock)requireCurrentEditor(a);else policy.requireEditor(a); var s=repo.space(a,space,lock);
+        if(lock)requireCurrentRole(a,"ADMIN");else a.requireRole("ADMIN"); var s=repo.space(a,space,lock);
         if(lock)s=repo.space(a,space,false);
-        if(!s.canManageMembers())throw new ApiException(403,"SPACE_MANAGEMENT_FORBIDDEN","仅空间创建者或管理员可管理成员"); return s;
+        if(!s.canManageMembers())throw new ApiException(403,"SPACE_MANAGEMENT_FORBIDDEN","仅管理员可管理成员"); return s;
     }
     public List<Member> members(Actor a,UUID space) {
         manager(a,space,false);
-        return jdbc.sql("SELECT u.id,u.username,u.display_name,m.can_read,m.can_edit FROM knowledge_space_member m JOIN app_user u ON u.id=m.user_id WHERE m.space_id=:space ORDER BY u.username")
-            .param("space",space).query((r,n)->new Member(r.getObject("id",UUID.class),r.getString("username"),r.getString("display_name"),r.getBoolean("can_read"),r.getBoolean("can_edit"))).list();
+        return jdbc.sql("SELECT u.id,u.username,u.display_name,m.can_read,m.can_edit,m.can_review,"+ROLE_CODES+" FROM knowledge_space_member m JOIN app_user u ON u.id=m.user_id WHERE m.space_id=:space ORDER BY u.username")
+            .param("space",space).query((r,n)->new Member(r.getObject("id",UUID.class),r.getString("username"),r.getString("display_name"),r.getBoolean("can_read"),r.getBoolean("can_edit"),Set.copyOf(Arrays.asList((String[])r.getArray("role_codes").getArray())),r.getBoolean("can_review"))).list();
     }
     public List<Candidate> candidates(Actor a,UUID space) {
         manager(a,space,false);
-        return jdbc.sql("SELECT id,username,display_name FROM app_user WHERE active ORDER BY username LIMIT 1000")
-            .query((r,n)->new Candidate(r.getObject("id",UUID.class),r.getString("username"),r.getString("display_name"))).list();
+        return jdbc.sql("SELECT u.id,u.username,u.display_name,"+ROLE_CODES+" FROM app_user u WHERE active ORDER BY username LIMIT 1000")
+            .query((r,n)->new Candidate(r.getObject("id",UUID.class),r.getString("username"),r.getString("display_name"),Set.copyOf(Arrays.asList((String[])r.getArray("role_codes").getArray())))).list();
     }
+    private static final String ROLE_CODES="COALESCE((SELECT array_agg(r.code ORDER BY r.code) FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=u.id),ARRAY[]::varchar[]) AS role_codes";
     @Transactional public void membership(Actor a,UUID space,UUID user,boolean read,boolean edit,String reason) {
+        membership(a,space,user,read,edit,false,reason);
+    }
+    @Transactional public void membership(Actor a,UUID space,UUID user,boolean read,boolean edit,boolean review,String reason) {
         manager(a,space,true);
         if(reason==null||reason.isBlank()||reason.length()>500)throw new ApiException(400,"ACL_REASON_REQUIRED","请填写1至500字符的权限变更理由");
-        if(edit&&!read)throw new ApiException(400,"INVALID_SPACE_PERMISSION","编辑权限必须同时授予读取权限");
-        boolean eligible=jdbc.sql("SELECT EXISTS(SELECT 1 FROM app_user u WHERE u.id=:user AND u.active AND (:edit=false OR EXISTS(SELECT 1 FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=u.id AND r.code IN ('KB_EDITOR','ADMIN'))))")
-            .param("user",user).param("edit",edit).query(Boolean.class).single();
-        if(!eligible)throw new ApiException(400,"INVALID_SPACE_MEMBER","成员必须有效，编辑成员还需要知识编辑者或管理员角色");
-        jdbc.sql("INSERT INTO knowledge_space_member(space_id,user_id,can_read,can_edit) VALUES(:space,:user,:read,:edit) ON CONFLICT(space_id,user_id) DO UPDATE SET can_read=excluded.can_read,can_edit=excluded.can_edit")
-            .param("space",space).param("user",user).param("read",read).param("edit",edit).update();
-        audit.record(a,"KNOWLEDGE_ACL_CHANGED","KNOWLEDGE_SPACE",space,Map.of("userId",user.toString(),"canRead",read,"canEdit",edit,"reason",reason.trim()));
+        if((edit||review)&&!read||edit&&review)throw new ApiException(400,"INVALID_SPACE_PERMISSION","编辑和审核互斥，且必须同时授予读取权限");
+        boolean eligible=jdbc.sql("SELECT EXISTS(SELECT 1 FROM app_user u WHERE u.id=:user AND u.active AND (:edit=false OR EXISTS(SELECT 1 FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=u.id AND r.code='KB_EDITOR')) AND (:review=false OR EXISTS(SELECT 1 FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=u.id AND r.code='KB_REVIEWER')))")
+            .param("user",user).param("edit",edit).param("review",review).query(Boolean.class).single();
+        if(!eligible)throw new ApiException(400,"INVALID_SPACE_MEMBER","成员必须有效，编辑或审核成员需要对应角色");
+        jdbc.sql("INSERT INTO knowledge_space_member(space_id,user_id,can_read,can_edit,can_review) VALUES(:space,:user,:read,:edit,:review) ON CONFLICT(space_id,user_id) DO UPDATE SET can_read=excluded.can_read,can_edit=excluded.can_edit,can_review=excluded.can_review")
+            .param("space",space).param("user",user).param("read",read).param("edit",edit).param("review",review).update();
+        audit.record(a,"KNOWLEDGE_ACL_CHANGED","KNOWLEDGE_SPACE",space,Map.of("userId",user.toString(),"canRead",read,"canEdit",edit,"canReview",review,"reason",reason.trim()));
     }
     public PageResult<Summary> documents(Actor a,UUID space,int page,int size,String q) {
         if(!repo.space(a,space,false).canRead())throw KnowledgeRepository.notFound(); return repo.documents(a,space,page,size,q);
@@ -73,7 +76,11 @@ public class KnowledgeService {
     public Detail detail(Actor a,UUID doc) {
         var s=repo.document(a,doc,false); return detail(a,s);
     }
-    private Detail detail(Actor a,Summary s) { return new Detail(s.id(),s.spaceId(),s.title(),s.publicationState(),s.latestVersionId(),s.publishedVersionId(),s.latestIngestState(),s.versionCount(),s.createdAt(),s.canEdit(),repo.versions(a,s.id()),s.categoryId()); }
+    private Detail detail(Actor a,Summary s) {
+        var versions=repo.versions(a,s.id());var actions=new LinkedHashSet<String>();
+        if(s.canEdit()){actions.addAll(Set.of("EDIT_DRAFT","UPLOAD_VERSION","ARCHIVE"));if(s.publishedVersionId()!=null)actions.add("DISABLE");}
+        return new Detail(s.id(),s.spaceId(),s.title(),s.publicationState(),s.latestVersionId(),s.publishedVersionId(),s.latestIngestState(),s.versionCount(),s.createdAt(),s.canEdit(),versions,s.categoryId(),Set.copyOf(actions));
+    }
     public Job job(Actor a,UUID id) { return repo.job(a,id); }
     @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
     public List<Chunk> chunks(Actor a,UUID doc,UUID version) {
@@ -83,13 +90,12 @@ public class KnowledgeService {
             JOIN knowledge_document d ON d.id=v.document_id JOIN knowledge_space s ON s.id=d.space_id
             JOIN knowledge_space_member m ON m.space_id=s.id AND m.user_id=:user
             WHERE d.id=:doc AND c.document_version_id=:version AND m.can_read AND s.active AND d.publication_state<>'ARCHIVED'
-              AND (:editor OR (d.publication_state='PUBLISHED' AND d.published_version_id=v.id AND v.ingest_state='READY' AND v.review_state='APPROVED')) ORDER BY c.chunk_index
-            """).param("doc",doc).param("version",version).param("user",a.id()).param("editor",d.canEdit())
+              AND (:editor OR %s OR (d.publication_state='PUBLISHED' AND d.published_version_id=v.id AND v.ingest_state='READY' AND v.review_state='APPROVED')) ORDER BY c.chunk_index
+            """.formatted(KnowledgeRepository.PENDING)).param("doc",doc).param("version",version).param("user",a.id()).param("editor",d.canEdit())
             .query((r,n)->new Chunk(r.getObject("id",UUID.class),r.getInt("chunk_index"),(Integer)r.getObject("page_no"),r.getString("heading_path"),r.getString("content"))).list();
     }
     Summary readableVersion(Actor a,UUID doc,UUID version) {
         var d=repo.document(a,doc,false);
-        if(!d.canEdit()&&!(version.equals(d.publishedVersionId())&&d.publicationState().equals("PUBLISHED")))throw KnowledgeRepository.notFound();
         if(repo.versions(a,doc).stream().noneMatch(v->v.id().equals(version)))throw KnowledgeRepository.notFound();
         return d;
     }
@@ -99,11 +105,14 @@ public class KnowledgeService {
         var current=repo.document(a,doc,true); if(!current.canEdit())throw new ApiException(403,"SPACE_EDIT_FORBIDDEN","没有此空间的编辑权限"); return current;
     }
     void requireCurrentEditor(Actor a) {
-        policy.requireEditor(a);
+        requireCurrentRole(a,"KB_EDITOR");
+    }
+    private void requireCurrentRole(Actor a,String role) {
+        if(!a.hasRole(role))throw new ApiException(403,role.equals("KB_EDITOR")?"KNOWLEDGE_EDIT_FORBIDDEN":"FORBIDDEN","当前角色无权执行此操作");
         jdbc.sql("SELECT pg_advisory_xact_lock(873943625)").query((r,n)->true).list();
-        boolean current=jdbc.sql("SELECT EXISTS(SELECT 1 FROM app_user u WHERE u.id=:u AND u.active AND EXISTS(SELECT 1 FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=u.id AND r.code IN ('KB_EDITOR','ADMIN')))")
-            .param("u",a.id()).query(Boolean.class).single();
-        if(!current)throw new ApiException(403,"KNOWLEDGE_EDIT_FORBIDDEN","当前用户已失去知识编辑权限");
+        boolean current=jdbc.sql("SELECT EXISTS(SELECT 1 FROM app_user u WHERE u.id=:u AND u.active AND EXISTS(SELECT 1 FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=u.id AND r.code=:role))")
+            .param("u",a.id()).param("role",role).query(Boolean.class).single();
+        if(!current)throw new ApiException(403,"FORBIDDEN","当前用户已失去所需角色权限");
     }
     Space editableSpace(Actor a,UUID space) {
         requireCurrentEditor(a);repo.space(a,space,true);var s=repo.space(a,space,false);
@@ -199,7 +208,7 @@ public class KnowledgeService {
     @Transactional public Detail publish(Actor a,UUID doc,UUID id) {
         var d=editable(a,doc); var v=version(a,doc,id);
         if(!v.ingestState().equals("READY")||v.chunkCount()<1)throw new ApiException(409,"VERSION_NOT_READY","版本解析并分块成功后才能发布");
-        if(!v.reviewState().equals("APPROVED"))throw new ApiException(409,"VERSION_NOT_APPROVED","版本须经另一位知识编辑者审核通过后发布");
+        if(!v.reviewState().equals("APPROVED"))throw new ApiException(409,"VERSION_NOT_APPROVED","版本须经专职知识审核者审核通过后发布");
         if(id.equals(d.publishedVersionId()))return detail(a,d);
         jdbc.sql("UPDATE document_version SET publication_state='SUPERSEDED' WHERE document_id=:doc AND publication_state='PUBLISHED'").param("doc",doc).update();
         jdbc.sql("UPDATE document_version SET publication_state='PUBLISHED',published_at=now() WHERE id=:id").param("id",id).update();
@@ -215,14 +224,16 @@ public class KnowledgeService {
         audit.record(a,"KNOWLEDGE_REVIEW_REQUESTED","KNOWLEDGE_DOCUMENT",doc,Map.of("versionId",id.toString()));return detail(a,repo.document(a,doc,false));
     }
     @Transactional public Detail review(Actor a,UUID doc,UUID id,String decision,String reason) {
-        var d=editable(a,doc);var v=version(a,doc,id);
-        boolean explicit=jdbc.sql("SELECT EXISTS(SELECT 1 FROM user_role ur JOIN app_role r ON r.id=ur.role_id WHERE ur.user_id=:u AND r.code='KB_EDITOR')").param("u",a.id()).query(Boolean.class).single();
-        if(!explicit||a.id().equals(v.authorId()))throw new ApiException(403,"INDEPENDENT_REVIEW_REQUIRED","须由另一位有空间编辑权限的知识编辑者审核");
+        requireCurrentRole(a,"KB_REVIEWER");var before=repo.document(a,doc,false);
+        repo.space(a,before.spaceId(),true);var space=repo.space(a,before.spaceId(),false);
+        if(!space.canReview())throw KnowledgeRepository.notFound();
+        var d=repo.document(a,doc,true);var v=version(a,doc,id);
+        if(a.id().equals(v.authorId()))throw new ApiException(403,"INDEPENDENT_REVIEW_REQUIRED","作者不能审核自己的版本");
         if(!Set.of("APPROVED","REJECTED").contains(Objects.requireNonNullElse(decision,""))||reason!=null&&reason.length()>500||"REJECTED".equals(decision)&&(reason==null||reason.isBlank()))throw new ApiException(400,"INVALID_REVIEW","审核决定无效，驳回需要1至500字符理由");
         if(!id.equals(d.latestVersionId())||!v.ingestState().equals("READY")||v.chunkCount()<1||!v.reviewState().equals("PENDING"))throw new ApiException(409,"REVIEW_STATE_CONFLICT","此版本当前不可审核");
         jdbc.sql("UPDATE document_version SET review_state=:decision,reviewer_id=:actor,review_reason=:reason,reviewed_at=now() WHERE id=:id AND review_state='PENDING'")
             .param("decision",decision).param("actor",a.id()).param("reason",reason==null||reason.isBlank()?null:reason.trim()).param("id",id).update();
-        audit.record(a,"KNOWLEDGE_REVIEWED","KNOWLEDGE_DOCUMENT",doc,Map.of("versionId",id.toString(),"decision",decision));return detail(a,repo.document(a,doc,false));
+        audit.record(a,"KNOWLEDGE_REVIEWED","KNOWLEDGE_DOCUMENT",doc,Map.of("versionId",id.toString(),"decision",decision));return detail(a,d);
     }
     @Transactional public Detail disable(Actor a,UUID doc) {
         var d=editable(a,doc); if(d.publicationState().equals("DISABLED"))return detail(a,d);

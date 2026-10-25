@@ -1,5 +1,17 @@
 # 07｜REST API 契约
 
+## 2026-10-24 五角色、空间与动作契约
+
+本节及下文更新后的权限表为当前规范；早期阶段端点的状态限制须同时满足 V2 审核与本节职责分离。角色是 `ADMIN/AGENT/REQUESTER/KB_EDITOR/KB_REVIEWER`，不隐式继承。
+
+`Space = {id,name,active,canRead,canEdit,canManageMembers,canReview}`；有效编辑为 `KB_EDITOR+canRead+canEdit` 且无审核 ACL，有效审核为 `KB_REVIEWER+canRead+canReview` 且无编辑 ACL。仅 ADMIN 创建空间和管理成员，创建不自动授予正文权限。`Member = {userId,username,displayName,canRead,canEdit,roles,canReview}`；`Candidate = {id,username,displayName,roles}`。成员角色供管理配置判断，不能代替后端校验。
+
+`PUT /knowledge/spaces/{id}/members/{userId}` 接受 `{canRead,canEdit,canReview,reason}`，`canReview` 省略按 false 兼容旧调用；reason 1–500 字符。编辑/审核须可读，二者互斥，目标须启用且具有对应角色；三项 false 撤销全部空间 ACL。角色、读取或对应 ACL 撤销后后续请求立即失效，等待空间写锁后重新检查。
+
+Detail 文档级 `allowedActions` 为当前允许的 `EDIT_DRAFT/UPLOAD_VERSION/ARCHIVE/DISABLE` 子集，`DISABLE` 需存在发布指针。Version 级 `allowedActions` 为 `SUBMIT_REVIEW/APPROVE/REJECT/PUBLISH/RETRY_PARSE/RETRY_INDEX` 子集，按具体版本状态、作者和当前权限计算。旧 `canRequestReview/canReview/canPublish/canRetryIndex` 保留；前端显示与触发动作使用动作清单，写接口仍独立重新鉴权。审核者只能额外读取当前最新有片段的 `READY/PENDING` 非本人版本，及其本来有权读取的当前发布版本；不会得到任意草稿或历史版本。
+
+前端 `/knowledge` 为列表，`/knowledge/documents/:id` 为独立详情（`tab=overview|versions|parse`，支持 `versionId/chunkId`），`/admin/knowledge-spaces` 为 ADMIN 管理，`/knowledge/reviews` 为 KB_REVIEWER 待办。旧 `/knowledge?documentId=...` 重定向并保留 `versionId/chunkId/fromReview/tab`。
+
 ## G0–G2 实际实现与补齐
 
 机器可读 OpenAPI 为 `GET /api/v1/openapi`（需要完成首次改密后的 bearer 会话）。以下路径均相对于 `/api/v1`。G3 知识摄取及本轮G4契约见下文；最终验收状态以第12篇实测为准。
@@ -25,19 +37,21 @@ REPLY的answer、SUMMARY的summary最多10,000字符，与公开回复共用后�
 | 接口 | 当前契约 |
 |---|---|
 | `POST /auth/change-password` | `{oldPassword,newPassword}`；204；撤销全部会话后重新登录 |
-| `GET /users` / `GET /roles` | ADMIN；用户分页及四种角色代码 |
+| `GET /users` / `GET /roles` | ADMIN；用户分页支持 `q`（用户名/显示名）、`active`、`role` 组合筛选；角色接口返回五种角色代码 |
 | `POST /users` | ADMIN；`{username,displayName,password,roles}`；201；强制首次改密 |
 | `PATCH /users/{id}` | ADMIN；`{displayName?,active?}`；用户 DTO；停用立即撤销会话 |
 | `PUT /users/{id}/roles` | ADMIN；`{roles}`；204；下一次请求重新加载角色，禁止移除最后一个活跃管理员 |
 | `PATCH /queues/{id}` / `PATCH /services/{id}` | ADMIN；名称与启用状态；配置 DTO |
 | `POST /services` | ADMIN；`{code,name}`；201 |
+| `GET /admin/queues` / `GET /admin/services` | ADMIN；分页 `{items,total,page,size}`，支持 `q`（编码/名称）与 `active` 组合筛选；不会改变登录用户使用的公开目录契约 |
 | `GET /queues/{id}/members` | ADMIN 或该队列 AGENT；`{userId,username,displayName,active,canProcess}[]` |
 | `DELETE /queues/{id}/members/{userId}` | ADMIN；204；移除成员资格 |
 | `PATCH /tickets/{id}` | 可处理队列 AGENT；`{priority?,tags?,version?}`；TicketSummary |
 | `PUT /tickets/{id}/assignment` | 可处理源、目标队列 AGENT；`{queueId,assigneeId:null或UUID,version?}`；TicketSummary |
-| `GET /audit-events` | ADMIN；分页，支持精确 `action` 筛选，计数与条目均过滤 |
+| `GET /audit-events` | ADMIN；分页，支持精确 `action`、`actor=SYSTEM|UUID`、`from`（含）和 `to`（不含）ISO-8601 UTC 组合筛选，计数与条目使用相同条件 |
+| `GET /audit-events/filters` | ADMIN；返回数据库中实际存在的 `{actions,actors:[{value,label}]}`，系统事件使用 `SYSTEM`，不伪造候选值 |
 
-所有分页形状统一为 `{items,total,page,size}`。`GET /queues` / `/services` 返回数组；管理员通过 `includeInactive=true` 查看停用服务。
+所有分页形状统一为 `{items,total,page,size}`。`GET /queues` / `/services` 继续返回数组；管理员通过 `includeInactive=true` 查看停用服务，管理列表改用独立 `/admin/queues` 与 `/admin/services` 分页端点。
 
 工单详情形状为 `{ticket,description,resolutionNote,publicReplies,internalNotes,transitions,capabilities,allowedTransitions}`。`ticket` 包含编号、角色可见基本信息、版本与 `tags:string[]`；`capabilities` 包含 `canCommentPublic/canCommentInternal/canReadInternal/canAssign/canEdit`。只读队列成员可以读取内部备注，不能处理工单；请求者的 `internalNotes` 永远为空。详情在同一只读 REPEATABLE READ 快照中完成，避免跨队列移动期间混入新权限范围的内容。
 
@@ -51,19 +65,19 @@ REPLY的answer、SUMMARY的summary最多10,000字符，与公开回复共用后�
 
 | 接口 | 契约 |
 |---|---|
-| `GET /knowledge/spaces` | 数组 `{id,name,active,canRead,canEdit,canManageMembers}`；成员可见已授权空间；ADMIN 可见空间配置，但不因此获得正文权限 |
-| `POST /knowledge/spaces` | KB_EDITOR/ADMIN，`{name}`；201；创建者获得读/编辑权限 |
-| `GET /knowledge/spaces/{id}/members` / `member-candidates` | 创建者或 ADMIN；成员及启用账号候选（最多1000） |
-| `PUT /knowledge/spaces/{id}/members/{userId}` | 创建者或 ADMIN；`{canRead,canEdit,reason}`，理由1–500字符；204；编辑必须同时可读且目标有 KB_EDITOR/ADMIN 角色；双 false 撤权 |
+| `GET /knowledge/spaces` | Space 数组，包含有效 `canReview`；成员可见已授权空间；ADMIN 可见空间配置，但不因此获得正文权限 |
+| `POST /knowledge/spaces` | 仅 ADMIN，`{name}`；201；不自动授予正文 ACL |
+| `GET /knowledge/spaces/{id}/members` / `member-candidates` | 仅 ADMIN；Member/Candidate 包含 roles；启用账号候选最多1000 |
+| `PUT /knowledge/spaces/{id}/members/{userId}` | 仅 ADMIN；`{canRead,canEdit,canReview,reason}`；204；读取前置、编辑/审核互斥及对应角色校验 |
 | `GET /knowledge/spaces/{id}/documents` | 可读空间，分页 `page/size/q`（标题），排除归档 |
 | `POST /knowledge/spaces/{id}/documents` | 可编辑，multipart `title,file`；202 `{documentId,versionId,jobId}` |
 | `POST /knowledge/documents/{id}/versions` | 可编辑，multipart `file`；202；同文档同 SHA-256 返回原版本和当前任务 |
-| `GET /knowledge/documents/{id}` | 可读，基本元数据及 `versions`，不含原文；详情使用只读 REPEATABLE READ 快照。版本中的 `hasEligibleReviewer` 仅在当前用户可编辑时返回有效值：同空间存在另一位启用、具显式 KB_EDITOR 角色且同时可读可编辑的成员 |
-| `GET /knowledge/documents/{id}/versions/{versionId}/chunks` | 可编辑者可预览；只读者只能读取当前已发布 READY 版本；数组 `{id,chunkIndex,pageNo,headingPath,content}`，纯文本 |
-| `POST .../versions/{versionId}/publish` / `POST .../disable` | 可编辑，200 返回详情；READY 且有片段才能发布；撤回立即清空发布指针 |
+| `GET /knowledge/documents/{id}` | 按版本可见性裁剪元数据及 versions，不含原文；只读 REPEATABLE READ 快照。`hasEligibleReviewer` 仅对编辑者有效：同空间存在另一位启用 KB_REVIEWER，具可读/可审核且无编辑 ACL；文档与版本分别带 allowedActions |
+| `GET /knowledge/documents/{id}/versions/{versionId}/chunks` | 编辑者可预览；审核者额外可读当前精确待审版本；普通读者仅当前 READY/APPROVED 发布版本；数组 `{id,chunkIndex,pageNo,headingPath,content}`，纯文本 |
+| `POST .../versions/{versionId}/publish` / `POST .../disable` | KB_EDITOR+空间读/编辑；200 返回详情；READY、APPROVED 且有片段才能发布；撤回立即清空发布指针 |
 | `POST .../versions/{versionId}/retry` | 可编辑；失败创建新任务保留旧失败证据，进行中重放当前任务；202 |
 | `DELETE /knowledge/documents/{id}` | 可编辑；204；软归档并撤回，保留原文件/版本及审计证据 |
-| `GET /jobs/{id}` | 重新检查对象空间 ACL；`{id,status,errorCode,attemptCount,versionId,documentId}`；当前只提供摄取任务 |
+| `GET /jobs/{id}` | 摄取任务重新检查对象空间 ACL；`{id,status,errorCode,attemptCount,versionId,documentId}`；AI任务形状见上文 G4 契约 |
 
 首次创建空间/文档可带 `Idempotency-Key`；页面自动提供并在相同输入重试时复用。键保留24小时，只保存资源ID与请求摘要；重放重新鉴权，同键不同标题/文件摘要等返回409。后续版本另有 `(document_id,sha256)` 唯一约束。不存在或不可访问的知识对象统一404；角色/可读对象内动作权限不足403。
 
@@ -95,11 +109,11 @@ REPLY的answer、SUMMARY的summary最多10,000字符，与公开回复共用后�
 | `GET /tickets/{id}` | 本人或队列授权 | 工单详情；公开/内部评论按角色过滤 |
 | `POST /tickets/{id}/comments` | 可访问工单 | `{visibility,body}`；REQUESTER 只能 `PUBLIC_REPLY` |
 | `POST /tickets/{id}/transitions` | 请求者或 AGENT，按状态策略 | `{toStatus,reason,version}` |
-| `POST /knowledge/spaces` | KB_EDITOR/ADMIN | 新知识空间 |
-| `PUT /knowledge/spaces/{id}/members/{userId}` | ADMIN/空间管理员 | 设置 `canRead/canEdit`；审计变更者和理由 |
+| `POST /knowledge/spaces` | ADMIN | 新知识空间，不自动授予正文 ACL |
+| `PUT /knowledge/spaces/{id}/members/{userId}` | ADMIN | 设置 `canRead/canEdit/canReview`；校验互斥及角色，审计变更者和理由 |
 | `POST /knowledge/spaces/{id}/documents` | 空间可编辑 | multipart；返回 `202 {documentId,versionId,jobId}` |
 | `GET /knowledge/documents/{id}` | 空间可读 | 元信息、版本和处理状态，不默认返回原文 |
-| `POST /knowledge/documents/{id}/versions/{versionId}/publish` | 空间可编辑 | 仅 READY 版本；原子切换 `published_version_id`，返回 `200` |
+| `POST /knowledge/documents/{id}/versions/{versionId}/publish` | KB_EDITOR+空间读/编辑 | 仅 READY/APPROVED 且有片段的版本；原子切换 `published_version_id`，返回 `200` |
 | `POST /knowledge/documents/{id}/disable` | 空间可编辑 | 清空发布指针并立即退出检索 |
 | `POST /knowledge/documents/{id}/versions/{versionId}/retry` | 空间可编辑 | 仅 FAILED 版本；幂等复用或创建重试 job |
 | `POST /knowledge/documents/{id}/versions/{versionId}/index/retry` | 空间可编辑 | 仅解析就绪且索引 FAILED 的版本；原子重置为 PENDING 并审计，返回 202 与更新后的文档详情；重复或竞态返回 409 |
@@ -172,7 +186,7 @@ REPLY的answer、SUMMARY的summary最多10,000字符，与公开回复共用后�
 
 前端展示只消费后端权限裁剪结果；无权限时显示 403/空结果，不靠隐藏按钮做安全控制。AI 草稿必须提供明确“采纳/拒绝”按钮和引用；采纳仅把内容复制到编辑框，用户再次提交才产生公开回复。
 
-## Ticknova V2 增量契约（2026-10-21）
+## Ticknova V2 增量契约（2026-10-21 引入，2026-10-24 同步）
 
 本节覆盖旧阶段同名端点；前缀仍为 `/api/v1`。新增业务已实现，整体验收结果见第12篇。
 
@@ -181,7 +195,7 @@ REPLY的answer、SUMMARY的summary最多10,000字符，与公开回复共用后�
 | GET `/workspace/portal?q=` | 登录；q最多256字符；先过滤当前ACL/归属/队列 | `{query,knowledge,tickets,popularDocuments,categories}`；知识/工单各最多10条，热门最多6条；无浏览量标为最近发布 |
 | POST `/knowledge/documents/{id}/views` | 当前可读、READY、APPROVED发布源 | 204；每用户/文档/UTC日最多一次 |
 | GET `/workspace/analytics?from=&to=` | ADMIN；YYYY-MM-DD，年份0001–9999，含首尾UTC日，最多366天，默认30天 | `{from,to,ticketTotal,statusCounts,priorityCounts,daily,knowledge,ai}` |
-| GET/POST `/knowledge/spaces/{id}/categories` | 读需canRead；写需显式ADMIN或KB_EDITOR且空间canEdit；创建`{name,parentId?}` | Category数组 / 201 Category；最多5层，禁止循环/跨空间 |
+| GET/POST `/knowledge/spaces/{id}/categories` | 读需canRead；写需KB_EDITOR且空间canRead+canEdit；创建`{name,parentId?}` | Category数组 / 201 Category；最多5层，禁止循环/跨空间 |
 | PATCH/DELETE `/knowledge/categories/{id}` | 同上内容写权；PATCH`{name,parentId,version}`，DELETE`{version}` | Category / 204；版本冲突或非空删除409 |
 | POST `/knowledge/spaces/{id}/articles` | 同上；Idempotency-Key；`{title,categoryId,content}` | 201 Draft |
 | GET/PUT `/knowledge/documents/{id}/draft` | 同上；PUT`{title,categoryId,content,version}` | Draft；CAS冲突409；无已存草稿时优先用最新解析就绪文件版本初始化正文，GET不写库，首次PUT要求version0；已存草稿保持原样 |
@@ -189,8 +203,8 @@ REPLY的answer、SUMMARY的summary最多10,000字符，与公开回复共用后�
 | POST `/knowledge/documents/{id}/draft/versions` | 同上；Idempotency-Key；`{version}` | 202 `{documentId,versionId,jobId}`；私有Markdown→真实Docling |
 | GET `/knowledge/documents/{id}/versions/{versionId}/content` | 当前空间权限/版本可见性；普通读者仅当前已审核发布 | RichDoc或null；文件源使用chunks |
 | POST `/knowledge/documents/{id}/versions/{versionId}/review-requests` | 当前可编辑、最新且READY版本 | Detail；进入PENDING |
-| GET `/knowledge/review-tasks?page=&size=` | 当前有效显式KB_EDITOR；当前空间同时可读、可编辑，且不是版本作者 | 分页`{items,total,page,size}`，仅当前最新READY/PENDING且有片段的未归档版本；任务含documentId、spaceId、title、versionId、versionNo、fileName、authorId、versionCreatedAt；无权返回403，不将作者自己的版本列为待办。前端入口为“审核待办”(`/knowledge/reviews`)，从任务打开精确版本核对正文 |
-| POST `/knowledge/documents/{id}/versions/{versionId}/reviews` | 另一位当前有效KB_EDITOR且空间canEdit；`{decision,reason?}` | Detail；APPROVED/REJECTED，拒绝理由必填且最多500字符 |
+| GET `/knowledge/review-tasks?page=&size=` | 当前有效KB_REVIEWER；空间canRead+canReview且无canEdit，不是版本作者 | 分页`{items,total,page,size}`，仅当前最新READY/PENDING且有片段的未归档版本；任务含documentId、spaceId、title、versionId、versionNo、fileName、authorId、versionCreatedAt；无角色返回403，不列作者自己的版本。前端“审核待办”(`/knowledge/reviews`)打开精确版本 |
+| POST `/knowledge/documents/{id}/versions/{versionId}/reviews` | 当前KB_REVIEWER且空间canRead+canReview、无canEdit、非作者；`{decision,reason?}` | Detail；仅当前精确READY/PENDING且有片段；APPROVED/REJECTED，拒绝理由必填且最多500字符 |
 | POST `/knowledge/documents/{id}/versions/{versionId}/publish` | 空间内容写权、READY且APPROVED | Detail；原子切换发布指针/标题/分类，新稿期间保留旧发布 |
 | POST `/ai/jobs/{id}/cancel` | 原创建者、当前请求范围仍有效 | 204；重复中止幂等，已完成409，他人404，撤销服务器租约 |
 | GET `/tickets?unassigned=true` | 原有工单授权范围 | 原分页再筛处理人为空，可组合原筛选 |
@@ -199,6 +213,10 @@ Category为`{id,spaceId,parentId,name,version}`；Draft为`{id,spaceId,title,cat
 
 RichDoc为受限Tiptap JSON：标题1–3、段落、列表、引用、代码、分隔线及基础marks；只允许http/https/mailto链接，不存可执行HTML/图片/嵌入。文章最多100,000个UTF-16字符、1MiB JSON、20,000节点、32层；文件阅读独立上限，不套用创作长度限制。生成Markdown执行配置上传大小限制，哈希对应真实文件字节；不可变rich快照保存阅读格式。
 
-文档列表支持categoryId子树。`/knowledge?spaceId=&categoryId=`验证空间和分类归属；仅成员管理、不可读的空间保留配置入口，不查询分类/正文。精确引用使用documentId/versionId/chunkId；版本/片段不可用时要求重新生成，不替换为其他正文。
+文档列表支持categoryId子树。`/knowledge?spaceId=&categoryId=`验证空间和分类归属；仅成员管理、不可读的空间在 `/admin/knowledge-spaces` 保留配置入口，不查询分类/正文。精确引用使用documentId/versionId/chunkId；版本/片段不可用时要求重新生成，不替换为其他正文。
 
 分析口径：总量/状态/优先级按区间创建工单；每日解决按当天发生RESOLVED转换的去重工单，可能包含更早创建者；知识为当前快照，AI生成及反馈按区间事件。仅返回计数，不返回业务正文。
+
+2026-10-24 门户补充：KnowledgeHit 增加可空 `publishedAt`，取当前发布版本真实发布时间，不用创建时间伪装；PortalCategory 增加 `documentCount`，按当前 ACL 下有效已发布文档的直接分类计数。搜索/热门分别最多10/6条，热门按真实去重阅读次数及发布时间排序，无浏览仍标“最近发布”。
+
+前端分析 URL 为 `/admin/analytics?range=7|14|30`，无效选项默认30；API 仍使用 `from/to`，并未新增 range 参数。完成占比为期间新建工单当前 RESOLVED+CLOSED 数/期间新建数；未结为其余状态，紧急为当前 URGENT；零工单显示“—”。AI采纳率为区间反馈 accepted/(accepted+rejected)，零反馈显示“暂无反馈”，不当作准确率。每日 ECharts 图、HTML 表格、状态和优先级展示均取同一计数响应。

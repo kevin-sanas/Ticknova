@@ -17,11 +17,11 @@ async function render(fetcher: (url: string) => Response | Promise<Response>) {
   expect(modules['../src/views/KnowledgeReviewView.vue'], 'dedicated review page exists').toBeDefined()
   const component = (await modules['../src/views/KnowledgeReviewView.vue']!() as { default: Component }).default
   const pinia = createPinia(); const session = useSessionStore(pinia)
-  session.accept({ accessToken: 'review-token', expiresIn: 1800, user: { id: 'u1', username: 'reviewer', displayName: '审核者', roles: ['KB_EDITOR'], mustChangePassword: false } })
+  session.accept({ accessToken: 'review-token', expiresIn: 1800, user: { id: 'u1', username: 'reviewer', displayName: '审核者', roles: ['KB_REVIEWER'], mustChangePassword: false } })
   bindApiSession({ getToken: () => session.token, onUnauthorized: () => session.clear() })
   vi.stubGlobal('fetch', (url: string) => Promise.resolve(fetcher(url)))
   const router = createRouter({ history: createMemoryHistory(), routes: [
-    { path: '/knowledge/reviews', component }, { path: '/knowledge', component: { template: '<main>知识文档</main>' } },
+    { path: '/knowledge/reviews', component }, { path: '/knowledge', component: { template: '<main>知识列表</main>' } }, { path: '/knowledge/documents/:documentId', component: { template: '<main>知识文档</main>' } },
   ] })
   await router.push('/knowledge/reviews'); await router.isReady()
   view = mount(component, { attachTo: document.body, global: { plugins: [pinia, ElementPlus, router] } }); await flushPromises()
@@ -35,8 +35,8 @@ it('shows a discoverable reviewer task and opens the exact pending document vers
   expect(view.text()).toContain('待审核手册')
   expect(urls.some(url => url.includes('/knowledge/review-tasks?page=0&size=20'))).toBe(true)
   await view.get('button[aria-label="审核待审核手册的版本 2"]').trigger('click'); await flushPromises()
-  expect(router.currentRoute.value.path).toBe('/knowledge')
-  expect(router.currentRoute.value.query).toEqual({ documentId: 'd1', versionId: 'v2', fromReview: '1' })
+  expect(router.currentRoute.value.path).toBe('/knowledge/documents/d1')
+  expect(router.currentRoute.value.query).toEqual({ versionId: 'v2', fromReview: '1', tab: 'versions' })
 })
 
 it('distinguishes empty tasks from a failed refresh and permits retry', async () => {
@@ -48,4 +48,9 @@ it('distinguishes empty tasks from a failed refresh and permits retry', async ()
   expect(view.text()).not.toContain('暂无待你审核的版本')
   fail = false; await view.get('button[aria-label="刷新待办"]').trigger('click'); await flushPromises()
   expect(view.text()).toContain('暂无待你审核的版本')
+})
+it('clears task metadata immediately when the same-token reviewer role is revoked', async () => {
+  const { view, session } = await render(() => json(page))
+  expect(view.text()).toContain('待审核手册'); session.user!.roles = ['KB_EDITOR']; await flushPromises()
+  expect(view.text()).not.toContain('待审核手册'); expect(view.text()).toContain('没有知识审核权限')
 })

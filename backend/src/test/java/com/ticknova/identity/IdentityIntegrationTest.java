@@ -4,6 +4,7 @@ import com.ticknova.catalog.CatalogService;
 import com.ticknova.shared.Actor;
 import java.net.*;
 import java.net.http.*;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import org.junit.jupiter.api.*;
@@ -106,6 +107,56 @@ class IdentityIntegrationTest {
         assertThat(call("GET","/users?size=101",adminToken,null).status).isEqualTo(400);
         assertThat(call("GET","/audit-events",requesterToken,null).status).isEqualTo(403);
         assertThat(call("GET","/audit-events",adminToken,null).body.path("total").asInt()).isGreaterThan(0);
+    }
+
+    @Test void auditFiltersExposeActualValuesAndCombineActorActionAndUtcRange() throws Exception {
+        assertThat(call("POST","/auth/login",null,Map.of("username","requester","password",password)).status).isEqualTo(200);
+        assertThat(call("POST","/auth/login",null,Map.of("username","missing","password","invalid-password")).status).isEqualTo(401);
+
+        var filters=call("GET","/audit-events/filters",adminToken,null);
+        assertThat(filters.status).isEqualTo(200);
+        assertThat(filters.body.path("actions")).anySatisfy(action->assertThat(action.asText()).isEqualTo("AUTH_LOGIN"));
+        assertThat(filters.body.path("actors")).anySatisfy(actor->assertThat(actor.path("value").asText()).isEqualTo(requester.toString()));
+        assertThat(filters.body.path("actors")).anySatisfy(actor->assertThat(actor.path("value").asText()).isEqualTo("SYSTEM"));
+
+        String from=Instant.now().minusSeconds(60).toString();
+        String to=Instant.now().plusSeconds(60).toString();
+        var rows=call("GET","/audit-events?action=AUTH_LOGIN&actor="+requester+"&from="+from+"&to="+to,adminToken,null);
+        assertThat(rows.status).isEqualTo(200);
+        assertThat(rows.body.path("total").asInt()).isEqualTo(1);
+        assertThat(rows.body.path("items").get(0).path("action").asText()).isEqualTo("AUTH_LOGIN");
+        assertThat(rows.body.path("items").get(0).path("actorId").asText()).isEqualTo(requester.toString());
+
+        var systemRows=call("GET","/audit-events?actor=SYSTEM",adminToken,null);
+        assertThat(systemRows.status).isEqualTo(200);
+        assertThat(systemRows.body.path("items")).allSatisfy(event->assertThat(event.path("actorId").isNull()).isTrue());
+        assertThat(call("GET","/audit-events?from="+to+"&to="+from,adminToken,null).status).isEqualTo(400);
+    }
+
+    @Test void adminManagementListsSearchFilterAndPaginateWithoutChangingPublicCatalogs() throws Exception {
+        assertThat(call("POST","/users",adminToken,Map.of("username","search.agent","displayName","专项检索工程师","password",UUID.randomUUID().toString(),"roles",List.of("AGENT"))).status).isEqualTo(201);
+        assertThat(call("POST","/users",adminToken,Map.of("username","search.requester","displayName","其他申请人","password",UUID.randomUUID().toString(),"roles",List.of("REQUESTER"))).status).isEqualTo(201);
+        var userRows=call("GET","/users?q=%E4%B8%93%E9%A1%B9&active=true&role=AGENT&page=0&size=20",adminToken,null);
+        assertThat(userRows.status).isEqualTo(200);
+        assertThat(userRows.body.path("total").asInt()).isEqualTo(1);
+        assertThat(userRows.body.path("items").get(0).path("username").asText()).isEqualTo("search.agent");
+        assertThat(call("GET","/users?role=UNKNOWN",adminToken,null).status).isEqualTo(400);
+
+        assertThat(call("POST","/queues",adminToken,Map.of("code","ARCHIVE_SUPPORT","name","归档支持队列","active",false)).status).isEqualTo(201);
+        assertThat(call("POST","/services",adminToken,Map.of("code","MAIL","name","企业邮箱服务","active",true)).status).isEqualTo(201);
+        assertThat(call("POST","/services",adminToken,Map.of("code","OLD_MAIL","name","旧邮箱服务","active",false)).status).isEqualTo(201);
+        var queueRows=call("GET","/admin/queues?q=%E5%BD%92%E6%A1%A3&active=false&page=0&size=20",adminToken,null);
+        assertThat(queueRows.status).isEqualTo(200);
+        assertThat(queueRows.body.path("total").asInt()).isEqualTo(1);
+        assertThat(queueRows.body.path("items").get(0).path("code").asText()).isEqualTo("ARCHIVE_SUPPORT");
+        var serviceRows=call("GET","/admin/services?q=%E9%82%AE%E7%AE%B1&active=true&page=0&size=20",adminToken,null);
+        assertThat(serviceRows.status).isEqualTo(200);
+        assertThat(serviceRows.body.path("total").asInt()).isEqualTo(1);
+        assertThat(serviceRows.body.path("items").get(0).path("code").asText()).isEqualTo("MAIL");
+        assertThat(call("GET","/admin/queues",requesterToken,null).status).isEqualTo(403);
+        assertThat(call("GET","/admin/services",requesterToken,null).status).isEqualTo(403);
+        assertThat(call("GET","/queues",requesterToken,null).body.size()).isZero();
+        assertThat(call("GET","/services",requesterToken,null).body.size()).isEqualTo(1);
     }
 
     @Test void concurrentAdminDeactivationKeepsOneActiveAdmin() throws Exception {

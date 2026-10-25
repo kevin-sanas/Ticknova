@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { createPinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
-import ElementPlus from 'element-plus'
+import ElementPlus, { ElSelect } from 'element-plus'
 import type { Component } from 'vue'
 import { bindApiSession } from '../src/api'
 import { useSessionStore } from '../src/stores/session'
@@ -42,8 +42,8 @@ async function render(component?: Component) {
   const pinia = createPinia(); const session = useSessionStore(pinia)
   session.accept({ accessToken: 'ai-memory', expiresIn: 1800, user: { id: 'u1', username: 'requester', displayName: '申请人', roles: ['REQUESTER'], mustChangePassword: false } })
   bindApiSession({ getToken: () => session.token, onUnauthorized: () => session.clear() })
-  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:pathMatch(.*)*', component: { template: '<div />' } }, { path: '/tickets/:id', component: { template: '<div />' } }] }); await router.push('/tickets/t1')
-  wrapper = mount(component, { attachTo: document.body, global: { plugins: [pinia, router, ElementPlus] } }); await flushPromises()
+  const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/:pathMatch(.*)*', component: { template: '<div />' } }, { path: '/tickets/:id', component }] }); await router.push('/tickets/t1'); await router.isReady()
+  wrapper = mount({ template: '<router-view />' }, { attachTo: document.body, global: { plugins: [pinia, router, ElementPlus] } }); await flushPromises()
   return { view: wrapper, session }
 }
 async function click(view: VueWrapper, label: string) { const button = view.findAll('button').find(button => button.text() === label); expect(button, label).toBeDefined(); await button!.trigger('click'); await flushPromises() }
@@ -69,8 +69,21 @@ describe('knowledge assistant', () => {
     await ask(view); expect(body).toEqual({ question: '网络故障如何处理？', spaceIds: [] }); expect(view.text()).toContain(result.answer)
     expect(view.text()).toContain('网络手册'); expect(view.text()).toContain('v2'); expect(view.text()).toContain('第 3 页'); expect(view.text()).toContain(citation.snippet)
     expect(view.find('.ai-citations img').exists()).toBe(false); expect(view.text()).toContain(result.profile)
-    expect(view.get('.ai-citations a').attributes('href')).toBe('/knowledge?documentId=d1&versionId=v2&chunkId=c1')
+    expect(view.get('.ai-citations a').attributes('href')).toBe('/knowledge/documents/d1?versionId=v2&chunkId=c1')
     expect(view.text()).toContain('访问时重新校验权限')
+  })
+  it('submits readable spaces selected from the tag-style multiselect', async () => {
+    let body: unknown
+    stub((url, init) => { if (url.endsWith('/ai/answers')) { body = JSON.parse(String(init.body)); return json({ jobId: 'j1' }, 202) } })
+    const { view } = await render()
+    const select = view.getComponent(ElSelect)
+    expect(select.classes()).toContain('assistant-space-select')
+    expect(select.props('multiple')).toBe(true)
+    expect(view.find('select#assistant-spaces[multiple]').exists()).toBe(false)
+    await select.vm.$emit('update:modelValue', ['s1'])
+    await flushPromises()
+    await ask(view)
+    expect(body).toEqual({ question: '网络故障如何处理？', spaceIds: ['s1'] })
   })
   it('does not submit blank questions and retains the question on conflict', async () => {
     let calls = 0; stub((url) => { if (url.endsWith('/ai/answers')) { calls++; return json({ title: '请求冲突', code: 'IDEMPOTENCY_CONFLICT' }, 409) } })
@@ -81,7 +94,7 @@ describe('knowledge assistant', () => {
     stub((url, init) => { if (url.endsWith('/ai/answers')) { keys.push(new Headers(init.headers).get('Idempotency-Key')); return Promise.reject(new TypeError('response lost')) } })
     const { view, session } = await render(); await ask(view); await view.get('#assistant-form').trigger('submit'); await flushPromises()
     expect(keys[0]).toBeTruthy(); expect(keys[1]).toBe(keys[0]); await ask(view, '另一问题'); expect(keys[2]).not.toBe(keys[1])
-    await view.get('#assistant-spaces').setValue(['s1']); await view.get('#assistant-form').trigger('submit'); await flushPromises(); expect(keys[3]).not.toBe(keys[2])
+    await view.getComponent(ElSelect).vm.$emit('update:modelValue', ['s1']); await flushPromises(); await view.get('#assistant-form').trigger('submit'); await flushPromises(); expect(keys[3]).not.toBe(keys[2])
     session.token = 'another-session'; await flushPromises(); await ask(view, '另一问题'); expect(keys[4]).not.toBe(keys[3])
   })
   it('refuses evidence-free answers without displaying ungrounded model text', async () => {

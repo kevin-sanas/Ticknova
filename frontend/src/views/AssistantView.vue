@@ -33,7 +33,30 @@ async function feedback(choice: AiFeedback) { await request.feedback(choice) }
       <p v-if="context.loading.value" class="muted" role="status">正在加载知识范围与 AI 配置…</p>
       <form id="assistant-form" class="form-stack" @submit.prevent="submit">
         <div class="field"><label for="assistant-question">你的问题</label><textarea id="assistant-question" v-model="question" rows="5" maxlength="4000" required placeholder="例如：网络无法连接时，应先检查哪些项目？" :disabled="!usable"></textarea><small>{{ question.length.toLocaleString() }} / 4,000</small></div>
-        <div class="field"><label for="assistant-spaces">知识空间（可多选）</label><select id="assistant-spaces" v-model="spaceIds" multiple :size="Math.min(Math.max(context.spaces.value.length, 2), 5)" :disabled="!usable || context.loading.value" aria-describedby="assistant-space-help"><option v-for="space in context.spaces.value" :key="space.id" :value="space.id">{{ space.name }}</option></select><small id="assistant-space-help">不选择表示提交时所有可读空间；最多选择 10 个。按住 Ctrl / ⌘ 可多选或取消。</small><small v-if="!context.loading.value && !context.spaces.value.length">当前没有可读空间，知识问题将得到证据不足提示。</small><el-button v-if="spaceIds.length" size="small" @click="spaceIds = []">使用所有可读空间</el-button></div>
+        <div class="field">
+          <label for="assistant-spaces">知识空间（可多选）</label>
+          <el-select
+            id="assistant-spaces"
+            v-model="spaceIds"
+            class="assistant-space-select"
+            multiple
+            filterable
+            collapse-tags
+            collapse-tags-tooltip
+            :max-collapse-tags="3"
+            :multiple-limit="10"
+            :loading="context.loading.value"
+            :disabled="!usable || context.loading.value"
+            placeholder="所有可读空间"
+            aria-label="知识空间（可多选）"
+            aria-describedby="assistant-space-help"
+          >
+            <el-option v-for="space in context.spaces.value" :key="space.id" :label="space.name" :value="space.id" />
+          </el-select>
+          <small id="assistant-space-help">不选择表示查询所有可读空间；可输入名称筛选，最多选择 10 个。</small>
+          <small v-if="!context.loading.value && !context.spaces.value.length">当前没有可读空间，知识问题将得到证据不足提示。</small>
+          <el-button v-if="spaceIds.length" size="small" @click="spaceIds = []">使用所有可读空间</el-button>
+        </div>
         <p v-if="validation" class="error-text" role="alert">{{ validation }}</p>
         <div class="form-actions"><el-button id="assistant-submit" type="primary" native-type="submit" :loading="request.busy.value" :disabled="!question.trim() || !usable || !context.config.value || spaceIds.length > 10">查找答案</el-button></div>
       </form>
@@ -46,3 +69,6 @@ async function feedback(choice: AiFeedback) { await request.feedback(choice) }
     </section>
   </div>
 </template>
+<style scoped>
+.assistant-space-select { width: 100%; }
+</style>

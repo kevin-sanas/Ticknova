@@ -5,7 +5,7 @@ import type { KnowledgeReviewTask } from '../types'
 
 const router = useRouter()
 async function open(task: KnowledgeReviewTask) {
-  await router.push({ path: '/knowledge', query: { documentId: task.documentId, versionId: task.versionId, fromReview: '1' } })
+  await router.push({ path: `/knowledge/documents/${task.documentId}`, query: { versionId: task.versionId, fromReview: '1', tab: 'versions' } })
 }
 </script>
 

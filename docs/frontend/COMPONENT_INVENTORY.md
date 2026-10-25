@@ -1,5 +1,33 @@
 # Ticknova 前端组件清单
 
+## 2026-10-25 阶段 D 页面与管理列表补齐
+
+| 实际组件/页面 | 页面与 API | 本轮状态、权限与边界 | 测试位置 |
+|---|---|---|---|
+| `AssistantView.vue` | `/assistant`；既有空间、AI 配置、答案与反馈 API | 空间改为 Element Plus 可搜索标签多选，最多 10 个；空选择仍代表全部可读空间。加载、禁用和提交继续绑定真实请求，模型模式与真实引用继续由服务端结果展示 | `tests/assistant.test.ts`、`scripts/Browser-Design.mjs` |
+| `AuditView.vue` | `/admin/audit`；`GET /audit-events`、`GET /audit-events/filters` | ADMIN；操作类型和操作人来自实际审计数据，日期按设备时区选日后转为 UTC 半开区间；详情使用右侧 Drawer，保留关闭后的焦点恢复。请求失败不显示成空数据 | `tests/dialog-focus.test.ts`、`scripts/Browser-Design.mjs` |
+| `UsersView.vue` | `/admin/users`；`GET /users`、`GET /roles` | ADMIN；用户名/显示名、启停状态、角色组合服务端筛选和分页；查询、翻页、重置在请求期间禁止重复触发；原创建、停用与角色配置弹窗行为不变 | `tests/management-filters.test.ts`、`tests/dialog-focus.test.ts`、`scripts/Browser-Design.mjs` |
+| `CatalogView.vue` | `/admin/queues`、`/admin/services`；分页管理端点及既有成员/写接口 | ADMIN；编码/名称、启停状态服务端筛选和分页；公开目录数组接口不变。队列成员 Dialog、确认移除、未保存保护及真实成功/失败反馈保留 | `tests/management-filters.test.ts`、`tests/catalog-race.test.ts`、`tests/unsaved-workspace.test.ts`、`scripts/Browser-Design.mjs` |
+
+工单详情仍保持既有三栏/窄屏抽屉结构和“AI 建议 → 人工确认 → 手动执行”边界，本轮没有复制或重写同类组件。审计中的 `AI_REQUESTED` 与 `AI_REQUEST_COMPLETED` 保持两条不可变事件，暂不在服务端合并，以免丢失请求和完成阶段的独立追踪证据。
+
+## 2026-10-24 当前页面拆分与实际新增组件
+
+下表为本轮实现快照，优先于下方历史调用位置；测试列只标对应代码，不表示本轮已运行通过，实际结果见 `docs/12-测试矩阵与阶段门.md`。当前五角色为 ADMIN/AGENT/REQUESTER/KB_EDITOR/KB_REVIEWER，动作由服务端分文档和版本提供，前端不得自行放宽授权。
+
+| 实际组件/页面 | 层级、Props / Events | 页面与 API | 状态、权限、测试与边界 |
+|---|---|---|---|
+| `DocumentActionBar.vue`，`src/components` | 业务组件；`actions?,pending?,secondary?` / `action` | `KnowledgeDocumentView` 文档头及具体版本；对应草稿/上传/审核/发布/撤回/归档/重试 API | 只显示 allowedActions，危险动作独立样式、pending 绑定请求；文档动作与精确版本动作由调用页分发；`tests/knowledge.test.ts`、`tests/knowledge-routes.test.ts`；不替代服务端重新鉴权 |
+| `KnowledgeView.vue`，`src/views` | 页面；无 Props/Events | `/knowledge`；空间/分类/文档列表与初次上传、文章创建 | 加载、空、错误、搜索分页、分类及上传；创建文章/上传须 KB_EDITOR+canRead+canEdit；不再容纳详情与成员弹窗；`tests/knowledge.test.ts`、`tests/catalog-race.test.ts` |
+| `KnowledgeDocumentView.vue`，`src/views` | 页面；路由 `documentId`、`tab=overview|versions|parse`、`versionId/chunkId/fromReview` | `/knowledge/documents/:id`；详情/内容/chunks/版本动作 API | 独立路由页签（知识列表、可选审核待办、当前文档及真实关闭返回）、概览/版本历史/解析结果 tabs、精确引用、失败重试、审核退回理由；KB_EDITOR 执行编辑动作，KB_REVIEWER 仅当前精确 READY/PENDING 非本人版本可审核；普通读者仅当前发布内容；撤权清理、请求代次、无可用审核者提示；`tests/knowledge-routes.test.ts`、`tests/knowledge.test.ts` |
+| `KnowledgeSpaceAdminView.vue`，`src/views` | 页面；query `spaceId` | `/admin/knowledge-spaces`；创建空间、members/member-candidates、Membership PUT | ADMIN 创建及成员配置，加载/空/失败/成功、未保存保护；展示成员 roles 与读/编辑/审核，互斥及读取前置校验；管理权不隐含正文；`tests/knowledge-routes.test.ts` |
+| `KnowledgeReviewQueue.vue`，`src/components` / `KnowledgeReviewView.vue` | 待办组件 `open(task)` / 页面打开精确版本 | `/knowledge/reviews`；`GET /knowledge/review-tasks` | 当前 KB_REVIEWER+空间读/审核且无编辑 ACL，排除作者；加载/空/错误/分页/撤权清理；`tests/knowledge-review.test.ts` |
+| `PortalView.vue`，`src/views` | 页面；query `q`，知识/助手搜索模式 | `/portal`；`GET /workspace/portal` | 桌面两列知识卡、窄屏单列，真实 publishedAt/阅读次数/直接分类 documentCount；REQUESTER“我的工单”、AGENT“可访问工单”；加载/空/错误/会话切换；`tests/portal.test.ts`、`tests/workspace-pages.test.ts` |
+| `DailyChart.vue`，`src/components/analytics` | 复合组件；`daily` / 无事件；纯配置函数 `daily-chart-options.ts` | `AnalyticsView` 懒加载；数据来自 analytics 响应 | ECharts 6.1.0、vue-echarts 8.0.1、SVG、Token颜色、ARIA、减少动态效果、自动 resize；ADMIN；配套 HTML 每日表格在父页，加载失败也可读取；`tests/analytics.test.ts` |
+| `AnalyticsView.vue`，`src/views` | 页面；query `range=7|14|30`，默认30 | `/admin/analytics`；原 `GET /workspace/analytics?from=&to=` | 真实 KPI/状态/优先级、知识快照、AI区间反馈及每日表格；ADMIN，加载/空/错误/会话失效清理；零工单比例“—”、零反馈“暂无反馈”；`tests/analytics.test.ts` |
+
+继续复用 `RichDocument`、`RichTextEditor`、`KnowledgeCategories`、`KnowledgeError` 与 `KnowledgeFilePicker`，没有另建同类阅读、编辑或上传组件。`RichDocument` 的知识阅读调用方现为独立详情页；`KnowledgeFilePicker` 分别在列表初次上传和详情新版本上传使用。旧 documentId query 深链由路由兼容到独立详情，保留精确版本/片段定位。
+
 ## 2026-10-22 Galaxy 第一批选型与影响分析
 
 Galaxy 只作为局部状态与层级参考，仍使用项目现有 Vue 3、Element Plus、原生表单及 `tokens.css`。下面的 Button/Input/Toast 等名称在原表中是建议清单，不能误认为已有对应 Vue 组件。共用基础样式变更属 L3，关联登录、员工门户、工单列表/详情/新建、知识协同/编辑、助手、运营分析及管理弹窗；需检查这些主要调用页，不能只看一张默认态截图。
@@ -112,7 +140,7 @@ Galaxy 只作为局部状态与层级参考，仍使用项目现有 Vue 3、Elem
 
 组件清单不得与实际代码长期不一致。
 
-## 8. 当前知识流程的实际组件与页面（2026-10-22）
+## 8. 历史知识流程的实际组件与页面（2026-10-22）
 
 上文第 3–5 节是设计建议名称，**不是**仓库中已实现组件的声明。本次复核的代码来源为 `frontend/src/components` 与 `frontend/src/views`：
 
@@ -125,7 +153,7 @@ Galaxy 只作为局部状态与层级参考，仍使用项目现有 Vue 3、Elem
 | `ArticleEditorView.vue` | 页面，`src/views` | 自动保存草稿、解析来源预览与确认导入、生成审核版本 | `/knowledge/documents/{id}/draft`、`/versions/{versionId}/draft-source`、`/draft/versions` | 加载、空草稿、预览、保存、409、权限失败；空间编辑 ACL；`tests/article-editor.test.ts`；源超过编辑器安全预算时只可在知识中心查看解析结果 |
 | `KnowledgeView.vue` | 页面，`src/views` | 文档阅读、版本状态、空间审核待办、审核及失败索引重试 | `/knowledge/review-tasks`、文档详情、审核/发布/索引重试 API | 加载、空、错误、待审核、驳回、索引待处理/失败/重试；索引操作由服务端 `canRetryIndex` 限定空间编辑者；`tests/knowledge.test.ts` |
 
-本次复用上述组件并只为新入口增加局部样式，没有新增共享组件。下一次扩展建议清单时应先核查实际文件，避免按建议名称重复创建。
+本节为当日调用位置与范围；2026-10-24 已拆分详情/管理并增加 DocumentActionBar、DailyChart，当前调用方以上方新快照为准。下一次扩展建议清单时应先核查实际文件，避免按建议名称重复创建。
 
 ## 9. Galaxy 定向升级选型与影响（2026-10-22）
 
@@ -141,4 +169,4 @@ Galaxy 只作为交互结构参考，不导入样式库或复制动画。现有 
 | 第三批：`AppNavigation.vue` 折叠提示 | 窄屏切换时，原已聚焦的弹层停留在隐藏导航外；参考 [Tooltips 示例](https://github.com/uiverse-io/galaxy/blob/main/Tooltips/Cksunandh_afraid-snail-51.html) 的简短补充提示，未复制其仅悬停实现 | 保留 Element Plus 的鼠标和键盘焦点触发、链接可访问名称；限制宽度和换行，窄屏禁用并隐藏遗留弹层，不引入装饰动画 | 所有桌面工作区导航及移动导航抽屉；隔离浏览器折叠→聚焦→窄屏复测 |
 | 第三批：工单/门户加载骨架 | 装饰线条未明确排除屏幕阅读器；对照 [loaders 目录](https://github.com/uiverse-io/galaxy/tree/main/loaders) 后保留现有克制动效，不复制复杂动画 | 只给装饰线条 `aria-hidden`；`role=status` 的真实请求文案和加载/空/错误分支不变 | 工单列表、详情、员工服务门户；全套前端测试及隔离浏览器列表/门户加载检查 |
 
-项目目前没有独立 Toast 组件或 ElMessage 成功提示，不增加无业务来源的组件。图表及全站布局保留后续按影响证据单独处理。第三批未复制 Galaxy 的 HTML/CSS，未更换组件库或业务接口。
+当批没有独立 Toast 组件或 ElMessage 成功提示，未增加无业务来源的组件。图表在当时保留后续处理，现已在2026-10-24增量实现，见上方新快照。第三批未复制 Galaxy 的 HTML/CSS，未更换组件库或业务接口。

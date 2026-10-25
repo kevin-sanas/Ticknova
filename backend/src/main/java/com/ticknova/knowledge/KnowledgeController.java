@@ -20,7 +20,7 @@ public class KnowledgeController {
     @GetMapping("/knowledge/spaces/{id}/members") public List<Member> members(@PathVariable UUID id){return knowledge.members(CurrentUser.get(),id);}
     @GetMapping("/knowledge/spaces/{id}/member-candidates") public List<Candidate> candidates(@PathVariable UUID id){return knowledge.candidates(CurrentUser.get(),id);}
     @PutMapping("/knowledge/spaces/{id}/members/{userId}") @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void membership(@PathVariable UUID id,@PathVariable UUID userId,@Valid @RequestBody Membership body){knowledge.membership(CurrentUser.get(),id,userId,body.canRead(),body.canEdit(),body.reason());}
+    public void membership(@PathVariable UUID id,@PathVariable UUID userId,@Valid @RequestBody Membership body){knowledge.membership(CurrentUser.get(),id,userId,body.canRead(),body.canEdit(),Boolean.TRUE.equals(body.canReview()),body.reason());}
     @GetMapping("/knowledge/spaces/{id}/documents") public PageResult<Summary> documents(@PathVariable UUID id,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size,@RequestParam(defaultValue="") String q,@RequestParam(required=false) UUID categoryId){return knowledge.documents(CurrentUser.get(),id,page,size,q,categoryId);}
     @GetMapping("/knowledge/review-tasks") public PageResult<ReviewTask> reviewTasks(@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="20") int size){return knowledge.reviewTasks(CurrentUser.get(),page,size);}
     @PostMapping(value="/knowledge/spaces/{id}/documents",consumes=MediaType.MULTIPART_FORM_DATA_VALUE) @ResponseStatus(HttpStatus.ACCEPTED)
@@ -38,6 +38,6 @@ public class KnowledgeController {
     @DeleteMapping("/knowledge/documents/{id}") @ResponseStatus(HttpStatus.NO_CONTENT) public void archive(@PathVariable UUID id){knowledge.archive(CurrentUser.get(),id);}
 
     public record CreateSpace(@NotBlank @Size(max=160) String name){}
-    public record Membership(@NotNull Boolean canRead,@NotNull Boolean canEdit,@NotBlank @Size(max=500) String reason){}
+    public record Membership(@NotNull Boolean canRead,@NotNull Boolean canEdit,Boolean canReview,@NotBlank @Size(max=500) String reason){}
 }
 

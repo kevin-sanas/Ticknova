@@ -7,12 +7,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: actions/setup-node@v4.4.0
+      - uses: actions/checkout@v5.1.0
+      - uses: actions/setup-node@v5.0.0
         with:
           node-version: 24.22.0
           cache: npm
           cache-dependency-path: frontend/package-lock.json
+      - name: Prepare runner-owned cache directories
+        run: mkdir -p .cache/uv-ci
       - name: Generate local test configuration
         shell: pwsh
         run: ./scripts/New-LocalEnv.ps1

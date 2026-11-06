@@ -22,5 +22,5 @@ onBeforeUnmount(() => media?.removeEventListener('change', updateMotion))
 </script>
 <template><div class="daily-chart" role="img" aria-label="每日新建与解决柱状图，单位张，UTC；详细值可在下方每日数据表查看。"><VChart v-if="colors" :option="option" :init-options="{ renderer: 'svg' }" autoresize /></div></template>
 <style scoped>
-.daily-chart{height:320px;min-width:0;width:100%}@media(max-width:600px){.daily-chart{height:260px}}
+.daily-chart{height:190px;min-width:0;width:100%}@media(max-width:800px){.daily-chart{height:240px}}
 </style>

@@ -3,6 +3,15 @@ import { resolve, relative, isAbsolute, join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { parseDemoEnv } from './Demo-Credentials.mjs'
 
+export async function navigateViaSidebar(page, path) {
+  const link = page.locator(`.sidebar a[href="${path}"]`).first()
+  if (!await link.isVisible()) {
+    const group = link.locator('xpath=ancestor::*[contains(concat(" ", normalize-space(@class), " "), " navigation-group ")][1]')
+    await group.locator('.group-toggle[aria-expanded="false"]').click()
+  }
+  await link.click()
+}
+
 // Every browser entry point checks the server before it can authenticate or write.
 export async function browserEnvironment(root, settings = process.env, io = { fetch, readFile, mkdir, mkdtemp }) {
   if (!settings.TICKNOVA_URL || !settings.TICKNOVA_ENV_FILE) throw Error('Use scripts/Test-Browser.ps1: an explicit isolated test environment is required')

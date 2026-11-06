@@ -1,5 +1,6 @@
 package com.ticknova.identity;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.*;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
@@ -19,7 +20,13 @@ public class SecurityConfiguration {
         return http.csrf(csrf -> csrf.disable()).cors(cors -> cors.disable())
             .httpBasic(basic -> basic.disable()).formLogin(form -> form.disable()).logout(logout -> logout.disable())
             .requestCache(cache -> cache.disable()).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(rules -> rules.requestMatchers("/api/v1/auth/login","/actuator/health","/actuator/health/**").permitAll().anyRequest().authenticated())
+            .authorizeHttpRequests(rules -> rules
+                // Servlet-internal completion of an already authenticated SSE request.
+                // New HTTP requests still pass the Bearer filter and ADMIN check.
+                .requestMatchers(request -> request.getDispatcherType()==DispatcherType.ASYNC
+                    && request.getRequestURI().equals("/api/v1/workspace/analytics/events")).permitAll()
+                .requestMatchers("/api/v1/auth/login","/actuator/health","/actuator/health/**").permitAll()
+                .anyRequest().authenticated())
             .exceptionHandling(errors -> errors.authenticationEntryPoint((request,response,error) -> problems.write(request,response,401,"UNAUTHENTICATED","请重新登录"))
                 .accessDeniedHandler((request,response,error) -> problems.write(request,response,403,"FORBIDDEN","无权执行此操作")))
             .addFilterBefore(new BearerSessionFilter(auth,problems),UsernamePasswordAuthenticationFilter.class).build();

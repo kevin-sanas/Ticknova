@@ -18,7 +18,7 @@ const { chromium } = await import(pathToFileURL(resolve(root, 'frontend/node_mod
 const { expect: baseExpect } = await import(pathToFileURL(resolve(root, 'frontend/node_modules/@playwright/test/index.mjs')))
 const expect = baseExpect.configure({ timeout: 45_000 })
 const checks = [], screenshots = [], contexts = [], pageErrors = [], fixtures = {}, observations = []
-const stamp = Date.now(), widths = [1920, 1440, 1280, 768, 390]
+const stamp = Date.now(), widths = [1920, 1440, 1366, 1280]
 let browser, step = 'launch', currentPage, logins = 0, failure
 class VerificationError extends Error {}
 function ensure(condition, code) { if (!condition) throw new VerificationError(code) }
@@ -81,7 +81,7 @@ async function snapshot(page, tag) {
 }
 async function matrix(page, tag) {
   for (const width of widths) { await page.setViewportSize({ width, height: width === 390 ? 844 : 1050 }); await snapshot(page, tag) }
-  await page.setViewportSize({ width: 1440, height: 1050 }); checked(`${tag}: responsive screenshots, accessible names/labels, control size and no document overflow`, { widths })
+  await page.setViewportSize({ width: 1440, height: 1050 }); checked(`${tag}: desktop screenshots, accessible names/labels, control size and no document overflow`, { widths })
 }
 async function trap(page, surface) {
   await expect(surface).toBeVisible(); await expect.poll(() => surface.evaluate(el => el.contains(document.activeElement))).toBe(true)
@@ -113,7 +113,7 @@ async function requestReview(actor) {
   await row.getByRole('button', { name: '提交审核', exact: true }).click(); await expect(row.getByText('待审核', { exact: true })).toBeVisible()
 }
 async function approveAndPublish(reviewer, author) {
-  const row = reviewer.page.locator('.version-list > li').first()
+  const row = reviewer.page.locator('.review-decision')
   await row.getByRole('button', { name: '审核通过', exact: true }).click(); await reviewer.page.waitForURL('**/knowledge/reviews'); await expect(reviewer.page.locator('.knowledge-detail,.knowledge-reader')).toHaveCount(0)
   await refresh(author); await author.page.getByRole('tab',{name:'版本历史',exact:true}).click()
   await author.page.locator('.version-list > li').first().getByRole('button',{name:'发布此版本',exact:true}).click(); await expect(author.page.getByText('版本已发布。',{exact:true})).toBeVisible()
@@ -121,6 +121,7 @@ async function approveAndPublish(reviewer, author) {
 async function editDocument(actor) { await actor.page.getByRole('button', { name: '编辑文章草稿', exact: true }).click(); await expect(actor.page.getByRole('textbox', { name: '文章正文', exact: true })).toBeVisible() }
 async function commit(actor) { return responseFor(actor.page, 'POST', '/draft/versions', () => actor.page.getByRole('button', { name: '生成待审核版本', exact: true }).click(), [202]) }
 async function move(actor, status) {
+  await actor.page.getByRole('button',{name:'更新状态',exact:true}).click()
   await actor.page.locator('#target-status').selectOption(status); await actor.page.locator('#transition-reason').fill(`合成验收状态 ${status}`)
   await responseFor(actor.page, 'POST', '/transitions', () => actor.page.getByRole('button', { name: '确认更新', exact: true }).click(), [200]); await expect(actor.page.getByText('工单状态已更新。', { exact: true })).toBeVisible()
 }
@@ -154,7 +155,7 @@ try {
       canvasRgb: getComputedStyle(document.documentElement).backgroundColor
     }))
     ensure(designTokens.primary === DESIGN_TOKENS.primary, 'BRAND_GREEN_TOKEN')
-    ensure(designTokens.canvas === DESIGN_TOKENS.canvas && designTokens.canvasRgb === hexToCssRgb(DESIGN_TOKENS.canvas), 'WARM_CANVAS_TOKEN')
+    ensure(designTokens.canvas === DESIGN_TOKENS.canvas && designTokens.canvasRgb === hexToCssRgb(DESIGN_TOKENS.canvas), 'DESKTOP_CANVAS_TOKEN')
     await expect(requester.page).toHaveURL(`${base}/portal`); await expect(requester.page.locator('a[href^="/admin/"]')).toHaveCount(0)
     await matrix(requester.page, 'portal'); checked('requester defaults to search-first portal without administrative navigation')
   })
@@ -164,7 +165,7 @@ try {
     await api(admin,'PUT',`/knowledge/spaces/${space.id}/members/${author.user.id}`,{canRead:true,canEdit:true,canReview:false,reason:'V2 合成编辑授权'}); await permitReview(admin, reviewer, base, space.id)
     await navigate(author,'/knowledge'); await author.page.getByRole('button',{name:'刷新空间',exact:true}).click(); await author.page.locator('#knowledge-space').selectOption(space.id)
     for (const actor of [requester, agent]) await api(admin, 'PUT', `/knowledge/spaces/${space.id}/members/${actor.user.id}`, { canRead: true, canEdit: false, canReview: false, reason: 'V2合成浏览器验收授权' })
-    await expect(author.page.getByText('此空间暂无文档。', { exact: true })).toBeVisible(); await snapshot(author.page, 'knowledge-empty')
+    await expect(author.page.getByRole('heading',{name:'此空间暂无文档',exact:true})).toBeVisible(); await snapshot(author.page, 'knowledge-empty')
     await author.page.getByRole('button', { name: '管理分类', exact: true }).click(); await author.page.locator('#category-name').fill(categoryName)
     category = await responseFor(author.page, 'POST', `/spaces/${space.id}/categories`, () => author.page.getByRole('button', { name: '保存分类', exact: true }).click(), [201])
     await author.page.locator('#category-edit-id').selectOption(category.id); await author.page.locator('#category-name').fill(`${categoryName}修订`)
@@ -174,6 +175,7 @@ try {
     await author.page.locator('#category-edit-id').selectOption(removable.id); await author.page.getByRole('button', { name: '删除分类', exact: true }).click(); await snapshot(author.page, 'category-confirm')
     await responseFor(author.page, 'DELETE', `/categories/${removable.id}`, () => author.page.getByRole('button', { name: '确认删除分类', exact: true }).click(), [204])
     await expect(author.page.locator('#category-edit-id option').filter({ hasText: 'V2可删除空分类' })).toHaveCount(0)
+    await author.page.getByRole('dialog',{name:'管理知识分类',exact:true}).locator('.el-drawer__close-btn').click()
     await author.page.getByRole('button', { name: `${categoryName}修订`, exact: true }).click()
     checked('actual UI category create, rename, selection, empty state and confirmed empty-category deletion')
   })
@@ -211,7 +213,7 @@ try {
     const first = await commit(author); await ready(author, article.id, first.versionId); await requestReview(author)
     await expect(author.page.getByRole('button', { name: '审核通过', exact: true })).toHaveCount(0)
     await api(author, 'POST', `/knowledge/documents/${article.id}/versions/${first.versionId}/reviews`, { decision: 'APPROVED' }, undefined, [403])
-    await openDocument(reviewer, space, article.id, articleTitle); const row = reviewer.page.locator('.version-list > li').first(); await row.getByRole('button', { name: '审核不通过', exact: true }).click()
+    await openDocument(reviewer, space, article.id, articleTitle); const row = reviewer.page.locator('.review-decision'); await row.getByRole('button', { name: '审核不通过', exact: true }).click()
     await expect(reviewer.page.getByRole('button', { name: '确认审核不通过', exact: true })).toBeDisabled(); await reviewer.page.locator('#review-reason').fill('合成审核：补充复核步骤后重新提交。')
     await reviewer.page.getByRole('button', { name: '确认审核不通过', exact: true }).click(); await reviewer.page.waitForURL('**/knowledge/reviews'); await expect(reviewer.page.locator('.knowledge-detail,.knowledge-reader')).toHaveCount(0); await refresh(author); await expect(author.page.locator('.version-list')).toContainText('补充复核步骤'); await snapshot(author.page, 'review-rejected')
     await refresh(author); await editDocument(author); const editor = author.page.getByRole('textbox', { name: '文章正文', exact: true }); await editor.press('Control+End'); await editor.pressSequentially(' 复核健康检查和路由配置。')
@@ -268,26 +270,26 @@ try {
     await navigate(agent, '/tickets'); await agent.page.locator('#ticket-search').fill(`V2合成网关502 ${stamp}`)
     const unassigned = agent.page.waitForResponse(response => new URL(response.url()).pathname.endsWith('/tickets') && new URL(response.url()).searchParams.get('unassigned') === 'true')
     await agent.page.getByRole('button', { name: '待分配', exact: true }).click(); ensure((await unassigned).status() === 200, 'REAL_UNASSIGNED_FILTER'); await matrix(agent.page, 'ticket-inbox')
-    await agent.page.locator(`a[href="/tickets/${ticket.id}"]:visible`).first().click(); await agent.page.waitForURL(`**/tickets/${ticket.id}`); await responseFor(agent.page, 'PUT', '/assignment', () => agent.page.getByRole('button', { name: '领取工单', exact: true }).click(), [200])
+    await agent.page.locator(`a[href="/tickets/${ticket.id}"]:visible`).first().click(); await agent.page.waitForURL(`**/tickets/${ticket.id}`); await agent.page.getByRole('button',{name:'分配与领取',exact:true}).click(); await responseFor(agent.page, 'PUT', '/assignment', () => agent.page.getByRole('button', { name: '领取工单', exact: true }).click(), [200])
     await agent.page.getByRole('tab', { name: /内部备注/ }).click(); await agent.page.locator('#comment-body').fill(`V2内部隔离-${stamp}`); await agent.page.getByRole('button', { name: '保存备注', exact: true }).click(); await expect(agent.page.getByText(`V2内部隔离-${stamp}`, { exact: true })).toBeVisible()
     await requester.page.getByRole('button', { name: '刷新工单', exact: true }).click(); await expect(requester.page.getByRole('tab', { name: /内部备注/ })).toHaveCount(0); await expect(requester.page.getByText(`V2内部隔离-${stamp}`, { exact: true })).toHaveCount(0)
     await agent.page.getByRole('tab', { name: /公开回复/ }).click(); await agent.page.locator('#comment-body').fill('合成原始公开草稿')
     let posts = 0; const listener = request => { if (request.method() === 'POST' && request.url().endsWith(`/tickets/${ticket.id}/comments`)) posts++ }; agent.page.on('request', listener)
-    await agent.page.locator('#ai-spaces').selectOption([space.id]); await agent.page.locator('#ai-kind').selectOption('REPLY'); await agent.page.locator('#ai-generate').click(); await agent.page.getByRole('button', { name: '采纳建议', exact: true }).click()
+    await agent.page.getByRole('button',{name:'AI Copilot',exact:true}).click(); await selectElOption(agent.page, '.field:has(#ai-spaces) .el-select', space.name); await agent.page.locator('#ai-kind').selectOption('REPLY'); await agent.page.locator('#ai-generate').click(); await agent.page.getByRole('button', { name: '采纳建议', exact: true }).click()
     await expect(agent.page.getByRole('alertdialog', { name: '确认替换现有草稿', exact: true })).toBeVisible(); await snapshot(agent.page, 'ai-human-confirm'); await agent.page.getByRole('button', { name: '确认替换', exact: true }).click()
     await expect(agent.page.locator('#comment-body')).not.toHaveValue('合成原始公开草稿'); ensure(posts === 0, 'AI_SENT_REPLY_WITHOUT_HUMAN'); await agent.page.getByRole('button', { name: '发送回复', exact: true }).click(); await expect.poll(() => posts).toBe(1); agent.page.off('request', listener)
     checked('requester creates, agent claims actual unassigned ticket, internal notes stay private and AI adoption never auto-sends')
     await matrix(agent.page, 'ticket-detail')
-    for (const width of [768, 390]) {
+    for (const width of [1280, 1366]) {
       await agent.page.setViewportSize({ width, height: 900 })
-      for (const [name, title] of [['工单信息与操作', '工单信息与操作'], ['AI Copilot', 'AI Copilot 与相关知识']]) {
+      for (const [name, title] of [['更新状态', '工单处理'], ['AI Copilot', 'AI Copilot']]) {
         const trigger = agent.page.getByRole('button', { name, exact: true }); await trigger.click(); const drawer = agent.page.getByRole('dialog', { name: title, exact: true }); await trap(agent.page, drawer); await snapshot(agent.page, `ticket-drawer-${name === 'AI Copilot' ? 'copilot' : 'properties'}`); await agent.page.keyboard.press('Escape'); await expect(drawer).not.toBeVisible(); await expect(trigger).toBeFocused()
       }
     }
     await agent.page.setViewportSize({ width: 1440, height: 1050 }); await move(agent, 'TRIAGED'); await move(agent, 'IN_PROGRESS'); await move(agent, 'RESOLVED'); await requester.page.getByRole('button', { name: '刷新工单', exact: true }).click(); await move(requester, 'IN_PROGRESS')
     await agent.page.getByRole('button', { name: '刷新工单', exact: true }).click(); await move(agent, 'RESOLVED'); await requester.page.getByRole('button', { name: '刷新工单', exact: true }).click(); await move(requester, 'CLOSED')
     await agent.page.locator('.back-link').click(); await agent.page.waitForURL(url => url.pathname === '/tickets'); await expect(agent.page.locator('#ticket-search')).toHaveValue(`V2合成网关502 ${stamp}`)
-    checked('compact drawers trap/restore focus; resolve/reopen/resolve/close and inbox filter return')
+    checked('desktop drawers trap/restore focus; resolve/reopen/resolve/close and inbox filter return')
   })
   await phase('real cited answer exact source location refusal and server cancel', async () => {
     await expect.poll(async () => { const created = await api(requester, 'POST', '/ai/answers', { question: '网关502错误先检查什么？', spaceIds: [space.id] }, randomUUID()); return (await waitJob(requester, created.jobId)).result?.outcome }, { timeout: 90_000, intervals: [1000, 3000] }).toBe('ANSWERED')

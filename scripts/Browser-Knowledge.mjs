@@ -1,4 +1,4 @@
-import { browserEnvironment } from './Browser-Environment.mjs'
+import { browserEnvironment, navigateViaSidebar } from './Browser-Environment.mjs'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -19,18 +19,18 @@ async function login(username,password) {
   const response = page.waitForResponse(r => r.url().endsWith('/auth/login') && r.request().method() === 'POST')
   await page.getByRole('button', { name: /登录工作台/ }).click(); const result = await response; expect(result.status()).toBe(200); const loginResult = await result.json(); const user = loginResult.user
   if (user.mustChangePassword) throw new Error('Run the full Test-Browser.ps1 first to complete the initial demo-account password flow.')
-  await page.waitForURL(url => url.pathname !== '/login'); await page.locator('a[href="/knowledge"]').first().click(); await page.waitForURL('**/knowledge')
+  await page.waitForURL(url => url.pathname !== '/login'); await navigateViaSidebar(page, '/knowledge'); await page.waitForURL('**/knowledge')
   return { page, userId: user.id, user, token:loginResult.accessToken }
 }
 async function grant(page, spaceId, userId, read) {
-  await page.locator('a[href="/admin/knowledge-spaces"]').first().click(); await page.waitForURL('**/admin/knowledge-spaces'); await page.locator('#knowledge-space').selectOption(spaceId)
+  await navigateViaSidebar(page, '/admin/knowledge-spaces'); await page.waitForURL('**/admin/knowledge-spaces'); await page.locator('#knowledge-space').selectOption(spaceId)
   if (!(await page.locator('#knowledge-member-form').isVisible())) await page.getByRole('button', { name: '管理成员', exact: true }).click()
   await expect(page.locator('#knowledge-member-user')).toBeEnabled(); await page.locator('#knowledge-member-user').selectOption(userId)
   const checkbox = page.getByLabel('允许阅读', { exact: true }); if (read) await checkbox.check(); else await checkbox.uncheck()
   await page.locator('#knowledge-member-reason').fill(read ? '虚构演示知识阅读授权' : '虚构演示撤销知识阅读授权')
   const response = page.waitForResponse(r => r.url().includes(`/members/${userId}`) && r.request().method() === 'PUT')
   await page.getByRole('button', { name: '保存成员权限', exact: true }).click(); expect((await response).status()).toBe(204)
-  await expect(page.getByText('成员权限已保存。', { exact: true })).toBeVisible(); await page.getByRole('dialog',{name:/空间成员/}).locator('.el-dialog__headerbtn').click()
+  await expect(page.getByText('成员权限已保存。', { exact: true })).toBeVisible(); await page.getByRole('dialog',{name:/空间成员/}).locator('.el-drawer__close-btn').click()
 }
 async function uploadVersion(page, name, mimeType, text) {
   await page.getByRole('button',{name:'上传新版本',exact:true}).click()
@@ -44,7 +44,7 @@ try {
   const reviewerFixture=await createReviewerFixture(manager,base,secret=>secrets.push(secret)); const reviewer=await login(reviewerFixture.username,reviewerFixture.password)
   const stamp = Date.now(); const spaceName = `G3知识验收 ${stamp}`; const title = `虚构网关手册 ${stamp}`
   step = 'create space'
-  const managerPage=manager.page; await managerPage.locator('a[href="/admin/knowledge-spaces"]').first().click(); await managerPage.waitForURL('**/admin/knowledge-spaces')
+  const managerPage=manager.page; await navigateViaSidebar(managerPage, '/admin/knowledge-spaces'); await managerPage.waitForURL('**/admin/knowledge-spaces')
   await managerPage.getByRole('button', { name: '创建空间', exact: true }).click(); await managerPage.locator('#knowledge-space-name').fill(spaceName)
   const created = managerPage.waitForResponse(r => r.url().endsWith('/knowledge/spaces') && r.request().method() === 'POST')
   await managerPage.getByRole('button', { name: '保存空间', exact: true }).click(); const spaceResponse = await created; expect(spaceResponse.status()).toBe(201); const space = await spaceResponse.json()
@@ -66,7 +66,7 @@ try {
   await expect(reader.locator('.knowledge-chunks')).toContainText('虚构第一版知识'); await expect(reader.getByRole('button', { name: '发布此版本', exact: true })).toHaveCount(0)
   checked('read-only ACL member can read the current published text and cannot edit')
   // Legacy bookmarks are a compatibility regression only; normal document links use the dedicated route.
-  await reader.locator('a[href="/knowledge"]').first().click(); await reader.waitForURL('**/knowledge')
+  await navigateViaSidebar(reader, '/knowledge'); await reader.waitForURL('**/knowledge')
   await reader.evaluate(path=>{history.pushState(history.state,'',path);dispatchEvent(new PopStateEvent('popstate',{state:history.state}))},`/knowledge?documentId=${initial.documentId}&versionId=${initial.versionId}&tab=parse`)
   await expect.poll(()=>new URL(reader.url()).pathname).toBe(`/knowledge/documents/${initial.documentId}`); await expect(reader.locator('.knowledge-chunks')).toContainText('虚构第一版知识'); checked('legacy document bookmark redirects to the dedicated document route with exact version')
   step = 'new version preserves old publication'
@@ -87,10 +87,10 @@ try {
   await expect(newest.getByText('解析失败', { exact: true })).toBeVisible(); await expect(editorPage.getByText('新版本处理或待发布期间，旧版本仍保持发布。', { exact: true })).toBeVisible()
   checked('failed PDF exposes a stable error and manual retry creates a new job')
   await editorPage.evaluate(() => window.scrollTo(0, 0)); await expect.poll(() => editorPage.evaluate(() => window.scrollY)).toBe(0)
-  await editorPage.screenshot({ path: resolve(evidence, 'knowledge-desktop.png'), fullPage: true, animations: 'disabled' }); await editorPage.setViewportSize({ width: 390, height: 844 })
+  await editorPage.screenshot({ path: resolve(evidence, 'knowledge-desktop.png'), fullPage: true, animations: 'disabled' }); await editorPage.setViewportSize({ width: 1280, height: 900 })
   await expect.poll(() => editorPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
   await editorPage.evaluate(() => window.scrollTo(0, 0)); await expect.poll(() => editorPage.evaluate(() => window.scrollY)).toBe(0)
-  await editorPage.screenshot({ path: resolve(evidence, 'knowledge-mobile.png'), fullPage: true, animations: 'disabled' }); await editorPage.setViewportSize({ width: 1440, height: 1050 }); checked('390px real knowledge page has no horizontal overflow')
+  await editorPage.screenshot({ path: resolve(evidence, 'knowledge-1280.png'), fullPage: true, animations: 'disabled' }); await editorPage.setViewportSize({ width: 1440, height: 1050 }); checked('1280px real knowledge page has no horizontal overflow')
   step = 'revoke reading while content is open'
   await grant(managerPage, space.id, readerId, false); await reader.getByRole('button', { name: '刷新状态', exact: true }).click()
   await expect(reader.locator('.knowledge-chunks')).toHaveCount(0); await expect(reader.locator('.knowledge-detail')).toHaveCount(0); checked('actual authorization-hiding 404 clears previously displayed private content')

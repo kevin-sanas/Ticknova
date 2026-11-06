@@ -65,7 +65,8 @@ it('keeps document details and member forms off the list and navigates to the in
   expect(view.find('#knowledge-file').exists()).toBe(false)
   expect(view.text()).not.toContain('审核待办')
   await click(view, '独立文档'); expect(router.currentRoute.value.path).toBe('/knowledge/documents/d1')
-  expect(requests.some(row => row.url.endsWith('/documents/d1'))).toBe(false)
+  expect(requests.filter(row => row.url.endsWith('/documents/d1'))).toHaveLength(1)
+  expect(requests.filter(row => row.url.endsWith('/documents/d1')).every(row => row.init.method === 'GET')).toBe(true)
 })
 it('renders document navigation as route tabs with a real close destination', async () => {
   const { view } = await render('KnowledgeDocumentView', '/knowledge/documents/d1')
@@ -89,6 +90,16 @@ it('consumes only allowedActions even when deprecated capability fields disagree
   expect(router.currentRoute.value.path).toBe('/knowledge/reviews'); expect(view.find('.knowledge-detail').exists()).toBe(false)
   expect(requests.filter(row => row.url.endsWith('/documents/d1'))).toHaveLength(1)
 })
+it('pairs the exact review body with a focused decision panel and preserves a rejected reason', async () => {
+  const { view, requests } = await render('KnowledgeDocumentView', '/knowledge/documents/d1?versionId=v2&fromReview=1', (url, init) => url.endsWith('/v2/reviews') && init.method === 'POST' ? json({ title: '审核冲突', status: 409 }, 409) : undefined)
+  expect(view.get('.review-document').text()).toContain('准确版本正文')
+  expect(view.get('.review-decision').text()).toContain('版本 2')
+  await click(view, '审核不通过'); await view.get('#review-reason').setValue('补充排查步骤')
+  await click(view, '确认审核不通过')
+  expect(requests.some(row => row.url.endsWith('/v2/reviews') && row.init.body === '{"decision":"REJECTED","reason":"补充排查步骤"}')).toBe(true)
+  expect(view.get('#review-reason').element).toHaveProperty('value', '补充排查步骤')
+  expect(view.text()).toContain('审核冲突')
+})
 it('grants no actions when the server omits allowedActions during migration', async () => {
   const { view } = await render('KnowledgeDocumentView', '/knowledge/documents/d1?tab=versions', url => url.endsWith('/documents/d1') ? json({ ...detail, canEdit: true, versions: [{ ...version, allowedActions: undefined, canReview: true, canPublish: true }] }) : undefined)
   expect(view.text()).not.toContain('审核通过'); expect(view.text()).not.toContain('发布此版本'); expect(view.text()).not.toContain('归档文档')
@@ -99,9 +110,18 @@ it.each([401, 403, 404])('purges private source and stops actions after %s on re
   expect(view.text()).toContain('准确版本正文'); denied = true; await click(view, '刷新状态')
   expect(view.text()).not.toContain('准确版本正文'); expect(view.text()).not.toContain('独立文档'); expect(view.text()).not.toContain('审核通过')
 })
+it('shows manageable spaces beside the selected space while keeping member access explicit', async () => {
+  const { view, requests } = await render('KnowledgeSpaceAdminView', '/admin/knowledge-spaces', undefined, ['ADMIN'])
+  expect(view.get('.space-list').text()).toContain(space.name)
+  expect(view.get('.space-summary').text()).toContain(space.name)
+  expect(view.get('.space-list button').attributes('aria-pressed')).toBe('true')
+  expect(requests.some(row => row.url.endsWith('/members'))).toBe(false)
+  await click(view, '管理成员')
+  expect(requests.some(row => row.url.endsWith('/members'))).toBe(true)
+})
 it('opens members in an Element Plus dialog and preserves rejected ACL input', async () => {
   const { view, requests } = await render('KnowledgeSpaceAdminView', '/admin/knowledge-spaces', (url, init) => url.endsWith('/member-candidates') ? json([{ id: 'u2', displayName: '专职审核', username: 'reviewer', roles: ['KB_REVIEWER'] }]) : init.method === 'PUT' ? json({ status: 409, title: '权限已变化' }, 409) : undefined, ['ADMIN'])
-  await click(view, '管理成员'); await flushPromises(); expect(document.querySelector('.el-dialog')).not.toBeNull()
+  await click(view, '管理成员'); await flushPromises(); expect(document.querySelector('.el-drawer')).not.toBeNull()
   const select = document.querySelector<HTMLSelectElement>('#knowledge-member-user')!; select.value = 'u2'; select.dispatchEvent(new Event('change', { bubbles: true }))
   const reason = document.querySelector<HTMLInputElement>('#knowledge-member-reason')!; reason.value = '授权审核'; reason.dispatchEvent(new Event('input', { bubbles: true }))
   const review = document.querySelector<HTMLInputElement>('#knowledge-member-review')!; review.click(); await flushPromises()
@@ -130,6 +150,22 @@ it('fences a late parse source after the exact source URL changes', async () => 
   expect(view.text()).toContain('新选中的精确来源')
   release(json([{ id: 'c2', chunkIndex: 0, content: '迟到的私有来源' }])); await flushPromises()
   expect(view.text()).not.toContain('迟到的私有来源'); expect(view.text()).toContain('新选中的精确来源')
+})
+
+it('shows one creation workflow at a time and retains input when switching modes', async () => {
+  const { view, requests } = await render('KnowledgeView', '/knowledge', undefined, ['KB_EDITOR'])
+  await click(view, '新建文档')
+  expect(document.querySelector('#article-create-form')).toBeNull()
+  const title = document.querySelector<HTMLInputElement>('#knowledge-title')!
+  title.value = '原始文件标题'; title.dispatchEvent(new Event('input', { bubbles: true }))
+  const write = [...document.querySelectorAll<HTMLButtonElement>('button')].find(button => button.textContent?.trim() === '撰写文章')!
+  write.click(); await flushPromises()
+  expect(document.querySelector('#knowledge-upload')).toBeNull()
+  expect(document.querySelector('#article-create-form')).not.toBeNull()
+  const upload = [...document.querySelectorAll<HTMLButtonElement>('button')].find(button => button.textContent?.trim() === '上传文件')!
+  upload.click(); await flushPromises()
+  expect(document.querySelector<HTMLInputElement>('#knowledge-title')!.value).toBe('原始文件标题')
+  expect(requests.some(row => row.init.method === 'POST')).toBe(false)
 })
 
 it('protects unsaved upload input on a same-page space change and keeps focus in the dialog', async () => {
@@ -165,7 +201,7 @@ it('restores knowledge search and page from the URL and writes searchable histor
   const { view, router, requests } = await render('KnowledgeView', '/knowledge?spaceId=s1&categoryId=cat1&q=network&page=2', url => url.endsWith('/categories') ? json([{ id: 'cat1', spaceId: 's1', parentId: null, name: '网络', version: 1 }]) : url.includes('/documents?') ? json({ items: [detail], total: 100 }) : undefined, ['KB_EDITOR'])
   expect(view.get('#knowledge-search').element).toHaveProperty('value', 'network')
   expect(requests.some(row => row.url.includes('page=2') && row.url.includes('q=network') && row.url.includes('categoryId=cat1'))).toBe(true)
-  await view.get('#knowledge-search').setValue('  printer  '); await view.get('.knowledge-list form').trigger('submit'); await flushPromises()
+  await view.get('#knowledge-search').setValue('  printer  '); await view.get('.knowledge-toolbar').trigger('submit'); await flushPromises()
   expect(router.currentRoute.value.query).toEqual({ spaceId: 's1', categoryId: 'cat1', q: 'printer', page: '0' })
   await click(view, '下一页'); expect(router.currentRoute.value.query).toMatchObject({ q: 'printer', page: '1', categoryId: 'cat1' })
   router.back(); await vi.waitFor(() => expect(router.currentRoute.value.query.page).toBe('0')); await flushPromises()

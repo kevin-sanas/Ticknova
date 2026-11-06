@@ -67,6 +67,25 @@ public class WorkspaceService {
         return new Portal(query,knowledge,tickets,popular,categories);
     }
 
+    @Transactional(readOnly=true,isolation=Isolation.REPEATABLE_READ)
+    public List<TodoHit> todos(Actor supplied){
+        Actor actor=current(supplied);
+        boolean own=actor.hasRole("REQUESTER")||actor.hasRole("AGENT"),agent=actor.hasRole("AGENT");
+        return jdbc.sql("""
+            SELECT t.id,t.ticket_no,t.title,t.status,t.priority,t.updated_at,
+              CASE WHEN :own AND t.requester_id=:user AND t.status='WAITING_CUSTOMER'
+                THEN 'WAITING_CUSTOMER' ELSE 'ASSIGNED' END AS reason
+            FROM ticket t JOIN app_user u ON u.id=:user AND u.active AND NOT u.must_change_password
+            WHERE (:own AND t.requester_id=:user AND t.status='WAITING_CUSTOMER')
+              OR (:agent AND t.assignee_id=:user AND t.status NOT IN ('RESOLVED','CLOSED')
+                AND ((:own AND t.requester_id=:user) OR EXISTS
+                  (SELECT 1 FROM queue_member m JOIN support_queue q ON q.id=m.queue_id
+                    WHERE m.queue_id=t.queue_id AND m.user_id=:user AND q.active)))
+            ORDER BY t.updated_at DESC,t.id LIMIT 20
+            """).param("user",actor.id()).param("own",own).param("agent",agent)
+            .query((r,n)->new TodoHit(r.getObject("id",UUID.class),r.getLong("ticket_no"),r.getString("title"),r.getString("status"),r.getString("priority"),r.getTimestamp("updated_at").toInstant(),r.getString("reason"))).list();
+    }
+
     @Transactional
     public void view(Actor supplied,UUID document){
         // Match the lock order used by knowledge mutations and keep authorization valid through the insert.

@@ -56,6 +56,31 @@ describe('API boundary', () => {
     expect(token).toBe('session-b')
   })
 
+  it('does not expire the current session when a 401 response body is aborted', async () => {
+    const controller = new AbortController()
+    const unauthorized = vi.fn()
+    let parsing!: () => void
+    const bodyParsing = new Promise<void>(resolve => { parsing = resolve })
+    const api = createApi({
+      getToken: () => 'same-token',
+      onUnauthorized: unauthorized,
+      fetcher: async () => ({
+        ok: false,
+        status: 401,
+        json: () => new Promise((_resolve, reject) => {
+          controller.signal.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')), { once: true })
+          parsing()
+        }),
+      }) as Response,
+    })
+    const request = api.get('/workspace/analytics', { signal: controller.signal })
+    const rejected = expect(request).rejects.toBeDefined()
+    await bodyParsing
+    controller.abort()
+    await rejected
+    expect(unauthorized).not.toHaveBeenCalled()
+  })
+
   it('keeps the same idempotency key for retries and changes it when the submitted content changes', () => {
     const key = createRequestKey()
     const first = key.for({ title: '打印机故障', priority: 'NORMAL' })

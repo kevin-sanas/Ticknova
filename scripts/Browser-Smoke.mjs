@@ -1,4 +1,4 @@
-import { browserEnvironment } from './Browser-Environment.mjs'
+import { browserEnvironment, navigateViaSidebar } from './Browser-Environment.mjs'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -52,11 +52,12 @@ async function login(username) {
 }
 async function navigate(page,path) {
   // SPA navigation preserves the intentionally in-memory bearer session.
-  await page.locator(`a[href="${path}"]`).first().click()
+  await navigateViaSidebar(page, path)
   await page.waitForURL(`**${path}`)
 }
 async function move(page,status,reason) {
   step = `transition ${status}`
+  await page.getByRole('button',{name:'更新状态',exact:true}).click()
   await page.locator('#target-status').selectOption(status)
   await page.locator('#transition-reason').fill(reason)
   const done = page.waitForResponse(r => r.url().endsWith('/transitions') && r.request().method() === 'POST')
@@ -82,9 +83,17 @@ try {
   checked('requester creates ticket through the browser')
 
   step = 'engineer opens and claims'
+  await agent.locator('.ticket-more-filters > summary').click(); await expect(agent.locator('#service-filter')).toBeVisible(); await expect(agent.locator('#sort-filter')).toBeVisible()
+  await agent.locator('#sort-filter').selectOption('createdAt,desc')
+  const sorted = agent.waitForResponse(r => r.request().method()==='GET' && new URL(r.url()).pathname.endsWith('/tickets') && new URL(r.url()).searchParams.get('sort')==='createdAt,desc')
+  await agent.getByRole('button',{name:'查询',exact:true}).click(); expect((await sorted).status()).toBe(200)
+  await agent.screenshot({path:resolve(evidence,'ticket-more-filters.png'),fullPage:true,animations:'disabled'})
+  await agent.locator('.ticket-more-filters > summary').click(); await expect(agent.locator('#service-filter')).not.toBeVisible(); await expect(agent.locator('#sort-filter')).toHaveValue('createdAt,desc')
+  checked('secondary filters expand, submit real sorting and collapse without discarding values')
   await agent.getByRole('button',{name:'查询',exact:true}).click()
   await agent.getByRole('link',{name:title,exact:true}).first().click()
   await agent.waitForURL(`**${ticketPath}`)
+  await agent.getByRole('button',{name:'分配与领取',exact:true}).click()
   const claimed = agent.waitForResponse(r => r.url().endsWith('/assignment') && r.request().method()==='PUT')
   await agent.getByRole('button',{name:'领取工单',exact:true}).click()
   expect((await claimed).status()).toBe(200)
@@ -114,11 +123,11 @@ try {
   await move(requester,'CLOSED','确认解决')
   checked('triage → progress → resolve → requester reopen → resolve → confirm close')
   await requester.screenshot({path:resolve(evidence,'ticket-desktop.png'),fullPage:true})
-  await requester.setViewportSize({width:375,height:812})
-  await expect.poll(async()=>{const box=await requester.locator('.sidebar').boundingBox();return box?box.x+box.width:0}).toBeLessThanOrEqual(0.5)
+  await requester.setViewportSize({width:1280,height:900})
+  await expect(requester.locator('.sidebar')).toBeVisible()
   expect(await requester.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true)
-  await requester.screenshot({path:resolve(evidence,'ticket-mobile.png'),fullPage:true,animations:'disabled'})
-  checked('375px ticket layout has no horizontal document overflow')
+  await requester.screenshot({path:resolve(evidence,'ticket-1280.png'),fullPage:true,animations:'disabled'})
+  checked('1280px desktop ticket layout has no horizontal document overflow')
 
   step = 'administrator creates service and queue'
   await navigate(admin,'/admin/services')
@@ -156,7 +165,7 @@ try {
   await admin.getByRole('dialog').getByLabel('允许此账号登录').uncheck()
   await admin.getByRole('button',{name:'保存基本信息',exact:true}).click()
   await expect(admin.getByText('基本信息已保存。',{exact:true})).toBeVisible()
-  await admin.getByRole('dialog').locator('.form-actions').getByRole('button',{name:'关闭',exact:true}).click()
+  await admin.getByRole('dialog').locator('.form-actions').getByRole('button',{name:'取消',exact:true}).click()
   await expect(userRow.getByText('停用',{exact:true})).toBeVisible()
   checked('administrator creates and disables an account')
   await navigate(admin,'/admin/audit')

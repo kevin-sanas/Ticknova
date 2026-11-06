@@ -1,6 +1,6 @@
 export const DESIGN_TOKENS = Object.freeze({
-  primary: '#176b5b',
-  canvas: '#f5f7f4'
+  primary: '#365b80',
+  canvas: '#f2f0ed'
 })
 
 export function hexToCssRgb(value) {

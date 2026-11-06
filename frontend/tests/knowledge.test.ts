@@ -57,6 +57,55 @@ describe('knowledge API multipart', () => {
   })
 })
 describe('knowledge management', () => {
+  it('previews authorized published content, and ignores late content from a previous selection', async () => {
+    let release!: (value: Response) => void
+    stub(url => {
+      if (url.includes('/s1/documents?')) return json({ items: [summary, { ...summary, id: 'd2', title: '权限手册', publishedVersionId: 'v3' }], total: 2, page: 0, size: 20 })
+      if (url.endsWith('/documents/d1')) return new Promise<Response>(resolve => { release = resolve })
+      if (url.endsWith('/documents/d2')) return json({ ...detail, id: 'd2', title: '权限手册', publishedVersionId: 'v3', versions: [{ ...version, id: 'v3' }] })
+      if (url.endsWith('/versions/v3/content')) return json({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '经过授权的真实正文' }] }] })
+      if (url.endsWith('/versions/v3/chunks')) return json([])
+      return undefined
+    })
+    const { view } = await render()
+    await view.get('[aria-label="查看权限手册的信息"]').trigger('click'); await flushPromises()
+    expect(view.get('.knowledge-preview').text()).toContain('经过授权的真实正文')
+    release(json({ ...detail, versions: [{ ...version, id: 'v1' }] })); await flushPromises()
+    expect(view.get('.knowledge-preview').text()).toContain('经过授权的真实正文')
+    expect(view.get('.knowledge-preview').text()).not.toContain('操作手册')
+  })
+  it('does not restore delayed preview content after logout', async () => {
+    let release!: (value: Response) => void
+    stub(url => {
+      if (url.endsWith('/documents/d1')) return json({ ...detail, versions: [{ ...version, id: 'v1' }] })
+      if (url.endsWith('/versions/v1/content')) return new Promise<Response>(resolve => { release = resolve })
+      return undefined
+    })
+    const { view, session } = await render()
+    session.clear(); await flushPromises()
+    release(json({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: '不可泄漏的正文' }] }] })); await flushPromises()
+    expect(view.text()).not.toContain('不可泄漏的正文')
+  })
+  it('purges preview content when an authorized content request is denied', async () => {
+    stub(url => {
+      if (url.endsWith('/documents/d1')) return json({ ...detail, versions: [{ ...version, id: 'v1' }] })
+      if (url.endsWith('/versions/v1/content')) return json({ title: '没有权限', code: 'FORBIDDEN' }, 403)
+      return undefined
+    })
+    const { view } = await render(); await flushPromises()
+    expect(view.find('.knowledge-preview .rich-document').exists()).toBe(false)
+    expect(view.text()).toContain('FORBIDDEN')
+  })
+  it('shows real list metadata for the selected document and opens it', async () => {
+    stub(url => url.includes('/s1/documents?') ? json({ items: [summary, { ...summary, id: 'd2', title: '权限手册', versionCount: 4 }], total: 2, page: 0, size: 20 }) : url.endsWith('/documents/d2') ? json({ ...detail, id: 'd2', title: '权限手册' }) : undefined)
+    const { view, router } = await render()
+    expect(view.get('.knowledge-preview').text()).toContain('操作手册')
+    await view.get('[aria-label="查看权限手册的信息"]').trigger('click')
+    expect(view.get('.knowledge-preview').text()).toContain('权限手册')
+    expect(view.get('.knowledge-preview').text()).toContain('4')
+    await view.get('.knowledge-preview button').trigger('click'); await flushPromises()
+    expect(router.currentRoute.value.path).toBe('/knowledge/documents/d2')
+  })
   it('opens the pending review queue and keeps approval behind the server capability', async () => {
     const requests: string[] = []
     stub((url, init) => {
@@ -115,6 +164,12 @@ describe('knowledge management', () => {
     await click(view, '打开审核')
     expect(view.text()).not.toContain('待撤权手册')
     expect(view.find('.knowledge-review-tasks').exists()).toBe(false)
+  })
+  it('does not render an empty category card when the account has no readable spaces', async () => {
+    stub(url => url.endsWith('/knowledge/spaces') ? json([]) : undefined)
+    const { view } = await render(['REQUESTER'])
+    expect(view.text()).toContain('暂无可访问的知识空间')
+    expect(view.find('.knowledge-local-nav').exists()).toBe(false)
   })
   it('shows readable empty spaces to requesters without editor controls even when server capabilities are true', async () => {
     stub(url => url.includes('/documents?') ? json({ items: [], total: 0, page: 0, size: 20 }) : undefined)
@@ -286,12 +341,12 @@ describe('knowledge management', () => {
   it('polls processing detail and stops after unmount', async () => {
     vi.useFakeTimers(); let reads = 0
     stub(url => { if (url.endsWith('/documents/d1')) { reads++; return json({ ...detail, versions: [{ ...version, ingestState: reads === 1 ? 'CHUNKING' : 'READY' }] }) } })
-    const { view } = await render(); await open(view); expect(view.text()).toContain('分块中'); await vi.advanceTimersByTimeAsync(3000); await flushPromises(); expect(reads).toBe(2); expect(view.text()).toContain('解析就绪'); view.unmount(); wrapper = undefined; await vi.advanceTimersByTimeAsync(6000); expect(reads).toBe(2)
+    const { view } = await render(); reads = 0; await open(view); expect(view.text()).toContain('分块中'); await vi.advanceTimersByTimeAsync(3000); await flushPromises(); expect(reads).toBe(2); expect(view.text()).toContain('解析就绪'); view.unmount(); wrapper = undefined; await vi.advanceTimersByTimeAsync(6000); expect(reads).toBe(2)
   })
   it('keeps polling a failed extraction while its job has an automatic retry scheduled', async () => {
     vi.useFakeTimers(); let reads = 0
     stub(url => { if (url.endsWith('/documents/d1')) { reads++; return json({ ...detail, versions: [{ ...version, ingestState: reads === 1 ? 'FAILED' : 'READY', jobStatus: reads === 1 ? 'RETRYING' : 'COMPLETED' }] }) } })
-    const { view } = await render(); await open(view); await vi.advanceTimersByTimeAsync(3000); await flushPromises(); expect(reads).toBe(2); expect(view.text()).toContain('解析就绪')
+    const { view } = await render(); reads = 0; await open(view); await vi.advanceTimersByTimeAsync(3000); await flushPromises(); expect(reads).toBe(2); expect(view.text()).toContain('解析就绪')
   })
 })
 

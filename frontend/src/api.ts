@@ -52,7 +52,7 @@ export function createApi(options: ApiOptions) {
     if (!response.ok) {
       let problem: Problem = { title: '请求失败，请稍后重试。', status: response.status }
       try { problem = { ...problem, ...await response.json(), status: response.status } } catch { /* A gateway may return a non-JSON response. */ }
-      if (response.status === 401 && !config.anonymous && token && token === options.getToken()) options.onUnauthorized()
+      if (response.status === 401 && !config.signal?.aborted && !config.anonymous && token && token === options.getToken()) options.onUnauthorized()
       throw new ApiError(response.status, problem)
     }
     if (response.status === 204) return undefined as T

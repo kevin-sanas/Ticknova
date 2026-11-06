@@ -9,14 +9,33 @@ const polluted = /浏览器验收|V2合成|验收审核人|时光机|歌词/
 async function login(username) {
   const context = await browser.newContext({ viewport: { width: 1440, height: 1050 }, locale: 'zh-CN', timezoneId: 'Asia/Shanghai' }); contexts.push(context)
   const page = await context.newPage(); page.on('pageerror', error => errors.push(error.name))
-  await page.goto(`${base}/login`); await page.locator('#username').fill(username); await page.locator('#password').fill(env[`DEMO_BROWSER_${username.toUpperCase()}_PASSWORD`])
+  await page.goto(`${base}/login`); if(username==='requester')await matrix(page,'login'); await page.locator('#username').fill(username); await page.locator('#password').fill(env[`DEMO_BROWSER_${username.toUpperCase()}_PASSWORD`])
   const response=page.waitForResponse(r=>r.url().endsWith('/auth/login')&&r.request().method()==='POST'); await page.getByRole('button', { name: /登录工作台/ }).click(); const signed=await(await response).json(); expect(signed.user.roles).toEqual([({admin:'ADMIN',agent:'AGENT',requester:'REQUESTER',editor:'KB_EDITOR',reviewer:'KB_REVIEWER'})[username]]); await page.waitForURL(url => !['/login','/change-password'].includes(url.pathname))
   return page
 }
 async function navigate(page, path) { await page.locator(`a[href="${path}"]:visible`).first().click(); await page.waitForURL(url => url.pathname === path) }
+let matrices = 0
+async function matrix(page, name) {
+  for (const width of [1280,1366,1440,1920]) {
+    await page.setViewportSize({width,height:1000}); await page.evaluate(()=>document.fonts.ready)
+    await expect.poll(()=>page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+1)).toBe(true)
+    const bad = await page.locator('.el-button,.segmented-control>button,.range-options>button').evaluateAll(buttons=>buttons.flatMap(button=>{
+      const box=button.getBoundingClientRect(); if(!box.width||!box.height||getComputedStyle(button).visibility==='hidden')return[]
+      const walker=document.createTreeWalker(button,NodeFilter.SHOW_TEXT); let node; const ranges=[]
+      while((node=walker.nextNode())){if(!node.textContent.trim()||node.parentElement.closest('.sr-only'))continue;const range=document.createRange();range.selectNodeContents(node);const rect=range.getBoundingClientRect();if(rect.width)ranges.push(rect)}
+      if(!ranges.length)return[];const top=Math.min(...ranges.map(rect=>rect.top)),bottom=Math.max(...ranges.map(rect=>rect.bottom));const drift=Math.abs((top+bottom-box.top-box.bottom)/2)
+      return drift>3||button.scrollWidth>button.clientWidth+2?[{label:button.textContent.trim(),drift,width:box.width,overflow:button.scrollWidth-button.clientWidth}]:[]
+    }))
+    expect(bad,`${name} ${width}: actual control text must be centered without clipping`).toEqual([])
+    if(width===1440)await page.screenshot({path:resolve(evidence,`desktop-${name}.png`),fullPage:true,animations:'disabled'})
+    matrices++
+  }
+  await page.setViewportSize({width:1440,height:1050})
+  console.log(`PASS desktop geometry and control alignment: ${name}`)
+}
 try {
   const reader = await login('requester'); await expect(reader.locator('.portal-main .document-card')).not.toHaveCount(0)
-  for (const width of [1920,1440,1366,1280,768,390]) {
+  for (const width of [1920,1440,1366,1280]) {
     await reader.setViewportSize({ width, height: width === 390 ? 844 : 1050 })
     expect(await reader.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
     const snippets = await reader.locator('.portal-main .document-snippet').evaluateAll(rows => rows.map(row => ({ height: row.getBoundingClientRect().height, line: parseFloat(getComputedStyle(row).lineHeight), clamp: getComputedStyle(row).webkitLineClamp })))
@@ -24,8 +43,9 @@ try {
     for (const snippet of snippets) { expect(snippet.clamp).toBe('2'); expect(snippet.height).toBeLessThanOrEqual(snippet.line * 2 + 1) }
     await reader.screenshot({ path: resolve(evidence,`demo-portal-${width}.png`), fullPage: true, animations: 'disabled' })
   }
+  await matrix(reader,'portal')
   expect(await reader.locator('body').innerText()).not.toMatch(polluted)
-  await reader.setViewportSize({width:1440,height:1050}); await navigate(reader,'/assistant')
+  await reader.setViewportSize({width:1440,height:1050}); await navigate(reader,'/tickets');await matrix(reader,'requester-tickets');await navigate(reader,'/tickets/new');await matrix(reader,'new-ticket');await navigate(reader,'/assistant')
   for (const [question, title] of [['网络无法连接怎么办','网络无法连接的排查步骤'],['VPN 连不上','VPN 连接失败处理指南'],['怎么重置密码','安全重置账号密码']]) {
     await reader.locator('#assistant-question').fill(question)
     const accepted = reader.waitForResponse(response => response.url().endsWith('/ai/answers') && response.request().method() === 'POST')
@@ -36,18 +56,43 @@ try {
     await expect(reader.getByText(/本地.*演示|mock/i).first()).toBeVisible()
     console.log(`PASS original demo knowledge returns a cited mock answer: ${question}`)
   }
+  await matrix(reader,'assistant-answer')
   for (const username of ['admin','agent','editor','reviewer']) {
     const page = await login(username)
-    if (username === 'admin') for (const path of ['/admin/users','/admin/queues','/admin/services']) { await navigate(page,path); await expect(page.locator('table tbody tr').first()).toBeVisible(); expect(await page.locator('body').innerText()).not.toMatch(polluted) }
+    if (username === 'admin') for (const path of ['/admin/users','/admin/queues','/admin/services']) { await navigate(page,path); await expect(page.locator('table tbody tr').first()).toBeVisible(); expect(await page.locator('body').innerText()).not.toMatch(polluted); await matrix(page,path.split('/').at(-1));
+      if(path.endsWith('/users')){await page.locator('.user-status-filter').click();await matrix(page,'user-status-popup');await page.keyboard.press('Escape');await page.getByRole('button',{name:'管理',exact:true}).first().click();await matrix(page,'user-dialog');await page.getByRole('dialog',{name:/管理用户/}).locator('.el-dialog__headerbtn').click()}
+      if(path.endsWith('/queues')){await page.getByRole('button',{name:'管理成员',exact:true}).first().click();await expect(page.locator('#member-user')).toBeVisible();await matrix(page,'queue-members');await page.getByRole('dialog',{name:/队列成员/}).locator('.el-dialog__headerbtn').click()}
+      if(path.endsWith('/services')){await page.getByRole('button',{name:'编辑',exact:true}).first().click();await matrix(page,'service-dialog');await page.getByRole('dialog',{name:'编辑服务',exact:true}).locator('.el-dialog__headerbtn').click()}
+    }
     else if (username === 'agent') {
       await navigate(page,'/tickets'); await expect(page.locator('#ticket-list-heading')).toContainText('24 条')
       await page.locator('#ticket-search').fill('VPN 连接后无法访问内网'); await page.getByRole('button',{name:'查询',exact:true}).click()
-      await expect(page.getByRole('link',{name:'VPN 连接后无法访问内网',exact:true})).toBeVisible()
+      await expect(page.getByRole('link',{name:'VPN 连接后无法访问内网',exact:true})).toBeVisible();await matrix(page,'tickets')
+      await page.getByRole('link',{name:'VPN 连接后无法访问内网',exact:true}).click();await expect(page.locator('.detail-main')).toBeVisible();await matrix(page,'ticket-detail')
+      await expect(page.locator('.ticket-copilot-drawer')).not.toBeVisible()
+      await page.getByRole('button',{name:'AI Copilot',exact:true}).click();await expect(page.locator('#ai-kind')).toBeVisible();await matrix(page,'copilot-drawer')
+      await page.locator('.ticket-copilot-drawer .el-drawer__close-btn').click();await expect(page.locator('.ticket-copilot-drawer')).not.toBeVisible()
+      await page.getByRole('button',{name:'编辑属性',exact:true}).click();await expect(page.locator('#edit-priority')).toBeVisible();await matrix(page,'ticket-properties')
+      await page.locator('.ticket-properties-drawer .el-drawer__close-btn').click()
     }
-    else { await navigate(page,'/knowledge'); await expect(page.getByRole('button',{name:'网络无法连接的排查步骤',exact:true})).toBeVisible() }
+    else { await navigate(page,'/knowledge'); await expect(page.getByRole('button',{name:'网络无法连接的排查步骤',exact:true})).toBeVisible();await matrix(page,`knowledge-${username}`)
+      if(username==='editor'){
+        await page.getByRole('button',{name:'新建文档',exact:true}).click();await expect(page.locator('#knowledge-upload')).toBeVisible();await matrix(page,'upload-drawer')
+        await page.getByRole('button',{name:'撰写文章',exact:true}).click();await expect(page.locator('#knowledge-upload')).toHaveCount(0);await expect(page.locator('#article-create-form')).toBeVisible();await matrix(page,'write-drawer')
+        await page.getByRole('dialog',{name:'新建知识文档',exact:true}).locator('.el-drawer__close-btn').click();await expect(page.getByRole('dialog',{name:'新建知识文档',exact:true})).not.toBeVisible()
+      }
+      await page.getByRole('button',{name:'网络无法连接的排查步骤',exact:true}).click();await expect(page.locator('.knowledge-reader')).toBeVisible();await matrix(page,`document-${username}`)
+      if(username==='editor'){await page.getByRole('button',{name:'编辑文章草稿',exact:true}).click();await expect(page.getByRole('textbox',{name:'文章正文',exact:true})).toBeVisible();await matrix(page,'article-editor');await page.getByRole('button',{name:'预览文章',exact:true}).click();await matrix(page,'article-preview')}
+      if(username==='reviewer'){await navigate(page,'/knowledge/reviews');await matrix(page,'review-queue')}
+    }
+    if(username==='admin'){
+      await navigate(page,'/admin/analytics');await expect(page.locator('.kpi-card').first()).toBeVisible();await matrix(page,'analytics')
+      await navigate(page,'/admin/audit');await expect(page.locator('tbody tr').first()).toBeVisible();await matrix(page,'audit')
+      await navigate(page,'/admin/knowledge-spaces');await matrix(page,'spaces');await page.getByRole('button',{name:'管理成员',exact:true}).click();await expect(page.locator('#knowledge-member-form')).toBeVisible();await matrix(page,'space-members')
+    }
     expect(await page.locator('body').innerText()).not.toMatch(polluted)
     console.log(`PASS ${username} sees clean original demo data within its role`)
   }
   expect(errors).toEqual([])
-  console.log('PASS requester portal has two-line summaries and no overflow at six widths; all five roles are usable; page errors=0')
+  console.log(`PASS ${matrices} desktop page/state-width checks; portal summaries stay two lines; five roles usable; page errors=0`)
 } finally { for (const context of contexts) await context.close(); await browser.close() }

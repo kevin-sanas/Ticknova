@@ -38,6 +38,18 @@ async function render(component: Component, user: User = requester, path = '/tic
 }
 
 describe('user-facing forms', () => {
+  it('shows useful guidance based on the selected service and urgency without changing required fields', async () => {
+    vi.stubGlobal('fetch', async () => json([{ id: 's1', name: '网络与连接', code: 'NETWORK', active: true }]))
+    const { wrapper } = await render(NewTicketView, requester, '/tickets/new')
+    expect(wrapper.text()).toContain('何时开始')
+    await wrapper.get('#ticket-service').setValue('s1')
+    expect(wrapper.text()).toContain('网络连接方式')
+    await wrapper.get('#ticket-priority').setValue('URGENT')
+    expect(wrapper.text()).toContain('影响范围')
+    expect(wrapper.get('#ticket-service').attributes('required')).toBeUndefined()
+    expect(wrapper.get('#ticket-title').attributes('required')).toBeDefined()
+    expect(wrapper.get('#ticket-description').attributes('required')).toBeDefined()
+  })
   it('retains login input on rejected credentials and sends a successful first login to password change', async () => {
     let valid = false
     vi.stubGlobal('fetch', async () => valid ? json({ accessToken: 'new-memory-only', expiresIn: 1800, user: { ...requester, mustChangePassword: true } }) : json({ title: '账号或密码错误', code: 'INVALID_CREDENTIALS' }, 401))
@@ -91,6 +103,14 @@ describe('user-facing forms', () => {
     await wrapper.get('#internal-tab').trigger('click')
     expect(wrapper.text()).toContain('秘密排查记录')
     expect(wrapper.find('#comment-body').exists()).toBe(false)
+  })
+
+  it('keeps ticket action and copilot drawers within a narrow viewport', async () => {
+    vi.stubGlobal('fetch', async () => json({ ...detailFixture, allowedTransitions: ['RESOLVED'] }))
+    const { wrapper } = await render(TicketDetailView, agent)
+    const drawers = wrapper.findAllComponents({ name: 'ElDrawer' })
+    expect(drawers.find(item => item.props('title') === '工单处理')?.props('size')).toBe('min(480px, 100vw)')
+    expect(drawers.find(item => item.props('title') === 'AI Copilot')?.props('size')).toBe('min(540px, 100vw)')
   })
 
   it('moves conversation tabs using arrow keys with one keyboard tab stop', async () => {

@@ -11,7 +11,7 @@ test('browser design contract matches the committed Ticknova color tokens', asyn
   const source = await readFile(new URL('../frontend/src/tokens.css', import.meta.url), 'utf8')
   assert.equal(token(source, 'color-primary'), DESIGN_TOKENS.primary)
   assert.equal(token(source, 'color-canvas'), DESIGN_TOKENS.canvas)
-  assert.equal(hexToCssRgb(DESIGN_TOKENS.canvas), 'rgb(245, 247, 244)')
+  assert.equal(hexToCssRgb(DESIGN_TOKENS.canvas), 'rgb(242, 240, 237)')
 })
 
 test('hexToCssRgb rejects malformed design token values', () => {

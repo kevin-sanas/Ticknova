@@ -25,21 +25,21 @@ async function render(component: Component, props = {}) {
 it.each(['catalog', 'users'])('restores the real %s opener after cancelling a nested dirty confirmation then saving', async kind => {
   vi.stubGlobal('fetch', (url: string) => Promise.resolve(json(url.includes('/admin/services?') ? { items: [], total: 0, page: 0, size: 20 } : url.includes('/users?') ? { items: [], total: 0, page: 0, size: 20 } : url.endsWith('/roles') ? ['REQUESTER'] : [])))
   await render(kind === 'catalog' ? CatalogView : UsersView, kind === 'catalog' ? { kind: 'services' } : {})
-  const opener = button(kind === 'catalog' ? '＋ 新建服务' : '＋ 创建用户')
+  const opener = button(kind === 'catalog' ? '新建服务' : '创建用户')
   // Pointer activation can leave focus on the preceding control; restore the
   // actual event trigger rather than relying only on activeElement at open.
   const precedingControl = document.createElement('button'); precedingControl.textContent = '前一控件'; document.body.append(precedingControl); precedingControl.focus()
   opener.click(); await flushPromises()
   const input = document.querySelector<HTMLInputElement>(kind === 'catalog' ? '#catalog-name' : '#user-name')!
   input.focus(); input.value = '保存焦点回归'; input.dispatchEvent(new Event('input', { bubbles: true }))
-  button(kind === 'catalog' ? '取消' : '关闭').click(); await flushPromises()
+  button('取消').click(); await flushPromises()
   button('继续编辑').click(); await flushPromises()
   await vi.waitFor(() => expect(Array.from(document.querySelectorAll('.el-message-box')).filter(visible)).toHaveLength(0))
   if (kind === 'users') {
     for (const [id, value] of [['new-username', 'focus.fixture'], ['initial-password', 'Local-fixture-123']]) { const field = document.getElementById(id!) as HTMLInputElement; field.value = value!; field.dispatchEvent(new Event('input', { bubbles: true })) }
     const role = document.querySelector<HTMLInputElement>('fieldset input')!; role.checked = true; role.dispatchEvent(new Event('change', { bubbles: true })); await flushPromises()
   } else { const code = document.getElementById('catalog-code') as HTMLInputElement; code.value = 'FOCUS_TEST'; code.dispatchEvent(new Event('input', { bubbles: true })); await flushPromises() }
-  const save = button(kind === 'catalog' ? '保存' : '创建用户'); save.focus(); save.click(); await flushPromises()
+  const save = input.closest('form')!.querySelector<HTMLButtonElement>('button[type="submit"]')!; save.focus(); save.click(); await flushPromises()
   await vi.waitFor(() => expect((input.closest('.el-overlay') as HTMLElement).style.display).toBe('none'))
   await vi.waitFor(() => expect(document.activeElement).toBe(opener))
 })

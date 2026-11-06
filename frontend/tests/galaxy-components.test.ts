@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { nextTick } from 'vue'
 import { mount, type VueWrapper } from '@vue/test-utils'
-import ElementPlus, { ElTooltip } from 'element-plus'
+import ElementPlus from 'element-plus'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import KnowledgeFilePicker from '../src/components/KnowledgeFilePicker.vue'
 import AiRequestStatus from '../src/components/AiRequestStatus.vue'
@@ -11,16 +10,18 @@ import type { AiJob } from '../src/types'
 let view: VueWrapper | undefined
 afterEach(() => { view?.unmount(); view = undefined; vi.unstubAllGlobals(); document.body.innerHTML = '' })
 
-it('disables a focused collapsed navigation tooltip when the desktop navigation disappears', async () => {
-  let viewportChanged: ((event: { matches: boolean }) => void) | undefined
-  vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener: (_name: string, listener: (event: { matches: boolean }) => void) => { viewportChanged = listener }, removeEventListener: () => {} }))
+it('expands the current navigation group and toggles its links accessibly', async () => {
   const router = createRouter({ history: createMemoryHistory(), routes: [{ path: '/portal', component: { template: '<p>门户</p>' } }] })
   await router.push('/portal'); await router.isReady()
-  view = mount(AppNavigation, { props: { items: [{ path: '/portal', label: '员工服务门户', icon: 'search' }], collapsed: true }, global: { plugins: [router, ElementPlus] } })
-  expect(view.get('a').attributes('aria-label')).toBe('员工服务门户')
-  expect(view.getComponent(ElTooltip).props('disabled')).toBe(false)
-  viewportChanged?.({ matches: true }); await nextTick()
-  expect(view.getComponent(ElTooltip).props('disabled')).toBe(true)
+  view = mount(AppNavigation, { props: { groups: [{ label: '服务与工单', items: [{ path: '/portal', label: '服务门户', icon: 'search' }] }] }, global: { plugins: [router, ElementPlus] } })
+  const toggle = view.get('.group-toggle')
+  expect(toggle.attributes('aria-expanded')).toBe('true')
+  expect(view.get('a').attributes('aria-current')).toBe('page')
+  await toggle.trigger('click')
+  expect(toggle.attributes('aria-expanded')).toBe('false')
+  expect(view.get('.group-items').attributes('style')).toContain('display: none')
+  await toggle.trigger('click')
+  expect(toggle.attributes('aria-expanded')).toBe('true')
 })
 
 describe('knowledge file picker', () => {

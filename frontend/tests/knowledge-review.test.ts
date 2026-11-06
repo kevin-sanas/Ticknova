@@ -39,6 +39,17 @@ it('shows a discoverable reviewer task and opens the exact pending document vers
   expect(router.currentRoute.value.query).toEqual({ versionId: 'v2', fromReview: '1', tab: 'versions' })
 })
 
+it('shows the selected real review version and opens that version for review', async () => {
+  const other = { ...page.items[0]!, documentId: 'd2', versionId: 'v3', versionNo: 3, title: '第二份手册', fileName: 'other.md' }
+  const { view, router } = await render(() => json({ ...page, items: [...page.items, other], total: 2 }))
+  await view.findAll('.review-select').find(button => button.text() === '第二份手册')!.trigger('click')
+  expect(view.get('.review-summary').text()).toContain('第二份手册')
+  expect(view.get('.review-summary').text()).toContain('other.md')
+  await view.get('.review-summary button').trigger('click'); await flushPromises()
+  expect(router.currentRoute.value.path).toBe('/knowledge/documents/d2')
+  expect(router.currentRoute.value.query).toMatchObject({ versionId: 'v3', fromReview: '1' })
+})
+
 it('distinguishes empty tasks from a failed refresh and permits retry', async () => {
   let fail = false
   const { view } = await render(() => fail ? json({ status: 503, title: '审核服务暂时不可用' }, 503) : json({ items: [], total: 0, page: 0, size: 20 }))

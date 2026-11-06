@@ -38,6 +38,26 @@ async function closeMemberDialog(view: VueWrapper) {
 }
 
 describe('queue member request ownership', () => {
+  it('distinguishes a failed member read from an empty queue and retries safely', async () => {
+    let memberReads = 0
+    vi.stubGlobal('fetch', (url: string) => {
+      if (url.includes('/api/v1/admin/queues?')) return Promise.resolve(json({ items: queues, total: queues.length, page: 0, size: 20 }))
+      if (url.includes('/users?')) return Promise.resolve(json({ items: [], total: 0, page: 0, size: 100 }))
+      if (url.endsWith('/qa/members')) return Promise.resolve(++memberReads === 1 ? json({ title: '成员加载失败，请重试' }, 503) : json([]))
+      throw new Error(`Unexpected request ${url}`)
+    })
+    const view = await render()
+    await openQueue(view, 0)
+    expect(memberDialog().textContent).toContain('成员加载失败，请重试')
+    expect(memberDialog().textContent).not.toContain('此队列暂无成员')
+    expect((memberDialog().querySelector('#member-user') as HTMLSelectElement).disabled).toBe(true)
+    const retry = Array.from(memberDialog().querySelectorAll('button')).find(button => button.textContent?.trim() === '重试')!
+    retry.click(); await flushPromises()
+    expect(memberDialog().textContent).not.toContain('成员加载失败，请重试')
+    expect(memberDialog().textContent).toContain('此队列暂无成员')
+    expect((memberDialog().querySelector('#member-user') as HTMLSelectElement).disabled).toBe(false)
+  })
+
   it('loads B while A is pending and never shows A members or targets A members under B after A finishes', async () => {
     let releaseA!: (response: Response) => void
     let releaseB!: (response: Response) => void

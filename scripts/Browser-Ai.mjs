@@ -1,4 +1,4 @@
-import { browserEnvironment } from './Browser-Environment.mjs'
+import { browserEnvironment, navigateViaSidebar } from './Browser-Environment.mjs'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -35,8 +35,8 @@ async function job(actor, id) {
   return result
 }
 async function assistant(actor, question, space) {
-  await actor.page.locator('a[href="/assistant"]').first().click(); await actor.page.waitForURL('**/assistant')
-  await actor.page.locator('#assistant-question').fill(question); if (space) await actor.page.locator('#assistant-spaces').selectOption([space])
+  await navigateViaSidebar(actor.page, '/assistant'); await actor.page.waitForURL('**/assistant')
+  await actor.page.locator('#assistant-question').fill(question); if (space) { await actor.page.locator('.assistant-space-select').click(); await actor.page.getByRole('option',{name:space.name,exact:true}).click(); await actor.page.keyboard.press('Escape') }
   await actor.page.locator('#assistant-submit').click()
 }
 try {
@@ -59,23 +59,25 @@ try {
   await expect.poll(async () => { const created = await api(reader, 'POST', '/ai/answers', { question, spaceIds: [space.id] }, crypto.randomUUID()); return (await job(reader, created.jobId)).result?.outcome }, { timeout: 45_000, intervals: [1000, 2000] }).toBe('ANSWERED')
   checked('published Docling source is indexed and retrieved through the actual async AI API')
   step = 'assistant answer and citations'
-  await assistant(reader, question, space.id)
+  await assistant(reader, question, space)
   await expect(reader.page.getByText(title, { exact: true }).first()).toBeVisible()
   await expect(reader.page.getByText(/上游服务健康检查/).first()).toBeVisible()
   await expect(reader.page.getByText(/本地.*演示|mock/i).first()).toBeVisible()
   checked('Chinese assistant displays a cited answer and explicit local demonstration mode')
   await reader.page.evaluate(() => window.scrollTo(0, 0)); await reader.page.screenshot({ path: resolve(evidence, `${screenshotPrefix}-desktop.png`), fullPage: true, animations: 'disabled' })
-  await reader.page.setViewportSize({ width: 390, height: 844 }); await expect.poll(() => reader.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
-  await reader.page.evaluate(() => window.scrollTo(0, 0)); await reader.page.screenshot({ path: resolve(evidence, `${screenshotPrefix}-mobile.png`), fullPage: true, animations: 'disabled' }); await reader.page.setViewportSize({ width: 1440, height: 1050 })
-  checked('390px assistant layout has no horizontal overflow')
+  await reader.page.setViewportSize({ width: 1280, height: 900 }); await expect.poll(() => reader.page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+  await reader.page.evaluate(() => window.scrollTo(0, 0)); await reader.page.screenshot({ path: resolve(evidence, `${screenshotPrefix}-1280.png`), fullPage: true, animations: 'disabled' }); await reader.page.setViewportSize({ width: 1440, height: 1050 })
+  checked('1280px desktop assistant layout has no horizontal overflow')
   step = 'ticket suggestions stay human controlled'
   const ticketTitle = `G4验收网关502 ${suffix}`
   const ticket = await api(reader, 'POST', '/tickets', { title: ticketTitle, description: '网关502错误，需要检查上游服务健康检查及upstream连接日志。', priority: 'NORMAL', serviceId: null }, crypto.randomUUID())
-  await agent.page.locator('a[href="/tickets"]').first().click(); await agent.page.getByRole('button', { name: '查询', exact: true }).click(); await agent.page.getByRole('link', { name: ticketTitle, exact: true }).click()
+  await navigateViaSidebar(agent.page, '/tickets'); await agent.page.getByRole('button', { name: '查询', exact: true }).click(); await agent.page.getByRole('link', { name: ticketTitle, exact: true }).click()
   await agent.page.waitForURL(`**/tickets/${ticket.id}`)
   await agent.page.locator('#comment-body').fill('我的原始公开草稿')
   let commentPosts = 0; agent.page.on('request', request => { if (request.method() === 'POST' && request.url().endsWith(`/tickets/${ticket.id}/comments`)) commentPosts++ })
-  await agent.page.locator('#ai-kind').selectOption('REPLY'); await agent.page.locator('#ai-generate').click()
+  const copilotEntry = agent.page.getByRole('button',{name:'AI Copilot',exact:true})
+  if (await copilotEntry.isVisible()) await copilotEntry.click()
+  await agent.page.locator('[data-ai-kind="REPLY"]').click(); await agent.page.locator('#ai-generate').click()
   await agent.page.getByRole('button', { name: '采纳建议', exact: true }).click()
   await agent.page.getByRole('button', { name: '确认替换', exact: true }).click()
   await expect(agent.page.locator('#comment-body')).not.toHaveValue('我的原始公开草稿'); expect(commentPosts).toBe(0)

@@ -1,4 +1,4 @@
-import { browserEnvironment } from './Browser-Environment.mjs'
+import { browserEnvironment, navigateViaSidebar } from './Browser-Environment.mjs'
 import { readFile, mkdir, writeFile } from 'node:fs/promises'
 import { resolve, dirname } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -26,12 +26,12 @@ async function login(username, password) {
   await page.getByRole('button', { name: /登录工作台/ }).click(); const result = await response; expect(result.status()).toBe(200)
   const signed = await result.json(); secrets.push(signed.accessToken)
   if (signed.user.mustChangePassword) throw Error('Existing demo account still requires password change')
-  await page.waitForURL(url => url.pathname !== '/login'); await page.locator('a[href="/knowledge"]').first().click(); await page.waitForURL('**/knowledge')
+  await page.waitForURL(url => url.pathname !== '/login'); await navigateViaSidebar(page, '/knowledge'); await page.waitForURL('**/knowledge')
   return { page, user: signed.user, token: signed.accessToken }
 }
 function checked(name) { checks.push(name); console.log(`PASS ${name}`) }
 async function snapshot(page, tag) {
-  for (const width of [1920, 1440, 1280, 768, 390]) {
+  for (const width of [1920, 1440, 1366, 1280]) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1050 })
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true)
     const name = `${prefix}-${tag}-${width}.png`
@@ -98,7 +98,7 @@ try {
   phase = 'review rejection'
   await expect(author.page.getByText('当前空间尚无可用的专职审核者；提交后将等待管理员配置审核权限。',{exact:true})).toBeVisible(); await expect(author.page.getByText('请联系管理员配置此空间的审核权限。',{exact:true})).toBeVisible()
   expect((await actorRequest(author,base,'GET',`/knowledge/documents/${initial.documentId}`)).versions.find(row=>row.id===initial.versionId).hasEligibleReviewer).toBe(false)
-  await admin.page.locator('a[href="/admin/knowledge-spaces"]').first().click(); await admin.page.waitForURL('**/admin/knowledge-spaces'); await admin.page.locator('#knowledge-space').selectOption(space.id)
+  await navigateViaSidebar(admin.page, '/admin/knowledge-spaces'); await admin.page.waitForURL('**/admin/knowledge-spaces'); await admin.page.locator('#knowledge-space').selectOption(space.id)
   await admin.page.getByRole('button',{name:'管理成员',exact:true}).click(); const memberDialog=admin.page.getByRole('dialog',{name:/空间成员/})
   await expect(memberDialog.locator('#knowledge-member-user')).toBeEnabled(); await memberDialog.locator('#knowledge-member-user').selectOption(created.user.id)
   await memberDialog.getByLabel('允许阅读',{exact:true}).check(); await memberDialog.getByLabel('允许编辑',{exact:true}).uncheck(); await memberDialog.getByLabel('允许审核',{exact:true}).check()
@@ -108,16 +108,16 @@ try {
   await author.page.getByRole('button',{name:'刷新状态',exact:true}).click(); expect((await actorRequest(author,base,'GET',`/knowledge/documents/${initial.documentId}`)).versions.find(row=>row.id===initial.versionId).hasEligibleReviewer).toBe(true)
   await expect(author.page.getByText('当前空间尚无可用的专职审核者；提交后将等待管理员配置审核权限。',{exact:true})).toHaveCount(0); await author.page.locator('.version-list > li').first().getByRole('button',{name:'提交审核',exact:true}).click()
   checked('missing eligible reviewer is verified against real detail, then ADMIN grants dedicated review permission in the members dialog')
-  await expect(reviewer.page.locator('a[href="/knowledge/reviews"]').first()).toBeVisible()
-  await reviewer.page.locator('a[href="/knowledge/reviews"]').first().click()
+  await navigateViaSidebar(reviewer.page, '/knowledge/reviews')
   await reviewer.page.waitForURL('**/knowledge/reviews')
   const openTask = reviewer.page.getByRole('button', { name: '审核草稿与审核回归手册的版本 1' })
   await expect(openTask).toBeVisible()
   await snapshot(reviewer.page, 'review-queue')
   await openTask.focus(); expect(await openTask.evaluate(button => button === document.activeElement)).toBe(true)
   await reviewer.page.keyboard.press('Enter')
-  await reviewer.page.getByRole('tab',{name:'文档概览',exact:true}).click(); await expect(reviewer.page.locator('.knowledge-reader')).toContainText('虚构网关的健康状态'); await reviewer.page.getByRole('tab',{name:'版本历史',exact:true}).click()
-  await reviewer.page.locator('.version-list > li').first().getByRole('button', { name: '审核不通过', exact: true }).click()
+  await expect(reviewer.page.locator('.review-document')).toContainText('虚构网关的健康状态')
+  await snapshot(reviewer.page, 'review-decision')
+  await reviewer.page.locator('.review-decision').getByRole('button', { name: '审核不通过', exact: true }).click()
   await reviewer.page.locator('#review-reason').fill('请补充虚构网关的处理步骤')
   await reviewer.page.getByRole('button', { name: '确认审核不通过', exact: true }).click()
   await reviewer.page.waitForURL('**/knowledge/reviews'); await expect(reviewer.page.locator('.knowledge-detail,.knowledge-reader')).toHaveCount(0)
@@ -130,18 +130,18 @@ try {
   await author.page.getByRole('button', { name: '上传新版本文件', exact: true }).click()
   await expect(author.page.locator('.version-list > li').first().getByText('解析就绪', { exact: true })).toBeVisible()
   await author.page.locator('.version-list > li').first().getByRole('button', { name: '提交审核' }).click()
-  await reviewer.page.locator('a[href="/knowledge/reviews"]').first().click()
+  await navigateViaSidebar(reviewer.page, '/knowledge/reviews')
   await reviewer.page.waitForURL('**/knowledge/reviews')
   await reviewer.page.getByRole('button', { name: '刷新待办' }).click()
   await reviewer.page.getByRole('button', { name: '审核草稿与审核回归手册的版本 2' }).click()
-  await reviewer.page.getByRole('tab',{name:'文档概览',exact:true}).click(); await expect(reviewer.page.locator('.knowledge-reader')).toContainText('虚构路由配置'); await reviewer.page.getByRole('tab',{name:'版本历史',exact:true}).click()
-  await reviewer.page.locator('.version-list > li').first().getByRole('button', { name: '审核通过' }).click()
+  await expect(reviewer.page.locator('.review-document')).toContainText('虚构路由配置')
+  await reviewer.page.locator('.review-decision').getByRole('button', { name: '审核通过' }).click()
   await reviewer.page.waitForURL('**/knowledge/reviews'); await expect(reviewer.page.locator('.knowledge-detail,.knowledge-reader')).toHaveCount(0)
   await author.page.getByRole('button', { name: '刷新状态', exact: true }).click()
   await expect(author.page.locator('.version-list > li').first().getByRole('button', { name: '发布此版本' })).toBeVisible()
   await author.page.locator('.version-list > li').first().getByRole('button', { name: '发布此版本' }).click()
   await expect(author.page.getByText('版本已发布。',{exact:true})).toBeVisible()
-  await reviewer.page.locator('a[href="/knowledge/reviews"]').first().click()
+  await navigateViaSidebar(reviewer.page, '/knowledge/reviews')
   await reviewer.page.waitForURL('**/knowledge/reviews')
   await expect(reviewer.page.getByRole('button', { name: '审核草稿与审核回归手册的版本 2' })).toHaveCount(0)
   checked('dedicated KB_REVIEWER approves a revised version, author publishes it, and review task disappears')

@@ -13,6 +13,8 @@ public class WorkspaceController {
     public WorkspaceController(WorkspaceService service){this.service=service;}
     @GetMapping("/workspace/portal")
     public Portal portal(@RequestParam(required=false) String q){return service.portal(CurrentUser.get(),q);}
+    @GetMapping("/workspace/todos")
+    public java.util.List<TodoHit> todos(){return service.todos(CurrentUser.get());}
     @GetMapping("/workspace/analytics")
     public Analytics analytics(@RequestParam(required=false) String from,@RequestParam(required=false) String to){return service.analytics(CurrentUser.get(),from,to);}
     @PostMapping("/knowledge/documents/{id}/views") @ResponseStatus(HttpStatus.NO_CONTENT)

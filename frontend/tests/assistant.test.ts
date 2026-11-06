@@ -48,9 +48,24 @@ async function render(component?: Component) {
 }
 async function click(view: VueWrapper, label: string) { const button = view.findAll('button').find(button => button.text() === label); expect(button, label).toBeDefined(); await button!.trigger('click'); await flushPromises() }
 async function ask(view: VueWrapper, question = '网络故障如何处理？') { await view.get('#assistant-question').setValue(question); await view.get('#assistant-form').trigger('submit'); await flushPromises() }
-async function generate(view: VueWrapper, kind = 'REPLY') { await view.get('#ai-kind').setValue(kind); await click(view, '生成建议') }
+async function generate(view: VueWrapper, kind = 'REPLY') { await view.get(`[data-ai-kind="${kind}"]`).trigger('click'); await click(view, '生成建议') }
 
 describe('knowledge assistant', () => {
+  it('places a suggested question in the draft without sending or replacing existing text', async () => {
+    let calls = 0
+    stub(url => { if (url.endsWith('/ai/answers')) calls++; return undefined })
+    const { view } = await render()
+    const suggestion = view.get('[data-suggested-question]')
+    const text = suggestion.text()
+    await suggestion.trigger('click')
+    expect((view.get('#assistant-question').element as HTMLTextAreaElement).value).toBe(text)
+    expect(calls).toBe(0)
+    await view.get('#assistant-question').setValue('我的问题')
+    await suggestion.trigger('click')
+    await suggestion.trigger('click')
+    expect((view.get('#assistant-question').element as HTMLTextAreaElement).value).toBe(`我的问题\n${text}`)
+    expect(calls).toBe(0)
+  })
   it('cancels the actual server job before showing user-stopped and stops polling', async () => {
     vi.useFakeTimers(); let reads = 0; let cancellations = 0; let release!: (value: Response) => void
     stub(url => {
@@ -123,10 +138,25 @@ describe('knowledge assistant', () => {
     let release!: (value: Response) => void; stub(url => url.endsWith('/jobs/j1') ? new Promise<Response>(resolve => { release = resolve }) : undefined)
     const { view, session } = await render(); await ask(view); session.clear(); await flushPromises(); release(completed()); await flushPromises(); expect(view.text()).not.toContain(result.answer); expect(view.get('#assistant-question').element).toHaveProperty('value', '')
   })
-  it('cancels stale jobs when the question changes and stops polls after unmount', async () => {
-    vi.useFakeTimers(); let reads = 0; stub(url => { if (url.endsWith('/jobs/j1')) { reads++; return json({ id: 'j1', status: 'RUNNING', errorCode: null, attemptCount: 1, result: null }) } })
-    const { view } = await render(); await ask(view); await view.get('#assistant-question').setValue('改问其他问题'); await vi.advanceTimersByTimeAsync(20000); expect(reads).toBe(1)
-    await view.get('#assistant-form').trigger('submit'); await flushPromises(); view.unmount(); wrapper = undefined; const count = reads; await vi.advanceTimersByTimeAsync(20000); expect(reads).toBe(count)
+  it('keeps the submitted question and polls while a new draft is edited, then clears on logout', async () => {
+    vi.useFakeTimers(); let reads = 0
+    stub(url => { if (url.endsWith('/jobs/j1')) { reads++; return json({ id: 'j1', status: 'RUNNING', errorCode: null, attemptCount: 1, result: null }) } })
+    const { view, session } = await render(); await ask(view, '原来的问题')
+    await view.get('#assistant-question').setValue('新的草稿')
+    expect(view.get('.assistant-user-message').text()).toContain('原来的问题')
+    expect(view.get('.assistant-user-message').text()).not.toContain('新的草稿')
+    await vi.advanceTimersByTimeAsync(1000); expect(reads).toBeGreaterThan(1)
+    session.clear(); await flushPromises(); expect(view.find('.assistant-user-message').exists()).toBe(false)
+    const count = reads; await vi.advanceTimersByTimeAsync(20000); expect(reads).toBe(count)
+  })
+  it('retains the answer while editing a new draft and replaces it only on submit', async () => {
+    stub(); const { view } = await render(); await ask(view, '原来的问题')
+    expect(view.text()).toContain(result.answer)
+    await view.get('#assistant-question').setValue('新的草稿')
+    expect(view.get('.assistant-user-message').text()).toContain('原来的问题')
+    expect(view.text()).toContain(result.answer)
+    await view.get('#assistant-form').trigger('submit'); await flushPromises()
+    expect(view.get('.assistant-user-message').text()).toContain('新的草稿')
   })
   it('shows external-provider disclosure before submitting and records feedback without storing answer bodies', async () => {
     let feedback: unknown; stub((url, init) => { if (url.endsWith('/ai/config')) return json({ mode: 'openai', profile: 'provider:configured', externalProvider: true }); if (url.endsWith('/feedback')) { feedback = JSON.parse(String(init.body)); return new Response(null, { status: 204 }) } })
@@ -147,6 +177,17 @@ describe('knowledge assistant', () => {
 })
 
 describe('ticket AI suggestions', () => {
+  it('switches the suggestion type without sending a request until the user generates', async () => {
+    let calls = 0
+    stub(url => { if (url.endsWith('/ai-drafts')) calls++; return undefined })
+    const { view } = await render(TicketDetailView)
+    expect(view.text()).toContain('准备好后生成建议')
+    expect(view.get('[data-ai-kind="REPLY"]').attributes('aria-pressed')).toBe('true')
+    await view.get('[data-ai-kind="SUMMARY"]').trigger('click')
+    expect(view.get('[data-ai-kind="SUMMARY"]').attributes('aria-pressed')).toBe('true')
+    expect(view.get('[data-ai-kind="REPLY"]').attributes('aria-pressed')).toBe('false')
+    expect(calls).toBe(0)
+  })
   it('keeps conversation central with independently collapsible properties and copilot', async () => {
     stub(); const { view } = await render(TicketDetailView)
     expect(view.find('.detail-main').exists()).toBe(true)

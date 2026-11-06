@@ -55,14 +55,14 @@ it('protects an unsent public reply but lets an expired session leave immediatel
 it.each(['catalog','users'])('asks before closing the dirty %s dialog and allows untouched close',async kind=>{
  vi.stubGlobal('fetch',(url:string)=>Promise.resolve(json(url.includes('/admin/services?')?{items:[],total:0,page:0,size:20}:url.includes('/users?')?{items:[],total:0,page:0,size:20}:url.endsWith('/roles')?['REQUESTER']:[])))
  await render(kind==='catalog'?CatalogView:UsersView,'/admin',kind==='catalog'?{kind:'services'}:{})
- await choose(kind==='catalog'?'＋ 新建服务':'＋ 创建用户')
+ await choose(kind==='catalog'?'新建服务':'创建用户')
  const input=document.querySelector<HTMLInputElement>(kind==='catalog'?'#catalog-name':'#user-name')!;input.value='未保存的名称';input.dispatchEvent(new Event('input',{bubbles:true}))
- await choose(kind==='catalog'?'取消':'关闭')
+ await choose('取消')
  expect(activeMessage()).toBeDefined()
  await choose('继续编辑');expect(input.value).toBe('未保存的名称')
- await choose(kind==='catalog'?'取消':'关闭');await choose('放弃修改并离开')
+ await choose('取消');await choose('放弃修改并离开')
  await vi.waitFor(()=>expect((input.closest('.el-overlay') as HTMLElement).style.display).toBe('none'))
- await choose(kind==='catalog'?'＋ 新建服务':'＋ 创建用户');await choose(kind==='catalog'?'取消':'关闭')
+ await choose(kind==='catalog'?'新建服务':'创建用户');await choose('取消')
  expect(activeMessage()).toBeUndefined()
 })
 it('restores filters when browser navigation changes the inbox query without remounting',async()=>{
@@ -103,18 +103,25 @@ it.each(['public','internal'])('retains %s text typed after a comment send begin
 it('confirms explicit logout before clearing a dirty draft or sending logout',async()=>{
  let logouts=0;vi.stubGlobal('fetch',(url:string)=>{if(url.endsWith('/auth/logout')){logouts++;return Promise.resolve(new Response(null,{status:204}))}return Promise.resolve(json([]))})
  const {view,session,router}=await render(NewTicketView,'/tickets/new',{},undefined,true)
- await view.get('#ticket-title').setValue('需要保留的草稿');await choose('退出');expect(logouts).toBe(0);expect(activeMessage()).toBeDefined()
+ async function chooseLogout(){
+  await view.get('button[aria-label="打开个人菜单"]').trigger('click');await flushPromises()
+  const findItem=()=>Array.from(document.querySelectorAll<HTMLElement>('.el-dropdown-menu__item')).find(x=>shown(x)&&x.textContent?.trim()==='退出登录')
+  await vi.waitFor(()=>expect(findItem()).toBeDefined());findItem()!.click();await flushPromises()
+ }
+ await view.get('#ticket-title').setValue('需要保留的草稿');await chooseLogout();expect(logouts).toBe(0);expect(activeMessage()).toBeDefined()
  await choose('继续编辑');expect(session.authenticated).toBe(true);expect(view.get('#ticket-title').element).toHaveProperty('value','需要保留的草稿')
- await choose('退出');await choose('放弃修改并离开');expect(logouts).toBe(1);expect(session.authenticated).toBe(false);expect(router.currentRoute.value.path).toBe('/login')
+ await chooseLogout();await choose('放弃修改并离开');expect(logouts).toBe(1);expect(session.authenticated).toBe(false);expect(router.currentRoute.value.path).toBe('/login')
 })
-it('offers compact detail drawers and preserves copilot choices across closing',async()=>{
- vi.stubGlobal('matchMedia',()=>({matches:true,addEventListener:vi.fn(),removeEventListener:vi.fn()}))
- vi.stubGlobal('fetch',(url:string)=>Promise.resolve(json(url.endsWith('/ai/config')?{mode:'mock',profile:'mock',externalProvider:false}:url.endsWith('/knowledge/spaces')?[]:detail)))
+it('keeps the desktop conversation separate from on-demand processing and preserves copilot choices across closing',async()=>{
+ vi.stubGlobal('matchMedia',()=>({matches:false,addEventListener:vi.fn(),removeEventListener:vi.fn()}))
+ vi.stubGlobal('fetch',(url:string)=>Promise.resolve(json(url.endsWith('/ai/config')?{mode:'mock',profile:'mock',externalProvider:false}:url.endsWith('/knowledge/spaces')?[]:{...detail,allowedTransitions:['RESOLVED']})))
  await render(TicketDetailView,'/tickets/:id')
- await choose('工单信息与操作');expect(document.querySelector('.ticket-properties-drawer .meta-list')?.textContent).toContain('受理队列')
+ expect(document.querySelector('.detail-properties-column .meta-list')?.textContent).toContain('受理队列')
+ expect(document.querySelector('.ticket-properties-drawer #target-status')).toBeNull()
+ await choose('更新状态');expect(document.querySelector('.ticket-properties-drawer #target-status')).not.toBeNull()
  ;(document.querySelector('.ticket-properties-drawer .el-drawer__close-btn') as HTMLButtonElement).click();await flushPromises()
- await choose('AI Copilot');const input=document.querySelector<HTMLSelectElement>('.ticket-copilot-drawer #ai-kind')!;expect(input).not.toBeNull();input.value='SUMMARY';input.dispatchEvent(new Event('change',{bubbles:true}));await flushPromises()
- ;(document.querySelector('.ticket-copilot-drawer .el-drawer__close-btn') as HTMLButtonElement).click();await flushPromises();await choose('AI Copilot');expect(document.querySelector<HTMLSelectElement>('.ticket-copilot-drawer #ai-kind')!.value).toBe('SUMMARY')
+ await choose('AI Copilot');const input=document.querySelector<HTMLButtonElement>('.ticket-copilot-drawer [data-ai-kind="SUMMARY"]')!;expect(input).not.toBeNull();input.click();await flushPromises()
+ ;(document.querySelector('.ticket-copilot-drawer .el-drawer__close-btn') as HTMLButtonElement).click();await flushPromises();await choose('AI Copilot');expect(document.querySelector<HTMLButtonElement>('.ticket-copilot-drawer [data-ai-kind="SUMMARY"]')!.getAttribute('aria-pressed')).toBe('true')
 })
 it.each([201,400])('locks a new ticket during a deferred write and retains failed input (%s)',async status=>{
  let release!:(value:Response)=>void
@@ -139,7 +146,7 @@ it.each([['catalog',201],['catalog',400],['users',201],['users',400]] as const)(
  let release!:(value:Response)=>void
  vi.stubGlobal('fetch',(url:string,init:RequestInit)=>init?.method==='POST'?new Promise<Response>(resolve=>{release=resolve}):Promise.resolve(json(url.includes('/admin/services?')?{items:[],total:0,page:0,size:20}:url.includes('/users?')?{items:[],total:0,page:0,size:20}:url.endsWith('/roles')?['REQUESTER','AGENT']:[])))
  const {view}=await render(kind==='catalog'?CatalogView:UsersView,'/admin',kind==='catalog'?{kind:'services'}:{})
- await choose(kind==='catalog'?'＋ 新建服务':'＋ 创建用户')
+ await choose(kind==='catalog'?'新建服务':'创建用户')
  const ids=kind==='catalog'?['catalog-code','catalog-name']:['new-username','user-name','initial-password']
  for(const id of ids){const input=view.get(`#${id}`);await input.setValue(id==='initial-password'?'Local-fixture-123':id==='catalog-code'?'SUPPORT':'fixture')}
  if(kind==='users')await view.get('fieldset input').setValue(true)

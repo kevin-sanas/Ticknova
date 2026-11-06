@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import AppIcon from './AppIcon.vue'
 import type { KnowledgeAction } from '../types'
 const props = defineProps<{ actions?: KnowledgeAction[]; pending?: boolean; secondary?: boolean }>()
 const emit = defineEmits<{ action: [action: KnowledgeAction] }>()
@@ -11,7 +12,7 @@ const hasArchive = computed(() => visible.value.includes('ARCHIVE'))
 const primary = computed(() => props.secondary ? undefined : direct.value.find(action => !['REJECT', 'DISABLE'].includes(action)))
 function menuAction(action: KnowledgeAction) { emit('action', action) }
 </script>
-<template><div v-if="visible.length" class="document-actions" aria-label="文档操作"><el-button v-for="action in direct" :key="action" :type="['DISABLE', 'REJECT'].includes(action) ? 'danger' : action === primary ? 'primary' : 'default'" :plain="action !== primary" :loading="pending" @click="emit('action', action)">{{ labels[action] }}</el-button><el-dropdown v-if="hasArchive" trigger="click" placement="bottom-end" :disabled="pending" popper-class="document-action-menu" @command="menuAction"><el-button class="document-actions-more" aria-label="更多文档操作" :disabled="pending">更多 <span aria-hidden="true">⌄</span></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="ARCHIVE" class="danger-menu-item">{{ labels.ARCHIVE }}</el-dropdown-item></el-dropdown-menu></template></el-dropdown></div></template>
+<template><div v-if="visible.length" class="document-actions" aria-label="文档操作"><el-button v-for="action in direct" :key="action" :type="['DISABLE', 'REJECT'].includes(action) ? 'danger' : action === primary ? 'primary' : 'default'" :plain="action !== primary" :loading="pending" @click="emit('action', action)">{{ labels[action] }}</el-button><el-dropdown v-if="hasArchive" trigger="click" placement="bottom-end" :disabled="pending" popper-class="document-action-menu" @command="menuAction"><el-button class="document-actions-more" aria-label="更多文档操作" :disabled="pending">更多 <AppIcon name="down" :size="15" /></el-button><template #dropdown><el-dropdown-menu><el-dropdown-item command="ARCHIVE" class="danger-menu-item">{{ labels.ARCHIVE }}</el-dropdown-item></el-dropdown-menu></template></el-dropdown></div></template>
 <style scoped>
 .document-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); }
 .document-actions :deep(.el-button + .el-button) { margin-left: 0; }

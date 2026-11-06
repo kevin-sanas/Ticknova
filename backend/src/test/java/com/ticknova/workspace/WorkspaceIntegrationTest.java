@@ -79,6 +79,23 @@ class WorkspaceIntegrationTest {
         assertThat(all.body.path("items").get(0).path("id").asText()).isEqualTo(ticket.toString());
         assertThat(call("GET","/tickets?unassigned=true",otherToken,null).body.path("items").isEmpty()).isTrue();
     }
+    @Test void personalTodosRespectStatusAssignmentAndObjectAuthorization() throws Exception {
+        jdbc.sql("UPDATE ticket SET status='WAITING_CUSTOMER' WHERE id=:id").param("id",ticket).update();
+        jdbc.sql("UPDATE ticket SET status='IN_PROGRESS' WHERE id=:id").param("id",otherTicket).update();
+        UUID completed=ticket(other,agent);
+        jdbc.sql("UPDATE ticket SET status='RESOLVED',resolution_note='done' WHERE id=:id").param("id",completed).update();
+        Reply readerTasks=call("GET","/workspace/todos",readerToken,null);
+        assertThat(readerTasks.status).isEqualTo(200);
+        assertThat(readerTasks.body.toString()).contains(ticket.toString(),"WAITING_CUSTOMER").doesNotContain(otherTicket.toString(),completed.toString());
+        Reply agentTasks=call("GET","/workspace/todos",agentToken,null);
+        assertThat(agentTasks.status).isEqualTo(200);
+        assertThat(agentTasks.body.toString()).contains(otherTicket.toString(),"IN_PROGRESS").doesNotContain(ticket.toString(),completed.toString());
+        assertThat(call("GET","/workspace/todos",adminToken,null).body.isEmpty()).isTrue();
+        jdbc.sql("DELETE FROM queue_member WHERE queue_id=:q AND user_id=:u").param("q",queue).param("u",agent).update();
+        assertThat(call("GET","/workspace/todos",agentToken,null).body.isEmpty()).isTrue();
+        jdbc.sql("UPDATE app_user SET active=false WHERE id=:id").param("id",reader).update();
+        assertThat(call("GET","/workspace/todos",readerToken,null).status).isEqualTo(401);
+    }
     @Test void unassignedFilterCannotExpandQueueOrRequesterScope() throws Exception {
         Reply scoped=call("GET","/tickets?unassigned=true",agentToken,null);
         assertThat(scoped.status).isEqualTo(200);assertThat(scoped.body.path("items").size()).isEqualTo(1);

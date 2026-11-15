@@ -1,14 +1,14 @@
 # 10｜RAG 设计与评测
 
-## 2026-10-24：来源具体细节约束与六题复测
+## 来源具体细节约束与六题复测（2026-10-24）
 
-本轮在提示之外增加 `AiEvidenceGuard` 服务端兜底：ANSWER/REPLY 中出现的地址、量化值和显式代码须能在**实际引用的**片段中找到对应依据；时长允许等价单位，Markdown 链接/行内格式不影响合法网址。REPLY 还可使用实际送入模型的公开工单标题、描述及公开回复，内部备注不能支撑结果。缺少依据时返回既有 `INSUFFICIENT_EVIDENCE`，不返回未经校验的正文或引用，不静默删改答案。SUMMARY/CLASSIFICATION 继续原公开工单上下文契约，10,000/16,000 字符预算不变。
+`AiEvidenceGuard` 在提示之外提供服务端检查：ANSWER/REPLY 中出现的地址、量化值和显式代码须能在**实际引用的**片段中找到对应依据；时长允许等价单位，Markdown 链接/行内格式不影响合法网址。REPLY 还可使用实际送入模型的公开工单标题、描述及公开回复，内部备注不能支撑结果。缺少依据时返回 `INSUFFICIENT_EVIDENCE`，不返回未经校验的正文或引用，不静默删改答案。SUMMARY/CLASSIFICATION 继续使用公开工单上下文契约，10,000/16,000 字符预算不变。
 
 这是对可客观匹配细节的保守检查，不能证明自然语言语义蕴含，也可能拒绝本可合理回答的问题。代码/数字相同不意味着整句事实正确，人工 groundedness 门仍需完成。26项验证器测试及公开/内部工单上下文集成回归验证边界，不能代替真实答案质量。
 
-用户单独授权六题、仅混合检索、最多6次聊天与20条embedding输入。实际命令为 `scripts/Run-RagEvaluation.ps1 -Real -AllowPaid -MaxChatCalls 6 -MaxEmbeddingInputs 20 -CaseIds 'positive-01,positive-04,positive-06,positive-07,positive-32,refusal-unrelated-1' -Strategy HYBRID`；报告 `evidence/rag-benchmark-real-20261024T113203422Z.json` 记录 **3次聊天、19条embedding输入、0 provider错误**，没有继续消耗未授权预算。
+六题复测仅使用混合检索，调用上限为 6 次聊天和 20 条 embedding 输入。实际命令为 `scripts/Run-RagEvaluation.ps1 -Real -AllowPaid -MaxChatCalls 6 -MaxEmbeddingInputs 20 -CaseIds 'positive-01,positive-04,positive-06,positive-07,positive-32,refusal-unrelated-1' -Strategy HYBRID`；[原始报告](evidence/rag-benchmark-real-20261024T113203422Z.json)记录 **3 次聊天、19 条 embedding 输入、0 次 provider 错误**。
 
-5道正例中VPN与密码重置2题获得带引用回答；网络题有候选证据仍被保守拒答，旧误例06/32仍拒答，1道无关负例正确拒答。该子集chunk Recall@5/Hit@5均为3/5，返回的2条引用候选标签精确率为1；**子集不能与前一轮40题总分比较**。VPN答案不再给出此前无依据的5分钟/示例网址，但仍存在一般性扩写；密码回答的MFA举例也未完成逐句人工判断。正式人工groundedness、完整质量门及账单核对仍为 **NOT RUN**，不宣称真实质量整改全部通过。演示库继续mock，既有40题和标签不改。
+5 道正例中 VPN 与密码重置 2 题获得带引用回答；网络题有候选证据仍被保守拒答，误例 06/32 仍拒答，1 道无关负例正确拒答。该子集 chunk Recall@5/Hit@5 均为 3/5，返回的 2 条引用候选标签精确率为 1；**子集不能与前一轮 40 题总分比较**。VPN 答案不再给出此前无依据的 5 分钟阈值或示例网址，但仍存在一般性扩写；密码回答的 MFA 举例也未完成逐句人工判断。正式人工 groundedness、完整质量门及账单核对仍为 **NOT RUN**，不宣称真实质量整改全部通过。
 
 该次真实采样发生在随后Markdown网址/摄氏度边界修复及解析依赖升级之前；这些后续改动已有确定性测试、完整后端和浏览器回归，**未另行付费复测**。保留采样时点与局限，不把旧真实结果当作最终镜像重新测得的质量数字，也不推断网络题当前必然仍拒答或已经恢复。
 
@@ -24,8 +24,6 @@
 
 真实模式需要本机忽略文件 `.env.eval`，且必须在用户确认调用量/费用后显式运行 `scripts/Run-RagEvaluation.ps1 -Real -AllowPaid`。仅填写密钥不会启用真实调用。每轮最多 120 次聊天、128 条 embedding 输入（默认预算），单条查询 embedding 在向量/混合比较间复用，SDK 内部不自动重试；失败不得回退 mock。百炼 `text-embedding-v4` 使用 1024 维、每请求最多 10 条，适配器分批后验证各批数量、索引和维度并恢复原顺序。
 
-用户已授权本轮 `qwen-plus` / `text-embedding-v4` 真实评测；首轮因 Docker Linux 引擎未启动而在模型请求前停止，用户启动引擎后继续。最终真实结果以带时间戳证据及第12篇为准，不能把“配置完整”当作“模型调用成功”。
-
 ### 首次真实运行结果与限制
 
 2026-10-24 使用百炼北京地域 `qwen-plus`、`text-embedding-v4`（1024维）完成真实运行，证据为 `evidence/rag-benchmark-real-20261024T105943615Z.json`。13 份版本（含1份未发布负例）实际解析/索引，三策略各40题；共90次聊天、51条embedding输入、0个provider失败。SDK计数不等于账单Token，实际扣费及免费额度未核账。
@@ -38,27 +36,27 @@
 
 `positive-06`（VPN工单敏感信息）和 `positive-32`（打印/软件故障跨文档信息）三策略均未获得可回答结果，应作为后续诊断用例保留，不能删除以提高分数。Hit@5 的 Wilson 95% 区间约79.85%–98.27%；混合候选引用比例的同类区间约80.39%–98.32%；0/8负例错误率区间约0%–32.44%。这些区间只描述小样本二项比例，样例并非随机生产抽样，不能外推稳定生产表现。
 
-抽查发现 `positive-04` 的混合答案包含原始资料未给出的“5分钟”阈值和示例网址；部分网络回答也补充了命令或公网网站例子。引用ID和当前权限校验通过，并不证明每个事实都受到来源支持。完整人工groundedness、标签复核、工单分类Macro-F1仍为 **NOT RUN**；正式质量门尚未通过，演示库继续mock。本轮不为追求分数修改问题标签、证据门槛或重跑付费评测。
+抽查发现 `positive-04` 的混合答案包含原始资料未给出的“5分钟”阈值和示例网址；部分网络回答也补充了命令或公网网站例子。引用 ID 和当前权限校验通过，并不证明每个事实都受到来源支持。完整人工 groundedness、标签复核、工单分类 Macro-F1 仍为 **NOT RUN**；正式质量门尚未通过，演示默认使用 mock。
 
 报告中的检索P95为诊断值：VECTOR首次查询包含真实embedding，HYBRID复用缓存，且运行期间执行了其他本地回归。**不能将这些值用作三策略延迟优劣或产品P95承诺**；基础压测需独立环境与一致缓存协议。
 
-独立评审另发现小批次可能累计超过120秒索引租约。已将每次领取量限制为一个配置的provider批次，保持原租约和fencing，不续租、不弱化失效检查；32个片段、每请求模拟5秒的确定性回归先失败（首轮0个持久化）后通过（每轮1个、最终READY）。本次真实语料每版本仅1个片段，不涉及该累计路径；保留首次原始证据，修复以正式集成回归验证，未重复付费调用。
+为避免多个 provider 批次累计超过 120 秒索引租约，每次领取量限制为一个配置的批次，保留原租约及 fencing 检查。32 个片段、每请求模拟 5 秒的确定性回归覆盖该边界；真实评测语料每版本仅有 1 个片段，不涉及该累计路径。该修复由集成回归验证，未重复付费调用。
 
 ## Ticknova V2 一致性补充（2026-10-21）
 
 候选生成前与引用复查均增加review_state=APPROVED，与知识发布、门户和正文读取保持一致。待审核的新稿不会成为来源；旧已发布内容由V5保留审核历史例外。文章JSON快照供阅读，私有Markdown真实字节经过Docling产生RAG片段；行内代码按代码语义序列化，保留小于号、反斜杠、下划线和反引号等原始字面量。
 
-UI知识引用链接携带documentId/versionId/chunkId，在接收端重新授权并定位精确片段。引用失效明确要求重新生成；采纳仍需人工确认，填入草稿后还需人工发送。中止为服务器CANCELLED终态，不只停止本地轮询。当前仍为mock；32条候选标签回归见 `evidence/ui-v2-2026-10-21-rag-evaluation.json`，不代表真实模型质量。
+UI知识引用链接携带documentId/versionId/chunkId，在接收端重新授权并定位精确片段。引用失效明确要求重新生成；采纳仍需人工确认，填入草稿后还需人工发送。中止为服务器CANCELLED终态，不只停止本地轮询。32条候选标签回归使用 mock，见 `evidence/ui-v2-2026-10-21-rag-evaluation.json`，不代表真实模型质量。
 
-## G4 本轮实施设计（2026-10-20）
+## 检索与生成实现
 
-沿用已确认的G4目标：权限过滤的知识问答、引用/拒答、工单公开信息的摘要/分类/回复草稿、人工反馈。默认`AI_PROVIDER=mock`，明确标为本地确定性演示；真实provider采用Spring AI 2.0.1的OpenAI兼容适配器，仅显式配置后启用，不自动使用任何宿主密钥。官方版本/兼容依据：[Spring AI 2.0](https://spring.io/blog/2026/06/12/spring-ai-2-0-0-GA-available-now/)、[ChatClient](https://docs.spring.io/spring-ai/reference/api/chatclient.html)。没有真实模型调用、质量实测或外部发布授权。
+系统提供权限过滤的知识问答、引用与拒答、基于公开工单信息的摘要/分类/回复草稿及人工反馈。默认 `AI_PROVIDER=mock`，用于本地确定性演示；真实 provider 采用 Spring AI 2.0.1 的 OpenAI 兼容适配器，仅显式配置后启用，不自动使用宿主密钥。官方版本/兼容依据：[Spring AI 2.0](https://spring.io/blog/2026/06/12/spring-ai-2-0-0-GA-available-now/)、[ChatClient](https://docs.spring.io/spring-ai/reference/api/chatclient.html)。历史真实模型评测及其限制见上文。
 
 G3 READY语义继续表示分块完成；V4新增独立embedding状态、模型指纹和租约。后台分批补建已有/新READY版本的1024维向量及中文二元词/拉丁词全文索引。切换provider/model时旧向量不参与新profile检索，重新建索引；HNSW继续延后。每批外部调用有截止，事务外执行，以租约token栅栏提交，失败有限重试，不影响旧发布版本及工单核心流程。
 
 检索SQL在候选生成前联结当前用户的can_read、有效空间、文档当前发布指针、READY及同profile索引；向量和全文各取8，RRF最多6。文本/查询共享中文二元词与拉丁词分词，短查询有上限。低相似度、无来源或模型输出非法引用均拒答，不回显未经验证的模型正文。模型只得到当前授权片段和公开工单正文/公开回复，不包含内部备注。用户/片段为JSON数据，system指令明确不执行资料指令，模型无工具权限。
 
-首轮固定评测发现仅靠少量词重合及0.10余弦相似度，会把“网关502先检查什么”误接到“打印机先检查电源”。本轮收紧为：词法路径至少覆盖30%查询词，查询多词时至少两个命中，单词查询一个命中；该路径独立于向量相似度，保留长片段尾部的精确内容。真实provider可另走余弦相似度≥0.75的语义路径，mock哈希不宣称语义能力。阈值是待真实模型校准的保守实现选择，不能当作已通过语义质量评测。
+固定评测发现仅靠少量词重合及0.10余弦相似度，会把“网关502先检查什么”误接到“打印机先检查电源”。当前词法路径至少覆盖30%查询词，查询多词时至少两个命中，单词查询一个命中；该路径独立于向量相似度，保留长片段尾部的精确内容。真实provider可另走余弦相似度≥0.75的语义路径，mock哈希不宣称语义能力。阈值是待真实模型校准的保守实现选择，不能当作已通过语义质量评测。
 
 问答/工单建议使用同库ai_job/outbox独立事件类型，返回202后轮询。任务仅创建者可读，且每次读取/反馈重新检查账户、原空间/工单和全部引用的当前发布/ACL；任一来源失效则整个结果不展示并审计。提交模型前、完成持久化前再次鉴权，重复请求重放也重新鉴权。反馈仅记录ACCEPTED/REJECTED，不发送消息、不修改工单。UI采纳回复/摘要只填入公开回复编辑框；分类仅预填优先级/标签，服务项只展示建议。覆盖非空草稿先确认，最终仍需点击原业务保存/发送按钮。
 
@@ -68,7 +66,7 @@ G3 READY语义继续表示分块完成；V4新增独立embedding状态、模型�
 
 公开契约：`GET /ai/config`返回mode/profile/真实provider提示；`POST /ai/answers {question,spaceIds}`；`POST /tickets/{id}/ai-drafts {kind,spaceIds}`，kind为REPLY/SUMMARY/CLASSIFICATION；两者要求Idempotency-Key。`GET /jobs/{id}`兼容G3并返回AI任务结果；`POST /ai/suggestions/{id}/feedback {feedback,reason?}`。AI结果包含suggestionId/kind/mode/answer/summary/serviceId/priority/tags/citations/requiresHumanReview；引用包含documentId/versionId/version/title/page/chunkId/snippet。空间ID空数组表示当前所有可读空间，最多10个显式空间；question最多4000字符。任务错误含SOURCE_UNAVAILABLE/AI_PROVIDER_UNAVAILABLE/AI_OUTPUT_INVALID等稳定码；无证据为完成的INSUFFICIENT_EVIDENCE结果。
 
-固定30+条候选标注的演示评测覆盖中文问题、无证据、越权、撤回、提示注入和伪造引用。记录实际mock召回/引用/拒答结果；真实模型、人工groundedness评分、分类Macro-F1和性能P95保持NOT RUN。评测材料使用虚构资料，需用户复核标签后才能作为正式人工质量结论。
+固定 30 余条候选标注的演示评测覆盖中文问题、无证据、越权、撤回、提示注入和伪造引用。mock 结果与上文独立真实模型实验分开记录；人工 groundedness 评分、分类 Macro-F1 和真实模型性能 P95 仍为 NOT RUN。评测材料使用虚构资料，标签需人工复核后才能作为正式人工质量结论。
 
 ## G3 实现与 G4 边界
 
@@ -76,7 +74,7 @@ G3 已实现私有原件、Docling 提取、版本化分块和 ACL 发布。分�
 
 PDF 采用官方原生文字路径，不启用 OCR、版面模型、表格结构或标题推断；扫描件/空白文件返回 `NO_EXTRACTABLE_TEXT`。DOCX/Markdown 使用官方转换器，TXT 以官方 `DoclingDocument` 的纯文本项保留字面字符及换行。结构化输出最多 8 MiB、提取文本最多 200 万字符，解析进程 90 秒硬截止。
 
-`READY` 仅代表提取与分块持久化成功；`embedding` 为 NULL。发布只使已授权成员能预览当前版本，不代表可被检索。G4 必须补充向量模型/版本、索引准备状态及权限过滤后才能启用下文问答接口。下文召回、生成和模型指标全部 **NOT RUN**。
+`READY` 仅代表提取与分块持久化成功，不保证 embedding 已生成。发布只使已授权成员能预览当前版本，不代表该版本可被检索；知识检索还需要匹配当前模型配置的索引就绪和权限过滤。
 
 ## 业务功能
 
@@ -94,7 +92,7 @@ Java 接受并保存文件，记录 SHA-256 与版本；Docling 服务只处理�
 
 - 片段长度拟定 500–700 tokens，重叠约 80 tokens；按标题和段落边界切分，保留页码与标题路径。实现中记录 tokenizer/策略版本。
 - `embedding vector(1024)`；提供方需承诺 1024 维并做启动自检。模型更换需版本化重建，不能静默混存不同维度。
-- 首版候选：按权限/已发布版本过滤后取向量 top 8；并行做 PostgreSQL 全文检索 top 8；通过 RRF 合并最多 6 个上下文片段。样本小可精确计算，达到约 5,000 片段后再评估 HNSW。
+- 候选按权限/已发布版本过滤后取向量 top 8，并行做 PostgreSQL 全文检索 top 8，通过 RRF 合并最多 6 个上下文片段。是否启用 HNSW 根据实际数据规模与检索基准评估。
 - 回答生成只允许引用检索得到的 chunk ID；响应校验 IDs 子集；UI 显示文档名、版本、页和片段预览。
 - 若没有有效引用、相似度不足或模型结构校验失败：返回 `INSUFFICIENT_EVIDENCE`，不伪造引用。
 

@@ -1,74 +1,108 @@
-# Ticknova · AI 工单与知识协同平台
+# Ticknova
 
-[![verify](https://github.com/kevin-sanas/Ticknova/actions/workflows/verify.yaml/badge.svg)](https://github.com/kevin-sanas/Ticknova/actions/workflows/verify.yaml)
+**Ticknova 是面向单组织、本地部署的 AI 工单与知识协同平台。** 它将服务请求、经过独立审核的知识和带来源的 AI 建议连接起来，帮助服务团队处理问题、沉淀经验。
 
-把服务请求、经过审核的知识和有引用的 AI 建议连接起来，面向单组织、本地部署的企业服务台。
+[![CI](https://github.com/kevin-sanas/Ticknova/actions/workflows/verify.yaml/badge.svg)](https://github.com/kevin-sanas/Ticknova/actions/workflows/verify.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-- **可追溯的 RAG**：文件经 Docling 解析、版本化分块与 1024 维索引，按当前权限过滤后进行全文/向量混合检索，回答关联真实文档版本和片段。
-- **独立知识审核**：知识编辑者撰写和提交不可变版本，专职审核者审核，编辑者在批准后发布；新版本未发布前保留旧内容。
-- **完整工单流程**：队列与对象权限、领取分派、公开回复和内部备注隔离、状态历史、乐观锁与幂等请求。
-- **人工掌握执行权**：AI 提供回复、摘要和分类建议；采纳填入草稿后，仍由用户确认发送或保存。
+## 功能
 
-```mermaid
+- **服务工单**：创建、检索、领取和分派工单；支持公开回复、内部备注、状态流转、乐观锁和幂等请求。
+- **知识协作**：按空间和分类管理知识；上传 Markdown、TXT、PDF、DOCX，经过解析、独立审核和发布后供有权限的成员阅读。
+- **知识助手**：结合全文与向量检索，在授权范围内查找知识片段并提供引用；证据不足时拒答。
+- **AI 辅助处理**：提供工单分类、摘要和回复建议；建议由人员确认，回复仍需手动发送。
+- **运营与管理**：提供运营分析、用户角色、队列、服务目录和审计记录。
+
+## 架构
+
+~~~mermaid
 flowchart LR
-    U[用户] --> W[Vue 3 工作台]
+    U[浏览器] --> W[Vue 3 + TypeScript]
     W --> N[Nginx 同源代理]
-    N --> J[Java 21 / Spring Boot\n工单 · 知识 · 权限 · AI]
-    J --> P[(PostgreSQL 17 + pgvector\n业务数据 · Outbox · 知识索引)]
-    J --> F[(私有文件卷)]
-    J --> D[FastAPI / Docling\n受限文档解析]
-    J -. 授权资料与公开工单 .-> M[本地 mock / OpenAI 兼容模型]
-```
+    N --> A[Spring Boot API]
+    A --> DB[(PostgreSQL + pgvector)]
+    A --> F[(私有文件卷)]
+    A --> D[FastAPI + Docling 文档解析]
+    A -. 授权内容 .-> M[本地 mock 或兼容模型服务]
+~~~
 
-Java 承担业务与 AI 编排，Python 仅封装内部解析服务。前端使用 Vue、TypeScript、Pinia、Vue Router、Element Plus 和 Tiptap；数据库迁移以 `db/migration` 为唯一来源。
+后端使用 Java 21、Spring Boot、Spring Security 和 Flyway；前端使用 Vue、Pinia、Vue Router、Element Plus 和 Tiptap。数据库迁移文件位于 `db/migration/`。
 
-## 启动
+## 快速开始
 
-准备 Docker Desktop 的 Linux 引擎 / Docker Engine 与 Compose，建议至少 8 GiB 可用内存。首次构建需要访问镜像及依赖源，宿主无需安装 Java、Node 或 Python。
+### 环境要求
 
-Windows PowerShell，在项目根目录执行：
+- Docker Desktop（Linux 容器模式）或 Docker Engine，以及 Docker Compose。
+- 建议至少 8 GiB 可用内存；首次构建需要访问镜像和依赖源。
+- 默认本地端口为 `5173`（Web）和 `8080`（API）。
 
-```powershell
+获取项目：
+
+~~~sh
+git clone https://github.com/kevin-sanas/Ticknova.git
+cd Ticknova
+~~~
+
+在仓库根目录执行：
+
+~~~powershell
+# Windows PowerShell
 .\scripts\Start-Local.ps1
-```
+~~~
 
-Linux / macOS：
-
-```sh
+~~~sh
+# Linux / macOS
 sh scripts/Start-Local.sh
-```
+~~~
 
-打开 [127.0.0.1:5173](http://127.0.0.1:5173)。启动脚本生成本机私有配置，空库初始化 4 个队列、8 项服务、12 篇原创且已独立审核的知识，以及 24 张工单；已有数据和密码保留。演示模式固定为 **mock**，可提问“网络无法连接怎么办”“VPN 连不上”“怎么重置密码”。
+启动后访问 <http://127.0.0.1:5173>。脚本使用独立的 `ticknova-demo` 环境，生成本地配置并在空库中初始化原创示例数据；非空数据库不会被覆盖。Windows 完整启动和 Linux 容器内相关检查已有验证，原生 Linux/macOS 从零启动仍需验证。
 
-空库账号：`admin`（ADMIN）、`agent`（AGENT）、`requester`（REQUESTER）、`editor`（KB_EDITOR）、`reviewer`（KB_REVIEWER）。当前密码仅保存在本机 `.env.demo` 的 `DEMO_<用户名大写>_PASSWORD`；首次初始化通过正常改密流程生成密码。ADMIN 创建空间和管理成员；编辑需空间读/编辑权限，审核需读/审核权限，两者互斥且作者不能自审。ADMIN 不隐含正文权限。既有非空库不按用户名自动转换角色，需管理员受控配置，保留密码与历史。
+演示账号为 `admin`、`agent`、`requester`、`editor` 和 `reviewer`。初始化后，各账号密码保存在本地忽略文件 `.env.demo` 的 `DEMO_<用户名大写>_PASSWORD` 项中；密码不会进入仓库。已有环境应继续使用其原有账号密码。
 
-知识列表位于 `/knowledge`，文档在独立详情页阅读、核对版本与解析结果；管理员使用 `/admin/knowledge-spaces`，审核者使用 `/knowledge/reviews`。门户展示真实发布与浏览信息；管理员分析支持最近 7/14/30 天和可展开的每日数据表。
+默认使用 **mock 模型**，适合离线演示和回归，不代表真实模型效果。外部模型配置、数据发送范围与成本须由部署者确认，参见 [部署与运维](docs/11-本地部署运维与CI-CD.md)。
 
-启动参数、原生平台验证范围、备份恢复及常见问题见[部署与运维](docs/11-本地部署运维与CI-CD.md)。
+## 角色与权限
 
-## 验证与当前边界
+| 角色 | 主要职责 |
+| --- | --- |
+| `REQUESTER` | 提交和跟进自己的工单，阅读获授权的已发布知识 |
+| `AGENT` | 在所属队列权限范围内读取和处理工单 |
+| `KB_EDITOR` | 在获授权空间创作、上传、提交审核和发布知识 |
+| `KB_REVIEWER` | 在获授权空间审核他人提交的版本 |
+| `ADMIN` | 管理用户、角色、空间成员及系统配置 |
 
-演示、浏览器回归、RAG 评测和性能测试使用不同的数据库与配置，测试不会向演示库写入合成数据。依赖、镜像和工具版本固定；GitHub 徽章展示远端工作流的实际状态，本地结果见[测试矩阵与阶段门](docs/12-测试矩阵与阶段门.md)。
+角色不隐式继承。知识正文还受空间权限约束；作者不能审核自己的版本，管理员也不会自动获得所有空间的内容访问权。详见 [角色与需求](docs/02-角色用例与需求.md) 和 [安全与权限](docs/09-安全隐私与权限.md)。
 
-真实百炼模型已有独立实跑，mock 用于离线演示和回归。评测使用开发者候选标签；人工 groundedness 与完整质量门仍未完成。服务端校验引用及部分可客观比对的具体细节，不将该校验宣称为全部事实正确性证明。模型、数据集、误例和测量条件见[RAG 设计与评测](docs/10-RAG设计与评测.md)。
+## 测试与验证
 
-本地基础负载实测（Docker Desktop Linux，16 vCPU / 8.22 GB，1,000张工单及12篇知识，预热后）：
+前端检查：
 
-| 操作 | 负载 / 样本 | P95 |
-|---|---|---|
-| 工单列表 | 50并发、5分钟、131,876次 | 38.97ms |
-| 工单创建 | 50并发、500次 | 39.60ms |
-| mock异步问答完成 | 2并发、30次 | 2.061s |
+~~~sh
+cd frontend
+npm ci --ignore-scripts
+npm run typecheck
+npm run lint
+npm test
+npm run build
+~~~
 
-本轮HTTP错误0、500张工单落库及30次引用回答均核对通过；异步耗时含排队、检索、mock生成和轮询，不代表真实模型或生产承诺。[原始负载报告](docs/evidence/performance-mock-20261024T121400557Z.json)保留镜像、完整指标与环境；此前失败轮次见测试记录。
+后端和浏览器集成测试使用独立测试数据库和容器；具体命令、依赖以及数据隔离要求见 [测试说明](docs/12-测试矩阵与阶段门.md)。持续集成执行后端、前端、解析服务、脚本检查及 Compose 镜像构建，实际结果以 [GitHub Actions](https://github.com/kevin-sanas/Ticknova/actions/workflows/verify.yaml) 为准。
 
-Docling/Pillow/pypdf 已完成兼容升级及解析依赖公告复测；容器 OS 与生产发布等边界仍见[许可证及依赖边界](docs/15-开源许可证与接口边界.md)。最终开源展示的截图/GIF将在视觉交付验收后补充。
+## 评测与边界
 
-## 阅读顺序
+仓库提供原创服务台语料、RAG 评测入口和原始结果。真实模型评测使用开发者候选标签，人工相关性及 groundedness 审核尚未完成；候选标签匹配不能等同于事实正确性。模型、数据集与测量限制见 [RAG 设计与评测](docs/10-RAG设计与评测.md)。
 
-1. [产品目标与范围](docs/01-项目章程与PRD.md)
-2. [架构与技术选型](docs/05-架构与技术选型.md)、[数据模型](docs/06-数据模型ERD与SQL.md)
-3. [RAG 设计与评测](docs/10-RAG设计与评测.md)
-4. [角色与业务用例](docs/02-角色用例与需求.md)、[API 契约](docs/07-API契约.md)
-5. [部署与运维](docs/11-本地部署运维与CI-CD.md)、[实际测试记录](docs/12-测试矩阵与阶段门.md)
-6. [开发流程说明](docs/开发流程说明.md)
+本地 mock 基础负载曾在 Docker Desktop Linux 环境下测得工单列表 P95 38.97 ms、工单创建 P95 39.60 ms；数据规模、并发和其他限制见 [原始报告](docs/evidence/performance-mock-20261024T121400557Z.json)。这些数值不是生产性能承诺，也不代表真实模型延迟。
+
+项目提供本地备份和隔离恢复工具，但生产发布、跨机容灾及真实模型质量仍需根据目标环境单独验收。依赖许可及公告记录见 [许可证与接口边界](docs/15-开源许可证与接口边界.md)。
+
+## 文档与贡献
+
+- [产品目标与范围](docs/01-项目章程与PRD.md)
+- [架构与技术选型](docs/05-架构与技术选型.md) · [数据模型](docs/06-数据模型ERD与SQL.md) · [API 契约](docs/07-API契约.md)
+- [部署与运维](docs/11-本地部署运维与CI-CD.md) · [测试说明](docs/12-测试矩阵与阶段门.md)
+- [开发与贡献指南](docs/开发流程说明.md) · [前端设计系统](docs/frontend/UI_DESIGN_SYSTEM.md)
+
+## 许可证
+
+Ticknova 项目代码以 [MIT License](LICENSE) 发布。第三方依赖、图标和其他资源仍按其各自的许可证使用；相关声明见各模块中的 `THIRD-PARTY-NOTICES.txt`。

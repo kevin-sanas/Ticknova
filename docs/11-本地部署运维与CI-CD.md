@@ -1,105 +1,94 @@
 # 11｜本地部署、运维与 CI/CD
 
-## 跨平台启动与独立压测（2026-10-24）
+Ticknova 的本地栈包含 PostgreSQL 17 + pgvector、Spring Boot API、Vue 静态站点和 Docling 解析服务。演示使用独立数据库与本地 mock；本页介绍本地运行与验证，不构成生产部署方案。
 
-在仓库根目录运行 Windows `./scripts/Start-Local.ps1`，Linux/macOS `sh scripts/Start-Local.sh`。两者均显式使用 `ticknova-demo`、`.env.demo`、`compose.yaml + compose.demo.yaml`，宿主只需Docker/Compose。Shell入口通过固定Node容器生成独立随机密钥，已有配置保留；种子仍经真实API、首次改密、独立审核和索引，仅空业务库执行。有完成标识时跳过，非空且未完成时失败并保留现场。密码不进入README或公共文档。
+## 准备与启动
 
-平台证据边界：Windows完整启动及Linux容器内Shell语法/配置生成测试分别记录第12篇；原生Linux/macOS从零启动尚未实跑。Linux执行者需能访问Docker，并对仓库目录有写权限；不要求宿主Java/Node/Python，也不配置WSL或全局Docker镜像。两个种子入口不支持同时运行；中断留下的锁须先确认没有活动初始化再人工处理。
+需要 Docker Engine 或 Docker Desktop 的 Linux 容器引擎及 Docker Compose，建议至少 8 GiB 可用内存。首次构建需要访问配置的镜像和依赖来源；宿主机不必安装 Java、Node 或 Python。
 
-知识审核入口：作者以 `KB_EDITOR+canRead+canEdit` 提交版本后，另一位具有该空间 `canRead+canReview` 的有效 `KB_REVIEWER` 从“审核待办”查看当前精确版本，通过或填写原因退回。编辑与审核 ACL 互斥且作者不能自审；作者根据结果修订/重提，通过后由授权编辑者发布。ADMIN 只管理空间与成员，不绕过内容 ACL。新版本未发布前仍提供旧已发布版本。
-
-基础压测运行 `./scripts/Run-Performance.ps1`，固定k6 1.0.0镜像，仅创建 `ticknova-perf` / `ticknova_perf` tmpfs，禁止演示站点，且强制mock。准备12篇原创已索引知识和1,000张工单，随后50并发列表5分钟、50并发创建500张、2并发异步问答30次。列表/创建P95门限500ms，创建和完成数量必须完整，HTTP及业务检查失败不能标为PASS。异步完成耗时包含排队、检索、mock生成和客户端轮询；**不是纯检索P95或真实provider性能**。
-
-运行结束写唯一时间戳 `docs/evidence/performance-mock-*.json`，记录数据量、CPU/内存、镜像、样本、失败和清理结果。只有专用测试栈清理成功后才删一次性配置/凭据；清理失败将报告失败并保留恢复所需文件。首轮失败记录保留，不通过减少负载或放宽阈值掩盖。使用 `-SkipParserBuild` 前必须通过五份源码/锁文件hash检查；测试不要与本机构建或其他压测同时运行。
-
-## 独立 RAG 评测（2026-10-24）
-
-演示入口继续固定 mock。评测使用 `.env.eval`、`deploy/compose.test.yaml + deploy/compose.eval.yaml`、独立 `ticknova-eval` 项目和 `ticknova_eval` tmpfs 数据库，不复用 `.env.demo`、演示账号或原件。需要 Docker Desktop 的 Linux 引擎已运行。
+在项目根目录执行：
 
 ```powershell
-# 默认只运行本地 mock；缺少 .env.eval 时生成项目内随机配置。
+# Windows PowerShell
+.\scripts\Start-Local.ps1
+```
+
+```sh
+# Linux / macOS
+sh scripts/Start-Local.sh
+```
+
+入口默认是 <http://127.0.0.1:5173>，API 默认绑定 `127.0.0.1:8080`。两个启动入口均使用 `ticknova-demo` 项目、`.env.demo` 和独立的数据库及上传卷，演示模型固定为 mock。脚本生成本地随机配置、构建服务，并通过现有 API 完成空库演示数据初始化；已完成的种子不会重复写入，非空且缺少完成标记时会停止，不覆盖既有业务数据。五个演示账号及初始数据范围见 [README](../README.md)。
+
+两种种子入口不支持并发运行。中断后如需处理遗留锁，应先确认没有初始化进程正在运行。Windows 完整启动与 Linux 容器内 Shell 检查有历史验证；原生 Linux/macOS 从零完整启动尚未实测。
+
+停止演示服务而保留数据：
+
+```sh
+docker compose --env-file .env.demo -p ticknova-demo -f deploy/compose.yaml -f deploy/compose.demo.yaml stop
+```
+
+数据库和上传文件保存在命名卷中；不要使用带 `--volumes` 的清理命令处理需要保留的数据。其他 Compose 项目若使用相同的 5173 或 8080 端口，需先停止占用端口的服务或配置不同端口。
+
+## 配置与数据边界
+
+`.env.example` 仅列出配置项；实际密钥保存在本机被 Git 忽略的环境文件中，不要提交、复制进文档或写入日志。演示账号当前密码由启动和种子脚本保存在 `.env.demo` 对应的 `DEMO_<用户名大写>_PASSWORD` 项中。
+
+| 配置项 | 用途 |
+|---|---|
+| `DB_PASSWORD`、`SESSION_TOKEN_PEPPER` | 数据库密码和会话令牌摘要 pepper，由本地配置生成 |
+| `DEMO_INITIAL_PASSWORD`、`DEMO_SEED_ENABLED` | 初始种子账号密码与初始化开关 |
+| `DOCLING_INTERNAL_TOKEN` | API 到解析服务的内部令牌 |
+| `WEB_PORT`、`API_PORT` | 本地 Web 和 API 端口，默认分别为 5173、8080 |
+| `MAX_UPLOAD_BYTES`、`MAX_PDF_PAGES` | 文件大小和 PDF 页数限制，不能超过 20 MiB、100 页的硬上限 |
+| `AI_PROVIDER`、`AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL` | 模型模式与真实模型服务配置 |
+| `EMBEDDING_MODEL`、`EMBEDDING_BATCH_SIZE` | 向量模型及批量大小；向量维度固定为 1024，批量大小范围 1–32 |
+| `AI_WORKER_ENABLED` | 控制 AI 索引和生成任务调度 |
+| `DOCLING_PYTHON_IMAGE` | 可选的解析镜像构建来源，使用时应核验固定 digest |
+
+PostgreSQL 和解析服务默认仅处于容器网络；原件保存在私有上传卷。API 暴露健康检查，解析服务有内部访问令牌。不要将示例配置直接当作生产安全配置。
+
+## 真实模型与 RAG 评测
+
+`mock` 模式用于本地演示和回归。显式配置 OpenAI 兼容的真实 provider 后，获授权的知识片段和工单公开内容可能发送给该服务；配置前应确认数据范围、服务条款和费用，并将密钥仅写入本地忽略文件。切换 embedding provider 或模型会生成新的索引 profile，不能把旧模型向量当成新模型结果。
+
+评测使用单独的 `.env.eval`、`ticknova-eval` 项目和临时数据库：
+
+```powershell
+# 默认使用 mock
 .\scripts\Run-RagEvaluation.ps1
-# 仅在确认模型、调用量和费用并取得授权后运行真实模式。
+
+# 确认模型、调用数量和费用后才启用真实模式
 .\scripts\Run-RagEvaluation.ps1 -Real -AllowPaid
 ```
 
-真实模式将 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`、`EMBEDDING_MODEL` 写在本机忽略的 `.env.eval`；不修改宿主用户环境或把密钥放进源码。北京百炼可配置 `https://dashscope.aliyuncs.com/compatible-mode/v1`、`qwen-plus`、`text-embedding-v4`，并设 `EMBEDDING_BATCH_SIZE=10`，维度固定 1024。地域与 Key 须一致，详见[百炼官方配置](https://help.aliyun.com/zh/model-studio/get-api-key/)和[embedding 接口约束](https://help.aliyun.com/zh/model-studio/embedding-interfaces-compatible-with-openai)。文件中继续保留 `EVAL_AI_PROVIDER=mock`，脚本仅在显式 `-Real -AllowPaid` 时为本次进程切换 provider；填好 Key 本身不会启动付费调用。
+真实模式需在本地 `.env.eval` 配置 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL` 和 `EMBEDDING_MODEL`。脚本默认最多 120 次聊天和 128 条 embedding 输入；这些是调用数量限制，不是费用硬上限，实际计费以 provider 为准。脚本会重置并清理固定的 `ticknova-eval` 测试项目及其临时资源；运行前先确认该项目没有需要保留的数据，且不要并发运行同一评测。
 
-脚本拒绝缺少 `-AllowPaid` 的真实运行，默认最多 120 次聊天、128 条 embedding 输入；SDK 不自动重试，结果保存独立时间戳 JSON，结束后清理临时容器、数据库和网络。预算单位是调用/输入条数，不是扣费硬上限；账单和免费额度以云控制台为准。语料、指标定义与当前人工复核边界见第10篇，实际结果及失败轮次见第12篇。并发运行同一固定评测项目不受支持；先等当前一轮结束。
+模型选择、指标定义、实测和局限见 [RAG 设计与评测](10-RAG设计与评测.md)。真实模型的质量不能由 mock 结果推断。
 
-## 阶段 A：干净演示与测试隔离（2026-10-24，当前入口）
+## 测试隔离与负载
 
-`scripts/Start-Local.ps1` 现在使用 `.env.demo`、`compose.yaml + compose.demo.yaml` 和 `ticknova-demo` 项目，数据库为 `ticknova_demo`，卷为 `ticknova-demo_postgres_data` / `ticknova-demo_uploads`；默认只使用 mock。旧 `ticknova` 应用容器停止，原 `.env`、`ticknova_postgres_data` 和 `ticknova_uploads` 保留。下面各历史章节中的 `.env` / `ticknova` 指旧入口，不应混用于新演示库。
+后端测试使用 `ticknova-test`、独立测试数据库及解析服务；浏览器回归使用 `ticknova-browser`、一次性配置和临时库。`scripts/Test-Browser.ps1` 会重置固定的浏览器测试项目及其数据卷，并清理临时凭据和默认截图。运行前请确认该项目没有需要保留的数据；不要把浏览器测试指向演示或业务数据库。
 
-`scripts/Seed-Demo.ps1` 校验数据库身份及 admin/agent/requester/editor/reviewer 五个固定单角色账号，再通过现有登录/首次改密、目录、工单、知识创作、Docling、专职审核、发布和索引接口准备原创样例。密码只写 `.env.demo`；完成后记录 `DEMO_CONTENT_SEEDED` 事件。已完成的种子重复执行不写业务或审计；非空且无完成事件时保留数据并报错，避免把中断的初始化误报为成功。当前种子为五个账号、四队列、八服务、十二篇知识、二十四张工单，全部为虚构演示内容。
+`scripts/Run-Performance.ps1` 使用固定的 `ticknova-perf` 项目、独立临时数据库和 mock；脚本会重置对应测试项目。它记录工单列表、创建和异步问答的样本数、环境与延迟。异步耗时包含排队、检索、mock 生成和轮询，不能当作纯检索或真实模型延迟。历史实测和测试命令见[测试矩阵与阶段门](12-测试矩阵与阶段门.md)。
 
-`scripts/Test-Browser.ps1` 自建 `ticknova-browser` 项目、`ticknova_browser` tmpfs 库和一次性 `.env.browser`，全入口先验证 Nginx 的 `browser-test` 标记，禁止连接演示入口。它使用独立于后端 `ticknova-test` 的容器和网络；每个浏览器套件之间重启专用 API 清空内存登录配额，保持产品登录限流配置不变。结束后清理测试栈和凭据；截图/JSON 只进入系统临时目录，默认清理，人工检查使用 `-KeepArtifacts` 后及时删除。`-Scope Demo` 在测试库运行同一原创样例，不向演示库写浏览器合成夹具。
+启动或浏览器脚本提供 `-SkipParserBuild` 选项，仅在本地解析镜像通过源码与依赖锁哈希校验后复用。完整测试应核对镜像、数据集及执行环境，避免与其他负载测试并行。
 
-默认完整构建。官方 Python 镜像元数据访问失败而本地解析镜像可用时，启动和浏览器脚本可加 `-SkipParserBuild`；`Assert-ParserImage.ps1` 必须先核对 app.py、worker.py、limits.py、uv.lock、pyproject.toml 五份 SHA-256，任一不同即拒绝复用。
+## 备份与恢复演练
 
-备份与隔离恢复默认使用新 `.env.demo`；操作旧库时显式加 `-Legacy`。切回旧环境只需先停止新演示栈，再执行 `docker compose --env-file .env -p ticknova -f deploy/compose.yaml start`，使用保留的原容器及原卷。切换前先记录当前正在使用的环境，不删除任何演示卷。
+PowerShell 脚本默认针对 `ticknova-demo`：
 
-## G5 本地备份与隔离恢复（2026-10-23）
+```powershell
+.\scripts\Backup-Local.ps1
+.\scripts\Test-Restore.ps1 -BackupDirectory '<项目内 data/backups 下的备份目录>'
+```
 
-运行 `.\scripts\Backup-Local.ps1` 时，现有 API 若正在运行会先停写，PostgreSQL 保持运行；脚本生成 `pg_dump` 自定义格式快照并从 API 私有卷复制原件，逐一核对数据库 `storage_key` 与 SHA-256，最后写入 manifest。脚本结束会恢复 API/数据库原先的运行状态；若恢复服务失败会明确报错。备份位于项目已忽略的 `data/backups`，包含账号与文档等敏感数据，不能提交仓库。
+备份脚本在 API 运行时短暂停写，使用 `pg_dump` 和上传文件制作快照，核验文档引用的 SHA-256，并尝试恢复原服务状态。备份存于被忽略的 `data/backups`，可能包含账号和文档内容，应妥善保管且不能提交仓库。针对使用 `.env` 的原始 `ticknova` 项目，可给两个脚本显式添加 `-Legacy`。
 
-运行 `.\scripts\Test-Restore.ps1 -BackupDirectory '<项目内 data/backups 的备份目录>'` 可先验证清单及文件 hash，再在独立 Compose 项目中用 tmpfs PostgreSQL 恢复 dump、校验 Flyway 版本和全部文件引用，启动只读挂载原件的 API 检查 readiness 和可读 hash。测试容器不映射宿主端口，结束后移除临时库；**不会覆盖现有演示数据库或原件**。这是本地一致性备份和恢复演练，不等于生产热备、跨机容灾或 RPO/RTO 承诺。
+恢复脚本验证清单与文件哈希后，在独立项目和临时 PostgreSQL 中恢复并校验数据库版本、引用与 API 可读性；它是恢复演练，不覆盖现有数据库或上传卷，也不等于跨机灾备、生产热备或 RPO/RTO 承诺。
 
-失败索引的重试由有空间编辑权的用户在知识版本历史中发起；审计记录旧失败码。解析超时现在区分响应头等待超时与其他传输故障；解析服务若响应头已经发送，超时会终止传输而不再次写入 504 响应头。真实模型、生产发布及整体供应链门仍需单独验收。
+## CI 与发布限制
 
-## Ticknova V2 本地升级（2026-10-21）
+仓库的 [verify 工作流](../.github/workflows/verify.yaml)包含后端 PostgreSQL 集成测试、前端检查、脚本测试、解析服务测试和 Compose 镜像构建。特定提交的历史结果及未测项见[测试矩阵](12-测试矩阵与阶段门.md)；每次提交应查看对应运行结果。
 
-启动入口仍为 `scripts/Start-Local.ps1` / `http://127.0.0.1:5173`，不重置现有密码或数据。V5/V6由API启动时Flyway增量执行；本次V4→V6原账号密码/状态、工单、文档、版本原件和发布指针核验保持一致，见 `evidence/ui-v2-demo-upgrade.json`。产品名称、页面品牌、容器、数据库与工程标识统一为Ticknova。
-
-新增浏览器设计验收使用五种宽度及真实本地API；具体命令和结果见第12篇。仍只向127.0.0.1暴露web/API，不发布生产环境或远端。备份恢复、失败索引管理及既有解析超时遗留项仍属G5，未因UI整改而视为完成。
-
-## G0–G3 已落地入口
-
-当前运行 postgres/api/web/docling；一条 `scripts/Start-Local.ps1` 生成本地随机配置并构建启动项目专用服务。脚本保留已有 `.env` 和数据卷，补齐缺失的解析服务随机令牌；数据库仅在容器网络中可访问。`scripts/Test-Backend.ps1` 使用 `ticknova-test` 网络、独立 `ticknova_test` 数据库和 tmpfs，并调用真实解析服务；正式数据不参与测试。
-
-原件保存在 `uploads` 私有命名卷，API 以非 root 用户访问；Docling 只有内部网络和 bearer 入口，不发布端口。解析容器只读根文件系统、临时目录 tmpfs 256 MiB、1 CPU/1 GiB、128 PID、丢弃 capabilities、禁止提权；每次解析使用独立子进程并回收。当前不下载模型、不需要外部模型密钥。worker 的 120 秒租约和 fencing token 保障进程中断后可恢复，最多自动尝试五次；终止状态可手动重试并保留旧 job 证据。
-
-宿主 Docker Hub 鉴权连接超时时，可在项目 `.env` 设置 `DOCLING_PYTHON_IMAGE` 指向同一已核验 digest 的镜像代理；默认仍为官方固定镜像，不修改 Docker 全局配置。实际本机使用的代理及 digest 记录在第16篇。
-
-Maven 官方镜像的 `MAVEN_CONFIG` 表示路径，与经典 Wrapper 的同名 CLI 参数约定不同；容器运行 Wrapper 前显式清除此变量。采用 bin 类型 Wrapper，通过 Java 解压并验证 zip 摘要，避免缺少 unzip 时自动改为 tar 包导致校验错配。
-
-基础镜像均固定版本和 digest；配置见 `deploy/compose.yaml`、`compose.test.yaml` 和 Dockerfile。Java API 镜像以非 root 用户运行；本轮运行时使用固定 Maven/JDK 基础镜像，体积优化留到交付打磨。CI 工作流已编写，实际远端运行仍为 NOT RUN。本轮备份恢复、压力测试、模型故障降级尚未验收。
-
-## 本地运行设计
-
-前提：Docker Compose、约 8 GiB 可用内存、可访问镜像/依赖源。Compose 服务：`postgres`（PostgreSQL 17 + pgvector）、`api`（Spring Boot）、`web`（Vue 静态站点/API 代理）、`docling`（FastAPI）。基础流程无需独立 Redis、Kafka、RabbitMQ、对象存储或外部模型密钥。后续 OCR 若引入模型，必须先复核模型权利和资源需求。
-
-交付时应提供 `.env.example` 和迁移初始化数据；正式 `.env` 不进 Git。预期开发者体验：复制 env 文件、填写随机本地密钥、执行 `docker compose up --build`、访问 `http://localhost:5173`（具体端口在实现时统一）。健康检查成功后用 README 演示账户登录，强制启动时更改种子密码。
-
-## 环境变量契约
-
-| 变量 | 默认/说明 | 敏感 |
-|---|---|---|
-| `SPRING_PROFILES_ACTIVE` | `local` | 否 |
-| `DB_URL/DB_USER/DB_PASSWORD` | Compose 内网数据库 | 密码是 |
-| `SESSION_TOKEN_PEPPER` | 本地随机生成的 token hash pepper | 是 |
-| `AI_PROVIDER` | `mock`；显式`openai`使用OpenAI兼容适配器 | 否 |
-| `AI_BASE_URL/AI_API_KEY/AI_MODEL` | 真实模型配置；只在服务端读取 | API key 是 |
-| `EMBEDDING_MODEL` | 真实模式显式指定模型；维度在代码固定1024并逐响应校验 | 否 |
-| `EMBEDDING_BATCH_SIZE` | 默认32，范围1–32；百炼 text-embedding-v4 设10，每批响应校验后恢复原顺序 | 否 |
-| `AI_WORKER_ENABLED` | 默认true，控制G4索引/生成调度，测试false | 否 |
-| `DOCLING_BASE_URL` | Compose 内网地址 | 否 |
-| `DOCLING_INTERNAL_TOKEN` | 脚本生成的内部 bearer 凭据 | 是 |
-| `DOCLING_PYTHON_IMAGE` | 可选构建来源，须固定并核验同一 digest | 否 |
-| `UPLOAD_ROOT/MAX_UPLOAD_BYTES/MAX_PDF_PAGES` | 本地受限目录、20 MiB、100 页 | 否 |
-| `JOB_MAX_ATTEMPTS` | 5 | 否 |
-
-G4默认不需要额外env值，mock不会读取真实密钥或调用第三方。真实模式须同时设置AI_PROVIDER/openai、AI_BASE_URL、AI_API_KEY、AI_MODEL、EMBEDDING_MODEL；配置无效会明确报错，运行期provider故障由任务有限重试处理。更换embedding模型/地址产生新profile，旧向量不参与新查询，后台分批重建。调度池3线程，解析/索引/生成不互相独占单线程。`JOB_MAX_ATTEMPTS`映射G3知识worker上限（1–5）；G4任务同样有限尝试。`MAX_UPLOAD_BYTES`/`MAX_PDF_PAGES`只允许收紧20MiB/100页硬上限。Micrometer已注册G3指标，HTTP仅开放health，未交付采集端点或告警。
-
-## 运维动作
-
-- 探针：`/actuator/health/readiness` 和 liveness 分开；readiness 检查数据库与迁移，不因外部模型短暂不可用让全部核心工单 API 不健康。
-- 备份：`pg_dump` + 文件目录一致性备份；记录恢复时间和版本；恢复后校验文件 hash、版本和向量重建路径。
-- 迁移：向前兼容、先加后删；变更 embedding 维度以新版本索引迁移。
-- 日志：JSON、`traceId`、job ID、模块；文本字段脱敏；设置大小轮转。
-- 关停：worker 先停止领取新任务，等待租约任务完成；未完成任务可安全重领。
-- 故障：模型不可用时允许工单核心流程继续；Docling 故障时上传显示待处理/可重试；数据库故障时只读提示，不谎报写入成功。
-
-## CI/CD 建议
-
-GitHub Actions 或同类 CI：后端编译与单元测试、迁移测试、前端 lint/typecheck/build、Python lint/契约测试、Compose 镜像构建、依赖/许可证/SBOM 扫描。主分支只部署演示环境；生产发布不在本包授权范围。CI 上传实际测试摘要和依赖清单，不把 API 密钥作为构建参数。
+生产发布仍需要结合目标环境核验账户与权限、网络和密钥、备份恢复、资源限制、日志监控、依赖和容器 OS 安全、真实模型质量及费用。现有本地演示与 CI 通过不表示这些项目已经验收。
